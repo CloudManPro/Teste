@@ -3,10 +3,11 @@ on:
   push:
     paths: ['**/manifest.json']
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   infrastructure:
+    # Chama o engine sem passar argumentos, pois o engine lê tudo do manifesto
     uses: CloudManPro/cloudman-core/.github/workflows/engine.yml@main
-    with:
-      aws_region: "us-east-1"
-    secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
