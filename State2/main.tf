@@ -34,6 +34,3 @@ resource "aws_sns_topic" "Topic" {
     "CloudmanUser" = "GlobalUserName"
   }
 }
-
-resource "cldmn_box" "Box" {
-}
