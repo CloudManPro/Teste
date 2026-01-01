@@ -1,0 +1,11 @@
+{
+  "action": "apply",
+  "trigger_id": "1767305278332",
+  "states": [
+    {
+      "path": "State3",
+      "type": "aws",
+      "identifier": "arn:aws:iam::061051249868:role/Teste"
+    }
+  ]
+}
