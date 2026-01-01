@@ -1,0 +1,11 @@
+{
+  "action": "destroy",
+  "trigger_id": "1767297806256",
+  "states": [
+    {
+      "path": "State",
+      "type": "aws",
+      "identifier": "arn:aws:iam::952133486861:role/Teste"
+    }
+  ]
+}
