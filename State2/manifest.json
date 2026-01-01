@@ -1,6 +1,7 @@
 {
-  "action": "apply",
+  "action": "plan",
   "states": [
     "State2"
-  ]
+  ],
+  "trigger_id": "1767272735385"
 }
