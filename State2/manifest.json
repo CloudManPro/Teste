@@ -1,6 +1,6 @@
 {
-  "action": "apply",
-  "trigger_id": "1767296770148",
+  "action": "destroy",
+  "trigger_id": "1767296831646",
   "states": [
     {
       "path": "State2",
