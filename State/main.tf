@@ -26,8 +26,7 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 resource "aws_sns_topic" "Topic1" {
-  name              = "Topic1"
-  signature_version = 0
+  name = "Topic1"
   tags                              = {
     "Name"         = "Topic1"
     "State"        = "State"
