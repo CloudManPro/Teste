@@ -1,6 +1,6 @@
 {
-  "action": "plan",
-  "trigger_id": "1767279222683",
+  "action": "apply",
+  "trigger_id": "1767279672815",
   "states": [
     {
       "path": "State2",
