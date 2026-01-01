@@ -1,17 +1,11 @@
 {
   "action": "plan",
-  "trigger_id": "1767276532577",
-  "clouds": [
-    {
-      "id": "aws-952133486861",
-      "type": "aws",
-      "identifier": "arn:aws:iam::952133486861:role/Teste"
-    }
-  ],
+  "trigger_id": "1767276869710",
   "states": [
     {
       "path": "State2",
-      "cloud": "aws-952133486861"
+      "type": "aws",
+      "identifier": "arn:aws:iam::952133486861:role/Teste"
     }
   ]
 }
