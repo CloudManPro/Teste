@@ -20,14 +20,7 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 resource "aws_sns_topic" "Topic" {
-  name                                     = "Topic"
-  application_success_feedback_sample_rate = 0
-  fifo_topic                               = false
-  firehose_success_feedback_sample_rate    = 0
-  http_success_feedback_sample_rate        = 0
-  lambda_success_feedback_sample_rate      = 0
-  signature_version                        = 0
-  sqs_success_feedback_sample_rate         = 0
+  name = "Topic"
   tags                              = {
     "Name"         = "Topic"
     "State"        = "State2"
