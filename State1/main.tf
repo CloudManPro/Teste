@@ -19,7 +19,7 @@ terraform {
 
 provider "aws" {
   region              = "eu-central-1"
-  allowed_account_ids = ["746669211265"]
+  allowed_account_ids = ["746669211265","952133486861"]
 }
 
 # Standard Data Sources
