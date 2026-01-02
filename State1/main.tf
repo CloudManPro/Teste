@@ -13,13 +13,13 @@ terraform {
     key            = "State1/main.tfstate"
     region         = "us-east-1"
     dynamodb_table = "TableBE"
+    profile        = "backend"
     encrypt        = true
   }
 }
 
 provider "aws" {
-  region              = "eu-central-1"
-  allowed_account_ids = ["746669211265"]
+  region = "eu-central-1"
 }
 
 # Standard Data Sources
