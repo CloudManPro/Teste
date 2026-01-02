@@ -18,11 +18,8 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-central-1"
-  assume_role {
-    role_arn            = "arn:aws:iam::746669211265:role/CloudManCrossAccountPermitsMain"
-    allowed_account_ids = ["746669211265"]
-  }
+  region              = "eu-central-1"
+  allowed_account_ids = ["746669211265"]
 }
 
 # Standard Data Sources
