@@ -18,7 +18,8 @@ terraform {
 }
 
 provider "aws" {
-  region = "sa-east-1"
+  region              = "sa-east-1"
+  allowed_account_ids = ["952133486861"]
 }
 
 # Standard Data Sources
