@@ -9,17 +9,17 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "bucket-teste-backend-terraform-cloudmantest"
+    bucket         = "bucket-teste-backend-terraform"
     key            = "State3/main.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "TableBEcloudmantest"
+    dynamodb_table = "TableBE"
+    profile        = "backend"
     encrypt        = true
   }
 }
 
 provider "aws" {
-  region              = "ap-northeast-1"
-  allowed_account_ids = ["061051249868"]
+  region = "ap-northeast-1"
 }
 
 # Standard Data Sources
