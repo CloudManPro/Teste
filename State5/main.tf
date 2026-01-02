@@ -14,6 +14,8 @@ terraform {
     region         = "us-east-1"
     dynamodb_table = "TableBE"
     encrypt        = true
+    role_arn       = "arn:aws:iam::952133486861:role/Teste"
+
   }
 }
 
