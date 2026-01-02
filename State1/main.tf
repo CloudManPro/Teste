@@ -9,10 +9,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "bucket-teste-backend-terraform-sandbox"
+    bucket         = "bucket-teste-backend-terraform"
     key            = "State1/main.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "TableBESandBox"
+    dynamodb_table = "TableBE"
     encrypt        = true
   }
 }
