@@ -9,11 +9,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket       = "bucket-teste-backend-terraform"
-    key          = "State/main.tfstate"
-    region       = "eu-central-1"
-    use_lockfile = "TableBE"
-    encrypt      = true
+    bucket         = "bucket-teste-backend-terraform"
+    key            = "State/main.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TableBE"
+    encrypt        = true
   }
 }
 
