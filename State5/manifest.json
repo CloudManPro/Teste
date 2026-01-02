@@ -1,11 +1,25 @@
 {
   "action": "apply",
-  "trigger_id": "1767316411406",
-  "states": [
+  "trigger_id": "1767391399775",
+  "backend_global_config": {
+    "provider": "aws",
+    "role_arn": "arn:aws:iam::952133486861:role/Teste",
+    "region": "us-east-1"
+  },
+  "pipeline_stages": [
     {
-      "path": "State5",
-      "type": "aws",
-      "identifier": "arn:aws:iam::746669211265:role/Teste"
+      "stage_name": "Manual Trigger: State5",
+      "parallel_execution": false,
+      "states": [
+        {
+          "path": "State5",
+          "provider": "aws",
+          "target_auth": {
+            "role_arn": "arn:aws:iam::746669211265:role/Teste",
+            "region": "eu-central-1"
+          }
+        }
+      ]
     }
   ]
 }
