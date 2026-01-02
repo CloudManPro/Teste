@@ -11,15 +11,16 @@ terraform {
   backend "s3" {
     bucket         = "bucket-teste-backend-terraform"
     key            = "State/main.tfstate"
-    region         = "us-east-1"
+    region         = "eu-central-1"
     dynamodb_table = "TableBE"
     encrypt        = true
+    role_arn       = "arn:aws:iam::952133486861:role/Teste"
   }
 }
 
 provider "aws" {
-  region              = "sa-east-1"
-  allowed_account_ids = ["952133486861"]
+  region              = "eu-central-1"
+  allowed_account_ids = ["746669211265"]
 }
 
 # Standard Data Sources
