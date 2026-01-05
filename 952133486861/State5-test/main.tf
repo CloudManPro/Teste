@@ -35,3 +35,13 @@ resource "aws_sns_topic" "Topic4-test" {
     "Stage" = "test"
   }
 }
+
+resource "aws_sns_topic" "Topic6-test" {
+  name                              = "Topic6-test"
+  tags                              = {
+    "Name" = "Topic6-test"
+    "State" = "State5-test"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "test"
+  }
+}
