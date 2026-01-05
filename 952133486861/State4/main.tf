@@ -35,10 +35,3 @@ resource "aws_sns_topic" "Topic3-test" {
     "Stage" = "test"
   }
 }
-
-resource "cldmn_tag" "tag_stage_Box1" {
-  tags {
-    key                             = "Stage"
-    value                           = "test"
-  }
-}
