@@ -8,7 +8,14 @@ terraform {
     }
   }
 
-  # Backend remoto nao configurado.
+  backend "s3" {
+    bucket         = "bucket-teste-backend-terraform"
+    key            = "952133486861/State4-test/main.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TableBE"
+    profile        = "backend"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
