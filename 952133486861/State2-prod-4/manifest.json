@@ -1,0 +1,25 @@
+{
+  "action": "apply",
+  "trigger_id": "1767649220856",
+  "backend_global_config": {
+    "provider": "aws",
+    "role_arn": "arn:aws:iam::952133486861:role/Teste",
+    "region": "us-east-1"
+  },
+  "pipeline_stages": [
+    {
+      "stage_name": "APPLY: prod",
+      "parallel_execution": false,
+      "states": [
+        {
+          "path": "952133486861/State2-prod-4",
+          "provider": "aws",
+          "target_auth": {
+            "role_arn": "arn:aws:iam::952133486861:role/Teste",
+            "region": "us-east-1"
+          }
+        }
+      ]
+    }
+  ]
+}
