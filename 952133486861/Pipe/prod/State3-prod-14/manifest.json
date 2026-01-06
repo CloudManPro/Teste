@@ -1,6 +1,6 @@
 {
-  "action": "apply",
-  "trigger_id": "1767663824766",
+  "action": "destroy",
+  "trigger_id": "1767694812323",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
@@ -8,43 +8,11 @@
   },
   "pipeline_stages": [
     {
-      "stage_name": "APPLY: prod",
+      "stage_name": "Manual Trigger: State3-prod-14",
       "parallel_execution": false,
       "states": [
         {
           "path": "952133486861/Pipe/prod/State3-prod-14",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::952133486861:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "746669211265/Pipe/prod/State5-prod-14",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::746669211265:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "952133486861/Pipe/prod/State2-prod-14",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::952133486861:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "952133486861/Pipe/prod/State4-prod-14",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::952133486861:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "952133486861/Pipe/prod/State-prod-14",
           "provider": "aws",
           "target_auth": {
             "role_arn": "arn:aws:iam::952133486861:role/Teste",
