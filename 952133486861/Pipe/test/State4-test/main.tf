@@ -10,7 +10,7 @@ terraform {
 
   backend "s3" {
     bucket         = "bucket-teste-backend-terraform"
-    key            = "952133486861/Pipe/test/State3-test/main.tfstate"
+    key            = "952133486861/Pipe/test/State4-test/main.tfstate"
     region         = "us-east-1"
     dynamodb_table = "TableBE"
     profile        = "backend"
@@ -26,11 +26,11 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-resource "aws_sns_topic" "Topic2-test" {
-  name                              = "Topic2-test"
+resource "aws_sns_topic" "Topic3-test" {
+  name                              = "Topic3-test"
   tags                              = {
-    "Name" = "Topic2-test"
-    "State" = "State3-test"
+    "Name" = "Topic3-test"
+    "State" = "State4-test"
     "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
