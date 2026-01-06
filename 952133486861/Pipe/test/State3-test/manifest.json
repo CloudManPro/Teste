@@ -1,6 +1,6 @@
 {
-  "action": "apply",
-  "trigger_id": "1767697733954",
+  "action": "destroy",
+  "trigger_id": "1767697771516",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
@@ -8,7 +8,7 @@
   },
   "pipeline_stages": [
     {
-      "stage_name": "APPLY: test",
+      "stage_name": "DESTROY: test",
       "parallel_execution": false,
       "states": [
         {
