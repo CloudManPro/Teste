@@ -1,6 +1,6 @@
 {
   "action": "apply",
-  "trigger_id": "1767700258191",
+  "trigger_id": "1767700827524",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
