@@ -1,6 +1,6 @@
 {
   "action": "destroy",
-  "trigger_id": "1767705092408",
+  "trigger_id": "1767741189999",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
