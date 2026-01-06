@@ -8,7 +8,14 @@ terraform {
     }
   }
 
-  # Backend remoto nao configurado.
+  backend "s3" {
+    bucket         = "bucket-teste-backend-terraform"
+    key            = "746669211265/Pipe/test/State-test/main.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TableBE"
+    profile        = "backend"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
@@ -23,6 +30,16 @@ resource "aws_sns_topic" "Topic-test" {
   name                              = "Topic-test"
   tags                              = {
     "Name" = "Topic-test"
+    "State" = "State-test"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "test"
+  }
+}
+
+resource "aws_sns_topic" "Topic3-test" {
+  name                              = "Topic3-test"
+  tags                              = {
+    "Name" = "Topic3-test"
     "State" = "State-test"
     "CloudmanUser" = "SystemUser"
     "Stage" = "test"
