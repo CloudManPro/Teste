@@ -1,0 +1,37 @@
+terraform {
+  required_version = ">= 1.0.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
+  backend "s3" {
+    bucket         = "bucket-teste-backend-terraform"
+    key            = "746669211265/Pipe/prod3/State-prod3-16/main.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TableBE"
+    profile        = "backend"
+    encrypt        = true
+  }
+}
+
+provider "aws" {
+  region = "sa-east-1"
+}
+
+# Standard Data Sources
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+resource "aws_sns_topic" "Topic-prod3-16" {
+  name                              = "Topic-prod3-16"
+  tags                              = {
+    "Name" = "Topic-prod3-16"
+    "State" = "State-prod3-16"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "prod3"
+  }
+}
