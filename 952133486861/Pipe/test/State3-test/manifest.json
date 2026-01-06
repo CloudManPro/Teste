@@ -1,6 +1,6 @@
 {
   "action": "apply",
-  "trigger_id": "1767663561562",
+  "trigger_id": "1767697733954",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
@@ -13,38 +13,6 @@
       "states": [
         {
           "path": "952133486861/Pipe/test/State3-test",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::952133486861:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "746669211265/Pipe/test/State5-test",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::746669211265:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "952133486861/Pipe/test/State2-test",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::952133486861:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "952133486861/Pipe/test/State4-test",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::952133486861:role/Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "952133486861/Pipe/test/State-test",
           "provider": "aws",
           "target_auth": {
             "role_arn": "arn:aws:iam::952133486861:role/Teste",
