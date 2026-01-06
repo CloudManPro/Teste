@@ -26,16 +26,6 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-resource "aws_sns_topic" "Topic2-test" {
-  name                              = "Topic2-test"
-  tags                              = {
-    "Name" = "Topic2-test"
-    "State" = "State3-test"
-    "CloudmanUser" = "SystemUser"
-    "Stage" = "test"
-  }
-}
-
 resource "aws_sns_topic" "Topic1-test" {
   name                              = "Topic1-test"
   tags                              = {
