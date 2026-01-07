@@ -53,6 +53,26 @@ resource "aws_s3_bucket" "s3-cloudman-12345" {
   }
 }
 
+resource "aws_dynamodb_table" "Table" {
+  name                        = "Table"
+  billing_mode                = "PROVISIONED"
+  deletion_protection_enabled = false
+  hash_key                    = "ID"
+  read_capacity               = 1
+  stream_enabled              = false
+  table_class                 = "STANDARD"
+  write_capacity              = 1
+  attribute {
+    name = "ID"
+    type = "S"
+  }
+  tags                              = {
+    "Name"         = "Table"
+    "State"        = "State4"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_s3_bucket_versioning" "s3-cloudman-12345_versioning" {
   bucket = aws_s3_bucket.s3-cloudman-12345.id
   versioning_configuration {
