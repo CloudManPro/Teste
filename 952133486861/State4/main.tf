@@ -71,10 +71,6 @@ resource "aws_dynamodb_table" "Table" {
     type = "S"
   }
   attribute {
-    name = "asas"
-    type = "S"
-  }
-  attribute {
     name = "asasrange"
     type = "S"
   }
@@ -86,7 +82,7 @@ resource "aws_dynamodb_table" "Table" {
     write_capacity  = 5
   }
   lifecycle {
-    ignore_changes = [read_capacity, write_capacity]
+    ignore_changes = [write_capacity, read_capacity]
   }
   local_secondary_index {
     name            = "asas"
