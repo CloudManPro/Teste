@@ -60,11 +60,14 @@ resource "aws_dynamodb_table" "Table" {
   hash_key                    = "ID"
   read_capacity               = 1
   stream_enabled              = false
-  table_class                 = "STANDARD"
+  table_class                 = "STANDARD_INFREQUENT_ACCESS"
   write_capacity              = 1
   attribute {
     name = "ID"
     type = "S"
+  }
+  lifecycle {
+    ignore_changes = ["write_capacity", "read_capacity"]
   }
   tags                              = {
     "Name"         = "Table"
@@ -103,5 +106,49 @@ resource "aws_s3_bucket_ownership_controls" "s3-cloudman-12345_controls" {
   bucket = aws_s3_bucket.s3-cloudman-12345.id
   rule {
     object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_appautoscaling_target" "sc_target_Read_Table" {
+  resource_id        = "table/${aws_dynamodb_table.Table.name}"
+  max_capacity       = 20
+  min_capacity       = 5
+  scalable_dimension = "dynamodb:table:ReadCapacityUnits"
+  service_namespace  = "dynamodb"
+}
+
+resource "aws_appautoscaling_policy" "sc_policy_Read_Table" {
+  name               = "DynamoDBReadCapacityUtilization:sc_target_Read_Table"
+  resource_id        = "${aws_appautoscaling_target.sc_target_Read_Table.resource_id}"
+  policy_type        = "TargetTrackingScaling"
+  scalable_dimension = "${aws_appautoscaling_target.sc_target_Read_Table.scalable_dimension}"
+  service_namespace  = "${aws_appautoscaling_target.sc_target_Read_Table.service_namespace}"
+  target_tracking_scaling_policy_configuration = {
+    "predefined_metric_specification" = {
+      "predefined_metric_type" = "DynamoDBReadCapacityUtilization"
+    }
+    "target_value" = 70.0
+  }
+}
+
+resource "aws_appautoscaling_target" "sc_target_Write_Table" {
+  resource_id        = "table/${aws_dynamodb_table.Table.name}"
+  max_capacity       = 20
+  min_capacity       = 5
+  scalable_dimension = "dynamodb:table:WriteCapacityUnits"
+  service_namespace  = "dynamodb"
+}
+
+resource "aws_appautoscaling_policy" "sc_policy_Write_Table" {
+  name               = "DynamoDBWriteCapacityUtilization:sc_target_Write_Table"
+  resource_id        = "${aws_appautoscaling_target.sc_target_Write_Table.resource_id}"
+  policy_type        = "TargetTrackingScaling"
+  scalable_dimension = "${aws_appautoscaling_target.sc_target_Write_Table.scalable_dimension}"
+  service_namespace  = "${aws_appautoscaling_target.sc_target_Write_Table.service_namespace}"
+  target_tracking_scaling_policy_configuration = {
+    "predefined_metric_specification" = {
+      "predefined_metric_type" = "DynamoDBWriteCapacityUtilization"
+    }
+    "target_value" = 70.0
   }
 }
