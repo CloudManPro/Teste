@@ -71,7 +71,7 @@ resource "aws_s3_bucket_public_access_block" "s3-cloudman-12345_block" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "s3-cloudman-12345_configuration" {
   bucket                = aws_s3_bucket.s3-cloudman-12345.id
-  expected_bucket_owner = aws_s3_bucket.s3-cloudman-12345.id
+  expected_bucket_owner = data.aws_caller_identity.current.account_id
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
