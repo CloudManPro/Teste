@@ -70,10 +70,6 @@ resource "aws_dynamodb_table" "Table" {
     name = "teste"
     type = "S"
   }
-  attribute {
-    name = "asasrange"
-    type = "S"
-  }
   global_secondary_index {
     name            = "Index"
     hash_key        = "teste"
