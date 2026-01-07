@@ -123,11 +123,11 @@ resource "aws_appautoscaling_policy" "sc_policy_Read_Table" {
   policy_type        = "TargetTrackingScaling"
   scalable_dimension = "${aws_appautoscaling_target.sc_target_Read_Table.scalable_dimension}"
   service_namespace  = "${aws_appautoscaling_target.sc_target_Read_Table.service_namespace}"
-  target_tracking_scaling_policy_configuration = {
-    "predefined_metric_specification" = {
-      "predefined_metric_type" = "DynamoDBReadCapacityUtilization"
+  target_tracking_scaling_policy_configuration {
+    target_value = 70.0
+    predefined_metric_specification {
+      predefined_metric_type = "DynamoDBReadCapacityUtilization"
     }
-    "target_value" = 70.0
   }
 }
 
@@ -145,10 +145,10 @@ resource "aws_appautoscaling_policy" "sc_policy_Write_Table" {
   policy_type        = "TargetTrackingScaling"
   scalable_dimension = "${aws_appautoscaling_target.sc_target_Write_Table.scalable_dimension}"
   service_namespace  = "${aws_appautoscaling_target.sc_target_Write_Table.service_namespace}"
-  target_tracking_scaling_policy_configuration = {
-    "predefined_metric_specification" = {
-      "predefined_metric_type" = "DynamoDBWriteCapacityUtilization"
+  target_tracking_scaling_policy_configuration {
+    target_value = 70.0
+    predefined_metric_specification {
+      predefined_metric_type = "DynamoDBWriteCapacityUtilization"
     }
-    "target_value" = 70.0
   }
 }
