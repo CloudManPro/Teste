@@ -84,11 +84,6 @@ resource "aws_dynamodb_table" "Table" {
   lifecycle {
     ignore_changes = [write_capacity, read_capacity]
   }
-  local_secondary_index {
-    name            = "asas"
-    projection_type = "ALL"
-    range_key       = "asasrange"
-  }
   tags                              = {
     "Name"         = "Table"
     "State"        = "State4"
