@@ -70,6 +70,14 @@ resource "aws_dynamodb_table" "Table" {
     name = "teste"
     type = "S"
   }
+  attribute {
+    name = "asas"
+    type = "S"
+  }
+  attribute {
+    name = "asasrange"
+    type = "S"
+  }
   global_secondary_index {
     name            = "Index"
     hash_key        = "teste"
@@ -78,7 +86,12 @@ resource "aws_dynamodb_table" "Table" {
     write_capacity  = 5
   }
   lifecycle {
-    ignore_changes = ["read_capacity", "write_capacity"]
+    ignore_changes = [read_capacity, write_capacity]
+  }
+  local_secondary_index {
+    name            = "asas"
+    projection_type = "ALL"
+    range_key       = "asasrange"
   }
   tags                              = {
     "Name"         = "Table"
