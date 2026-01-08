@@ -1,17 +1,38 @@
-# REPOSITÓRIO DO CLIENTE: .github/workflows/lambda-sync.yml
+# REPOSITÓRIO: CloudManPro/Teste (Executor)
+# ARQUIVO: .github/workflows/lambda-sync.yml
+
 name: "CloudMan Sync Listener"
 
 on:
   workflow_dispatch:
     inputs:
       direction:
+        description: "Sync direction"
         required: true
+        type: string
       region:
+        description: "AWS Region"
         default: "us-east-1"
+        type: string
       role_arn:
+        description: "IAM Role"
         required: true
+        type: string
       resources_json:
+        description: "Resources payload"
         required: true
+        type: string
+      # --- ADICIONE ESTES DOIS CAMPOS ---
+      target_repo:
+        description: "Target Repository (Org/Repo)"
+        required: false
+        type: string
+      target_branch:
+        description: "Target Branch"
+        default: "main"
+        required: false
+        type: string
+      # ----------------------------------
 
 permissions:
   id-token: write
@@ -19,10 +40,16 @@ permissions:
 
 jobs:
   sync-job:
-    # Chama o Engine Centralizado (Seguro e Versionado)
+    # Chama o Engine Centralizado
     uses: CloudManPro/cloudman-core/.github/workflows/lambda-sync.yml@v1
     with:
       direction: ${{ inputs.direction }}
       region: ${{ inputs.region }}
       role_arn: ${{ inputs.role_arn }}
       resources_json: ${{ inputs.resources_json }}
+      # IMPORTANTE: Se o seu Engine (no cloudman-core) ainda não espera
+      # receber target_repo/branch, você não deve passá-los aqui no 'with' 
+      # ou o Engine vai dar erro. 
+      # Se o Engine JÁ foi atualizado, descomente abaixo:
+      # target_repo: ${{ inputs.target_repo }}
+      # target_branch: ${{ inputs.target_branch }}
