@@ -1,6 +1,15 @@
 {
+  "external_repositories": [
+    {
+      "repo_name": "CloudMan",
+      "org": "CloudManPro",
+      "branch": "main",
+      "target_dir": ".external_modules/CloudMan",
+      "is_source_code": true
+    }
+  ],
   "action": "apply",
-  "trigger_id": "1767831606940",
+  "trigger_id": "1767836646953",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
