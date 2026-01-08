@@ -31,7 +31,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 data "archive_file" "archive_CloudMan_Function" {
   output_path = "${path.module}/CloudMan_Function.zip"
-  source_dir  = "${path.module}/LambdaFiles/LambdaHub"
+  source_dir  = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub"
   type        = "zip"
 }
 
