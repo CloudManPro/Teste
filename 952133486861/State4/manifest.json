@@ -9,7 +9,7 @@
     }
   ],
   "action": "apply",
-  "trigger_id": "1767836646953",
+  "trigger_id": "1767836810983",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
