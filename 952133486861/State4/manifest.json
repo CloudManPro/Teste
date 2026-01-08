@@ -8,8 +8,8 @@
       "is_source_code": true
     }
   ],
-  "action": "apply",
-  "trigger_id": "1767836810983",
+  "action": "destroy",
+  "trigger_id": "1767837700891",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
