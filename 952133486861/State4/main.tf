@@ -13,7 +13,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "bucket-teste-backend-terraform-a-bbb"
+    bucket         = "bucket-teste-backend-terraform"
     key            = "952133486861/State4/main.tfstate"
     region         = "us-east-1"
     dynamodb_table = "TableBE"
