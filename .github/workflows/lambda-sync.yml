@@ -41,7 +41,7 @@ permissions:
 jobs:
   sync-job:
     # Chama o Engine Centralizado
-    uses: CloudManPro/cloudman-core/.github/workflows/lambda-sync.yml
+    uses: CloudManPro/cloudman-core/.github/workflows/lambda-sync.yml@main
     with:
       direction: ${{ inputs.direction }}
       region: ${{ inputs.region }}
