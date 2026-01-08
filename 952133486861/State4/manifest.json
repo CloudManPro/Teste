@@ -1,7 +1,27 @@
 {
-  "external_repositories": [],
+  "external_repositories": [
+    {
+      "repo_name": "CloudMan",
+      "org": "CloudManPro",
+      "branch": "main",
+      "target_dir": ".external_modules/CloudMan",
+      "folders": [
+        "LambdaFiles/LambdaHub",
+        "LambdaFiles/APITest"
+      ]
+    },
+    {
+      "repo_name": "Dicionarios",
+      "org": "CloudManPro",
+      "branch": "main",
+      "target_dir": ".external_modules/Dicionarios",
+      "folders": [
+        "DBAccess"
+      ]
+    }
+  ],
   "action": "apply",
-  "trigger_id": "1767838273003",
+  "trigger_id": "1767872832276",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/Teste",
