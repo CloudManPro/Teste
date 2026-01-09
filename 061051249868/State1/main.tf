@@ -79,7 +79,6 @@ resource "aws_subnet" "Subnet3" {
 
 data "local_file" "UserData_Instance" {
   filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
-  type     = "data"
 }
 
 data "aws_ami" "AMI_Data_Source_Instance" {
