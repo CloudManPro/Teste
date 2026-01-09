@@ -59,7 +59,6 @@ resource "aws_db_instance" "Database" {
   engine_version                        = "8.0"
   instance_class                        = "db.t3.micro"
   iops                                  = 3000
-  manage_master_user_password           = false
   max_allocated_storage                 = 100
   password                              = "admin"
   performance_insights_retention_period = 7
