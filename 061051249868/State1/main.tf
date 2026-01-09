@@ -55,10 +55,11 @@ resource "aws_db_instance" "Database" {
   backup_retention_period  = 7
   copy_tags_to_snapshot    = true
   delete_automated_backups = false
-  engine                   = "mysql"
+  engine                   = "mariadb"
   engine_version           = "8.0"
   instance_class           = "db.t3.micro"
   max_allocated_storage    = 100
+  network_type             = "DUAL"
   password                 = "admina!!"
   skip_final_snapshot      = true
   storage_encrypted        = true
@@ -172,7 +173,7 @@ resource "aws_iam_instance_profile" "profile_Instance" {
 
 resource "aws_db_subnet_group" "subnet_group_Database" {
   name       = "database-subnet-group"
-  subnet_ids = [aws_subnet.Subnet2.id, aws_subnet.Subnet3.id, aws_subnet.Subnet0.id, aws_subnet.Subnet1.id]
+  subnet_ids = [aws_subnet.Subnet2.id, aws_subnet.Subnet0.id, aws_subnet.Subnet1.id, aws_subnet.Subnet3.id]
   tags                              = {
     "Name"         = "subnet_group_Database"
     "State"        = "State1"
