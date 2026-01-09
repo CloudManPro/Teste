@@ -48,25 +48,23 @@ resource "aws_subnet" "Subnet0" {
 }
 
 resource "aws_db_instance" "Database" {
-  db_name                               = "test"
-  db_subnet_group_name                  = aws_db_subnet_group.subnet_group_Database.name
-  allocated_storage                     = 20
-  availability_zone                     = aws_subnet.Subnet0.availability_zone
-  backup_retention_period               = 7
-  copy_tags_to_snapshot                 = true
-  delete_automated_backups              = false
-  engine                                = "mysql"
-  engine_version                        = "8.0"
-  instance_class                        = "db.t3.micro"
-  max_allocated_storage                 = 100
-  password                              = "admina!!"
-  performance_insights_enabled          = true
-  performance_insights_retention_period = 7
-  skip_final_snapshot                   = true
-  storage_encrypted                     = true
-  storage_type                          = "gp3"
-  upgrade_storage_config                = false
-  username                              = "admin"
+  db_name                  = "test"
+  db_subnet_group_name     = aws_db_subnet_group.subnet_group_Database.name
+  allocated_storage        = 20
+  availability_zone        = aws_subnet.Subnet0.availability_zone
+  backup_retention_period  = 7
+  copy_tags_to_snapshot    = true
+  delete_automated_backups = false
+  engine                   = "mysql"
+  engine_version           = "8.0"
+  instance_class           = "db.t3.micro"
+  max_allocated_storage    = 100
+  password                 = "admina!!"
+  skip_final_snapshot      = true
+  storage_encrypted        = true
+  storage_type             = "gp3"
+  upgrade_storage_config   = false
+  username                 = "admin"
   tags                              = {
     "Name"         = "Database"
     "State"        = "State1"
