@@ -60,7 +60,7 @@ resource "aws_db_instance" "Database" {
   instance_class                        = "db.t3.micro"
   iops                                  = 3000
   max_allocated_storage                 = 100
-  password                              = "admin"
+  password                              = "admina!!"
   performance_insights_retention_period = 7
   skip_final_snapshot                   = true
   storage_encrypted                     = true
@@ -167,7 +167,7 @@ resource "aws_iam_instance_profile" "profile_Instance" {
 
 resource "aws_db_subnet_group" "subnet_group_Database" {
   name       = "database-subnet-group"
-  subnet_ids = [aws_subnet.Subnet0.id, aws_subnet.Subnet2.id, aws_subnet.Subnet1.id, aws_subnet.Subnet3.id]
+  subnet_ids = [aws_subnet.Subnet0.id, aws_subnet.Subnet2.id, aws_subnet.Subnet3.id, aws_subnet.Subnet1.id]
   tags                              = {
     "Name"         = "subnet_group_Database"
     "State"        = "State1"
