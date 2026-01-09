@@ -126,7 +126,7 @@ EOFUData
   user_data_replace_on_change = false
   root_block_device {
     delete_on_termination = true
-    encrypted             = "gp3"
+    encrypted             = true
     iops                  = 3000
     throughput            = 125
     volume_size           = 8
