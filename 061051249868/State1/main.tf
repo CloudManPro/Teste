@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.0.0"
 
   required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4.2"
+    }
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
@@ -77,6 +81,11 @@ resource "aws_subnet" "Subnet3" {
   }
 }
 
+data "local_file" "UserData_Instance" {
+  filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
+  type     = "data"
+}
+
 data "aws_ami" "AMI_Data_Source_Instance" {
   most_recent = true
   owners      = ["amazon"]
@@ -99,7 +108,7 @@ resource "aws_instance" "Instance" {
 # --- BEGIN CLOUDMAN VARIABLES ---
 # --- END CLOUDMAN VARIABLES ---
 
-
+${data.local_file.UserData_Instance.content}
 EOFUData
   )
   user_data_replace_on_change = false
@@ -108,6 +117,11 @@ EOFUData
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
   }
+}
+
+resource "cldmn_github" "CloudMan" {
+  github_org        = "CloudManPro"
+  github_repository = "CloudMan"
 }
 
 resource "aws_iam_role" "role_Instance" {
