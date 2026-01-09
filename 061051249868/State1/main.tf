@@ -60,6 +60,7 @@ resource "aws_db_instance" "Database" {
   instance_class                        = "db.t3.micro"
   max_allocated_storage                 = 100
   password                              = "admina!!"
+  performance_insights_enabled          = true
   performance_insights_retention_period = 7
   skip_final_snapshot                   = true
   storage_encrypted                     = true
@@ -123,6 +124,14 @@ resource "aws_instance" "Instance" {
 EOFUData
   )
   user_data_replace_on_change = false
+  root_block_device {
+    delete_on_termination = true
+    encrypted             = "gp3"
+    iops                  = 3000
+    throughput            = 125
+    volume_size           = 8
+    volume_type           = "gp3"
+  }
   tags                              = {
     "Name"         = "Instance"
     "State"        = "State1"
@@ -165,7 +174,7 @@ resource "aws_iam_instance_profile" "profile_Instance" {
 
 resource "aws_db_subnet_group" "subnet_group_Database" {
   name       = "database-subnet-group"
-  subnet_ids = [aws_subnet.Subnet0.id, aws_subnet.Subnet3.id, aws_subnet.Subnet2.id, aws_subnet.Subnet1.id]
+  subnet_ids = [aws_subnet.Subnet2.id, aws_subnet.Subnet3.id, aws_subnet.Subnet0.id, aws_subnet.Subnet1.id]
   tags                              = {
     "Name"         = "subnet_group_Database"
     "State"        = "State1"
