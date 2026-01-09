@@ -41,8 +41,8 @@ on:
         type: string
 
 permissions:
-  id-token: write   # Necessário para autenticação AWS OIDC
-  contents: read    # O Listener só precisa ler sua própria config, o Engine fará a escrita
+  id-token: write
+  contents: write
 
 jobs:
   sync-job:
