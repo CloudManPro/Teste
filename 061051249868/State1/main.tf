@@ -38,7 +38,7 @@ resource "aws_vpc" "VPC2" {
 resource "aws_subnet" "Subnet0" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1a"
-  cidr_block              = "10.2.0.0/16"
+  cidr_block              = "10.2.0.0/24"
   map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet0"
@@ -79,7 +79,7 @@ resource "aws_db_instance" "Database" {
 resource "aws_subnet" "Subnet1" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1a"
-  cidr_block              = "10.2.1.0/16"
+  cidr_block              = "10.2.1.0/24"
   map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet1"
@@ -91,7 +91,7 @@ resource "aws_subnet" "Subnet1" {
 resource "aws_subnet" "Subnet2" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1a"
-  cidr_block              = "10.2.2.0/16"
+  cidr_block              = "10.2.2.0/24"
   map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet2"
@@ -136,7 +136,7 @@ EOFUData
 resource "aws_subnet" "Subnet3" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1a"
-  cidr_block              = "10.2.3.0/16"
+  cidr_block              = "10.2.3.0/24"
   map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet3"
