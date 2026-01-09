@@ -67,6 +67,6 @@ resource "aws_route_table" "RT" {
 
 resource "aws_route" "aws_route_RT_IGW" {
   gateway_id             = aws_internet_gateway.IGW.id
-  route_table_id         = aws_route_table.RT.arn
+  route_table_id         = aws_route_table.RT.id
   destination_cidr_block = "0.0.0.0/0"
 }
