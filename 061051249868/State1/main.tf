@@ -49,7 +49,7 @@ resource "aws_subnet" "Subnet0" {
 
 resource "aws_db_instance" "Database" {
   db_name                               = "test"
-  db_subnet_group_name                  = aws_db_subnet_group.subnet_group_database.name
+  db_subnet_group_name                  = aws_db_subnet_group.subnet_group_Database.name
   allocated_storage                     = 20
   availability_zone                     = aws_subnet.Subnet0.availability_zone
   backup_retention_period               = 7
@@ -166,11 +166,11 @@ resource "aws_iam_instance_profile" "profile_Instance" {
   role = aws_iam_role.role_Instance.name
 }
 
-resource "aws_db_subnet_group" "subnet_group_database" {
-  name       = "Database-subnet-group"
-  subnet_ids = [aws_subnet.Subnet1.id, aws_subnet.Subnet3.id, aws_subnet.Subnet0.id, aws_subnet.Subnet2.id]
+resource "aws_db_subnet_group" "subnet_group_Database" {
+  name       = "database-subnet-group"
+  subnet_ids = [aws_subnet.Subnet0.id, aws_subnet.Subnet2.id, aws_subnet.Subnet1.id, aws_subnet.Subnet3.id]
   tags                              = {
-    "Name"         = "subnet_group_database"
+    "Name"         = "subnet_group_Database"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
   }
