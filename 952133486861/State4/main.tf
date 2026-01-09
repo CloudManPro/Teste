@@ -69,7 +69,7 @@ resource "aws_lambda_function" "Function2" {
   publish                        = false
   reserved_concurrent_executions = -1
   role                           = aws_iam_role.role_Function2.arn
-  runtime                        = "nodejs24.x"
+  runtime                        = "nodejs22.x"
   source_code_hash               = "${data.archive_file.archive_CloudMan_Function2.output_base64sha256}"
   timeout                        = 30
   tags                              = {
