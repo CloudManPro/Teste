@@ -87,7 +87,7 @@ resource "aws_autoscaling_group" "ASG" {
   capacity_rebalance               = false
   default_cooldown                 = 300
   default_instance_warmup          = 0
-  desired_capacity                 = 1
+  desired_capacity                 = 2
   desired_capacity_type            = "units"
   force_delete                     = false
   force_delete_warm_pool           = false
@@ -95,9 +95,9 @@ resource "aws_autoscaling_group" "ASG" {
   health_check_type                = "EC2"
   ignore_failed_scaling_activities = false
   max_instance_lifetime            = 0
-  max_size                         = 1
+  max_size                         = 2
   min_elb_capacity                 = 0
-  min_size                         = 1
+  min_size                         = 2
   protect_from_scale_in            = false
   vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id]
   wait_for_elb_capacity            = 0
