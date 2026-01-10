@@ -59,11 +59,11 @@ data "aws_ami" "AMI_Data_Source_Template" {
 resource "aws_launch_template" "Template" {
   image_id                          = data.aws_ami.AMI_Data_Source_Template.id
   name                              = "Template"
-  default_version                   = 0
   description                       = "descript"
   disable_api_stop                  = false
   disable_api_termination           = false
   ebs_optimized                     = true
+  instance_initiated_shutdown_behavior = "stop"
   instance_type                     = "t3.micro"
   update_default_version            = true
   user_data                         = base64encode(<<-EOFUData
