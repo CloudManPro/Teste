@@ -76,11 +76,11 @@ resource "aws_launch_template" "Template" {
 #!/bin/bash
 
 # --- BEGIN CLOUDMAN VARIABLES ---
-echo "AWS_AUTOSCALING_GROUP_TARGET_NAME_0=ASG" > /home/ec2-user/.env
+echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
-echo "NAME=Template" >> /home/ec2-user/.env
-echo "AWS_AUTOSCALING_GROUP_TARGET_ARN_0=${aws_autoscaling_group.ASG.arn}" >> /home/ec2-user/.env
+echo "NAME=ASG" >> /home/ec2-user/.env
+echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 ${data.local_file.UserData_Template.content}
@@ -212,6 +212,18 @@ resource "aws_subnet" "Subnet4" {
   }
 }
 
+resource "aws_s3_bucket" "my-bucket-1234-teste-xxx" {
+  bucket              = "my-bucket-1234-teste-xxx"
+  force_destroy       = true
+  object_lock_enabled = false
+  tags                              = {
+    "Name"         = "my-bucket-1234-teste-xxx"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
 resource "aws_iam_role" "role_ASG" {
   name = "role_ASG"
   assume_role_policy                = jsonencode({
@@ -231,4 +243,63 @@ resource "aws_iam_role" "role_ASG" {
 resource "aws_iam_instance_profile" "profile_ASG" {
   name = "profile_ASG"
   role = aws_iam_role.role_ASG.name
+}
+
+resource "aws_s3_bucket_versioning" "my-bucket-1234-teste-xxx_versioning" {
+  bucket = aws_s3_bucket.my-bucket-1234-teste-xxx.id
+  versioning_configuration {
+    mfa_delete = "Disabled"
+    status     = "Suspended"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "my-bucket-1234-teste-xxx_block" {
+  block_public_acls       = true
+  block_public_policy     = true
+  bucket                  = aws_s3_bucket.my-bucket-1234-teste-xxx.id
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket-1234-teste-xxx_configuration" {
+  bucket                = aws_s3_bucket.my-bucket-1234-teste-xxx.id
+  expected_bucket_owner = data.aws_caller_identity.current.account_id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "my-bucket-1234-teste-xxx_controls" {
+  bucket = aws_s3_bucket.my-bucket-1234-teste-xxx.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+data "aws_iam_policy_document" "policy_ASG_st_State1_doc" {
+  statement {
+    sid       = "AllowBucketLevelActions"
+    effect    = "Allow"
+    actions   = ["s3:ListBucket", "s3:GetBucketLocation"]
+    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}"]
+  }
+  statement {
+    sid       = "AllowObjectCRUD"
+    effect    = "Allow"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "policy_ASG_st_State1" {
+  name        = "policy_ASG_st_State1"
+  description = "Combined Policy for ASG in state State1"
+  policy      = data.aws_iam_policy_document.policy_ASG_st_State1_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "policy_ASG_st_State1_attach" {
+  policy_arn = aws_iam_policy.policy_ASG_st_State1.arn
+  role       = "role_ASG"
 }
