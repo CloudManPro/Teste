@@ -99,7 +99,7 @@ resource "aws_autoscaling_group" "ASG" {
   min_elb_capacity                 = 0
   min_size                         = 8
   protect_from_scale_in            = false
-  vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet2.id]
+  vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet4.id]
   wait_for_elb_capacity            = 0
   launch_template {
     version = "$Latest"
@@ -131,12 +131,13 @@ resource "aws_subnet" "Subnet1" {
   }
 }
 
-resource "aws_subnet" "Subnet2" {
+resource "aws_subnet" "Subnet4" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1c"
+  cidr_block              = "10.2.3.0/24"
   map_public_ip_on_launch = false
   tags                              = {
-    "Name"         = "Subnet2"
+    "Name"         = "Subnet4"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
   }
