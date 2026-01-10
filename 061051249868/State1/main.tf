@@ -134,7 +134,7 @@ resource "aws_subnet" "Subnet1" {
 resource "aws_subnet" "Subnet4" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1c"
-  cidr_block              = "10.2.3.0/24"
+  cidr_block              = "10.2.2.0/24"
   map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet4"
