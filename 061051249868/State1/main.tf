@@ -35,109 +35,6 @@ resource "aws_vpc" "VPC2" {
   }
 }
 
-resource "aws_subnet" "Subnet0" {
-  vpc_id                  = aws_vpc.VPC2.id
-  availability_zone       = "us-east-1a"
-  cidr_block              = "10.2.0.0/24"
-  map_public_ip_on_launch = false
-  tags                              = {
-    "Name"         = "Subnet0"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_db_instance" "Database" {
-  db_name                  = "test"
-  db_subnet_group_name     = aws_db_subnet_group.subnet_group_Database.name
-  allocated_storage        = 20
-  availability_zone        = aws_subnet.Subnet0.availability_zone
-  backup_retention_period  = 7
-  copy_tags_to_snapshot    = true
-  delete_automated_backups = false
-  engine                   = "mariadb"
-  engine_version           = "8.0"
-  instance_class           = "db.t3.micro"
-  max_allocated_storage    = 100
-  network_type             = "DUAL"
-  password                 = "admina!!"
-  skip_final_snapshot      = true
-  storage_encrypted        = true
-  storage_type             = "gp3"
-  upgrade_storage_config   = false
-  username                 = "admin"
-  tags                              = {
-    "Name"         = "Database"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_subnet" "Subnet1" {
-  vpc_id                  = aws_vpc.VPC2.id
-  availability_zone       = "us-east-1b"
-  cidr_block              = "10.2.1.0/24"
-  map_public_ip_on_launch = false
-  tags                              = {
-    "Name"         = "Subnet1"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_subnet" "Subnet2" {
-  vpc_id                  = aws_vpc.VPC2.id
-  availability_zone       = "us-east-1c"
-  cidr_block              = "10.2.2.0/24"
-  map_public_ip_on_launch = false
-  tags                              = {
-    "Name"         = "Subnet2"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-data "aws_ami" "AMI_Data_Source_Instance" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
-  }
-}
-
-resource "aws_instance" "Instance" {
-  subnet_id                         = aws_subnet.Subnet2.id
-  ami                               = data.aws_ami.AMI_Data_Source_Instance.id
-  associate_public_ip_address       = false
-  iam_instance_profile              = aws_iam_instance_profile.profile_Instance.name
-  instance_type                     = "t3.micro"
-  tenancy                           = "default"
-  user_data_base64                  = base64encode(<<-EOFUData
-#!/bin/bash
-
-# --- BEGIN CLOUDMAN VARIABLES ---
-# --- END CLOUDMAN VARIABLES ---
-
-
-EOFUData
-  )
-  user_data_replace_on_change = false
-  root_block_device {
-    delete_on_termination = true
-    encrypted             = true
-    iops                  = 3000
-    throughput            = 125
-    volume_size           = 8
-    volume_type           = "gp3"
-  }
-  tags                              = {
-    "Name"         = "Instance"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
 resource "aws_subnet" "Subnet3" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1d"
@@ -150,8 +47,80 @@ resource "aws_subnet" "Subnet3" {
   }
 }
 
-resource "aws_iam_role" "role_Instance" {
-  name = "role_Instance"
+data "aws_ami" "AMI_Data_Source_Template" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+  }
+}
+
+resource "aws_launch_template" "Template" {
+  image_id                          = data.aws_ami.AMI_Data_Source_Template.id
+  name                              = "Template"
+  default_version                   = 0
+  description                       = "descript"
+  disable_api_stop                  = false
+  disable_api_termination           = false
+  ebs_optimized                     = true
+  instance_type                     = "t3.micro"
+  update_default_version            = true
+  user_data                         = base64encode(<<-EOFUData
+#!/bin/bash
+
+
+EOFUData
+  )
+  iam_instance_profile {
+    name = aws_iam_instance_profile.profile_ASG.name
+  }
+  tags                              = {
+    "Name"         = "Template"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_autoscaling_group" "ASG" {
+  name                             = "ASG"
+  capacity_rebalance               = false
+  default_cooldown                 = 300
+  default_instance_warmup          = 0
+  desired_capacity                 = 1
+  desired_capacity_type            = "units"
+  force_delete                     = false
+  force_delete_warm_pool           = false
+  health_check_grace_period        = 300
+  health_check_type                = "EC2"
+  ignore_failed_scaling_activities = false
+  max_instance_lifetime            = 0
+  max_size                         = 1
+  min_elb_capacity                 = 0
+  min_size                         = 1
+  protect_from_scale_in            = false
+  vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id]
+  wait_for_elb_capacity            = 0
+  launch_template {
+    version = "$Latest"
+    id      = aws_launch_template.Template.id
+  }
+}
+
+resource "aws_subnet" "Subnet" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1a"
+  cidr_block              = "10.2.0.0/24"
+  map_public_ip_on_launch = false
+  tags                              = {
+    "Name"         = "Subnet"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_iam_role" "role_ASG" {
+  name = "role_ASG"
   assume_role_policy                = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -166,17 +135,7 @@ resource "aws_iam_role" "role_Instance" {
   })
 }
 
-resource "aws_iam_instance_profile" "profile_Instance" {
-  name = "profile_Instance"
-  role = aws_iam_role.role_Instance.name
-}
-
-resource "aws_db_subnet_group" "subnet_group_Database" {
-  name       = "database-subnet-group"
-  subnet_ids = [aws_subnet.Subnet2.id, aws_subnet.Subnet0.id, aws_subnet.Subnet1.id, aws_subnet.Subnet3.id]
-  tags                              = {
-    "Name"         = "subnet_group_Database"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-  }
+resource "aws_iam_instance_profile" "profile_ASG" {
+  name = "profile_ASG"
+  role = aws_iam_role.role_ASG.name
 }
