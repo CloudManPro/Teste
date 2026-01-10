@@ -87,7 +87,7 @@ resource "aws_autoscaling_group" "ASG" {
   capacity_rebalance               = false
   default_cooldown                 = 300
   default_instance_warmup          = 0
-  desired_capacity                 = 2
+  desired_capacity                 = 8
   desired_capacity_type            = "units"
   force_delete                     = false
   force_delete_warm_pool           = false
@@ -95,11 +95,11 @@ resource "aws_autoscaling_group" "ASG" {
   health_check_type                = "EC2"
   ignore_failed_scaling_activities = false
   max_instance_lifetime            = 0
-  max_size                         = 2
+  max_size                         = 8
   min_elb_capacity                 = 0
-  min_size                         = 2
+  min_size                         = 8
   protect_from_scale_in            = false
-  vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id]
+  vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet2.id]
   wait_for_elb_capacity            = 0
   launch_template {
     version = "$Latest"
@@ -114,6 +114,29 @@ resource "aws_subnet" "Subnet" {
   map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_subnet" "Subnet1" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1b"
+  cidr_block              = "10.2.1.0/24"
+  map_public_ip_on_launch = false
+  tags                              = {
+    "Name"         = "Subnet1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_subnet" "Subnet2" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1c"
+  map_public_ip_on_launch = false
+  tags                              = {
+    "Name"         = "Subnet2"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
   }
