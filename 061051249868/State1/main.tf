@@ -151,7 +151,7 @@ resource "aws_instance" "Instance" {
   associate_public_ip_address       = false
   iam_instance_profile              = aws_iam_instance_profile.profile_Instance.name
   instance_type                     = "t3.micro"
-  secondary_private_ips             = ["10.2.2.10", "10.2.2.11"]
+  secondary_private_ips             = ["10.2.2.10"]
   user_data_base64                  = base64encode(<<-EOFUData
 #!/bin/bash
 
@@ -230,7 +230,7 @@ EOFUData
   network_interfaces {
     associate_public_ip_address = "true"
     delete_on_termination       = "true"
-    ipv4_address_count          = 2
+    ipv4_address_count          = 1
   }
   tags                              = {
     "Name"         = "Template"
