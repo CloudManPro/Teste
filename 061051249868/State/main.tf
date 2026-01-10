@@ -49,8 +49,22 @@ resource "aws_launch_template" "Template1" {
 
 EOFUData
   )
+  instance_market_options {
+    market_type = "spot"
+    spot_options {
+      block_duration_minutes         = 0
+      instance_interruption_behavior = "terminate"
+      spot_instance_type             = "one-time"
+    }
+  }
   metadata_options {
     http_tokens = "required"
+  }
+  network_interfaces {
+    delete_on_termination = "true"
+  }
+  network_interfaces {
+    delete_on_termination = "true"
   }
   tags                              = {
     "Name"         = "Template1"
