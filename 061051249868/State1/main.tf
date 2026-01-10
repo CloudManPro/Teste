@@ -84,7 +84,7 @@ EOFUData
 
 resource "aws_autoscaling_group" "ASG" {
   name                             = "ASG"
-  capacity_rebalance               = false
+  capacity_rebalance               = true
   default_cooldown                 = 300
   default_instance_warmup          = 0
   desired_capacity                 = 8
@@ -101,6 +101,9 @@ resource "aws_autoscaling_group" "ASG" {
   protect_from_scale_in            = false
   vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet4.id]
   wait_for_elb_capacity            = 0
+  availability_zone_distribution {
+    capacity_distribution_strategy = "balanced-best-effort"
+  }
   launch_template {
     version = "$Latest"
     id      = aws_launch_template.Template.id
