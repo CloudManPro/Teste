@@ -32,6 +32,7 @@ resource "aws_vpc" "VPC2" {
     "Name"         = "VPC2"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
   }
 }
 
@@ -44,7 +45,12 @@ resource "aws_subnet" "Subnet3" {
     "Name"         = "Subnet3"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
   }
+}
+
+data "local_file" "UserData_Template" {
+  filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
 }
 
 data "aws_ami" "AMI_Data_Source_Template" {
@@ -69,16 +75,53 @@ resource "aws_launch_template" "Template" {
   user_data                         = base64encode(<<-EOFUData
 #!/bin/bash
 
+# --- BEGIN CLOUDMAN VARIABLES ---
+echo "AWS_AUTOSCALING_GROUP_TARGET_NAME_0=ASG" > /home/ec2-user/.env
+echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
+echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
+echo "NAME=Template" >> /home/ec2-user/.env
+echo "AWS_AUTOSCALING_GROUP_TARGET_ARN_0=${aws_autoscaling_group.ASG.arn}" >> /home/ec2-user/.env
+# --- END CLOUDMAN VARIABLES ---
 
+${data.local_file.UserData_Template.content}
 EOFUData
   )
+  block_device_mappings {
+    ebs {
+      delete_on_termination      = "true"
+      volume_initialization_rate = 0
+      volume_size                = 12
+      volume_type                = "gp2"
+    }
+  }
+  block_device_mappings {
+  }
   iam_instance_profile {
     name = aws_iam_instance_profile.profile_ASG.name
+  }
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_protocol_ipv6          = "auto"
+    http_put_response_hop_limit = 0
+    http_tokens                 = "required"
+    instance_metadata_tags      = "auto"
+  }
+  network_interfaces {
+    associate_public_ip_address = "auto"
+    delete_on_termination       = "true"
+    description                 = "Minha"
+    device_index                = 0
+    ipv4_address_count          = 2
+    ipv4_prefix_count           = 0
+    ipv6_address_count          = 0
+    ipv6_prefix_count           = 0
+    network_card_index          = 0
   }
   tags                              = {
     "Name"         = "Template"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
   }
 }
 
@@ -87,7 +130,7 @@ resource "aws_autoscaling_group" "ASG" {
   capacity_rebalance               = true
   default_cooldown                 = 300
   default_instance_warmup          = 0
-  desired_capacity                 = 8
+  desired_capacity                 = 1
   desired_capacity_type            = "units"
   force_delete                     = false
   force_delete_warm_pool           = false
@@ -95,9 +138,9 @@ resource "aws_autoscaling_group" "ASG" {
   health_check_type                = "EC2"
   ignore_failed_scaling_activities = false
   max_instance_lifetime            = 0
-  max_size                         = 8
+  max_size                         = 1
   min_elb_capacity                 = 0
-  min_size                         = 8
+  min_size                         = 1
   protect_from_scale_in            = false
   vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet4.id]
   wait_for_elb_capacity            = 0
@@ -107,6 +150,26 @@ resource "aws_autoscaling_group" "ASG" {
   launch_template {
     version = "$Latest"
     id      = aws_launch_template.Template.id
+  }
+  tag {
+    key                 = "Name"
+    propagate_at_launch = true
+    value               = "ASG"
+  }
+  tag {
+    key                 = "State"
+    propagate_at_launch = true
+    value               = "State1"
+  }
+  tag {
+    key                 = "CloudmanUser"
+    propagate_at_launch = true
+    value               = "GlobalUserName"
+  }
+  tag {
+    key                 = "cloud"
+    propagate_at_launch = true
+    value               = "minhacloud"
   }
 }
 
@@ -119,6 +182,7 @@ resource "aws_subnet" "Subnet" {
     "Name"         = "Subnet"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
   }
 }
 
@@ -131,6 +195,7 @@ resource "aws_subnet" "Subnet1" {
     "Name"         = "Subnet1"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
   }
 }
 
@@ -143,6 +208,7 @@ resource "aws_subnet" "Subnet4" {
     "Name"         = "Subnet4"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
   }
 }
 
