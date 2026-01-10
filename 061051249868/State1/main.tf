@@ -49,82 +49,6 @@ resource "aws_subnet" "Subnet3" {
   }
 }
 
-data "local_file" "UserData_Template" {
-  filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
-}
-
-data "aws_ami" "AMI_Data_Source_Template" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
-  }
-}
-
-resource "aws_launch_template" "Template" {
-  image_id                          = data.aws_ami.AMI_Data_Source_Template.id
-  name                              = "Template"
-  description                       = "descript"
-  disable_api_stop                  = false
-  disable_api_termination           = false
-  ebs_optimized                     = true
-  instance_initiated_shutdown_behavior = "stop"
-  instance_type                     = "t3.micro"
-  update_default_version            = true
-  user_data                         = base64encode(<<-EOFUData
-#!/bin/bash
-
-# --- BEGIN CLOUDMAN VARIABLES ---
-echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
-echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
-echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
-echo "NAME=ASG" >> /home/ec2-user/.env
-echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
-# --- END CLOUDMAN VARIABLES ---
-
-${data.local_file.UserData_Template.content}
-EOFUData
-  )
-  block_device_mappings {
-    ebs {
-      delete_on_termination      = "true"
-      volume_initialization_rate = 0
-      volume_size                = 12
-      volume_type                = "gp2"
-    }
-  }
-  block_device_mappings {
-  }
-  iam_instance_profile {
-    name = aws_iam_instance_profile.profile_ASG.name
-  }
-  metadata_options {
-    http_endpoint               = "enabled"
-    http_protocol_ipv6          = "auto"
-    http_put_response_hop_limit = 0
-    http_tokens                 = "required"
-    instance_metadata_tags      = "auto"
-  }
-  network_interfaces {
-    associate_public_ip_address = "auto"
-    delete_on_termination       = "true"
-    description                 = "Minha"
-    device_index                = 0
-    ipv4_address_count          = 2
-    ipv4_prefix_count           = 0
-    ipv6_address_count          = 0
-    ipv6_prefix_count           = 0
-    network_card_index          = 0
-  }
-  tags                              = {
-    "Name"         = "Template"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud"        = "minhacloud"
-  }
-}
-
 resource "aws_autoscaling_group" "ASG" {
   name                             = "ASG"
   capacity_rebalance               = true
@@ -212,12 +136,104 @@ resource "aws_subnet" "Subnet4" {
   }
 }
 
+data "aws_ami" "AMI_Data_Source_Instance" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+  }
+}
+
+resource "aws_instance" "Instance" {
+  subnet_id                         = aws_subnet.Subnet4.id
+  ami                               = data.aws_ami.AMI_Data_Source_Instance.id
+  associate_public_ip_address       = false
+  iam_instance_profile              = aws_iam_instance_profile.profile_Instance.name
+  instance_type                     = "t3.micro"
+  secondary_private_ips             = ["10.2.2.10", "10.2.2.11"]
+  user_data_base64                  = base64encode(<<-EOFUData
+#!/bin/bash
+
+# --- BEGIN CLOUDMAN VARIABLES ---
+echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
+echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
+echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
+echo "NAME=Instance" >> /home/ec2-user/.env
+echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
+# --- END CLOUDMAN VARIABLES ---
+
+
+EOFUData
+  )
+  user_data_replace_on_change = false
+  tags                              = {
+    "Name"         = "Instance"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
 resource "aws_s3_bucket" "my-bucket-1234-teste-xxx" {
   bucket              = "my-bucket-1234-teste-xxx"
   force_destroy       = true
   object_lock_enabled = false
   tags                              = {
     "Name"         = "my-bucket-1234-teste-xxx"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+data "aws_ami" "AMI_Data_Source_Template" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+  }
+}
+
+resource "aws_launch_template" "Template" {
+  image_id                          = data.aws_ami.AMI_Data_Source_Template.id
+  name                              = "Template"
+  ebs_optimized                     = true
+  instance_type                     = "t3.micro"
+  update_default_version            = true
+  user_data                         = base64encode(<<-EOFUData
+#!/bin/bash
+
+# --- BEGIN CLOUDMAN VARIABLES ---
+echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
+echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
+echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
+echo "NAME=ASG" >> /home/ec2-user/.env
+echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
+# --- END CLOUDMAN VARIABLES ---
+
+
+EOFUData
+  )
+  iam_instance_profile {
+    name = aws_iam_instance_profile.profile_ASG.name
+  }
+  instance_market_options {
+    market_type = "spot"
+    spot_options {
+      block_duration_minutes         = 0
+      instance_interruption_behavior = "terminate"
+      spot_instance_type             = "one-time"
+    }
+  }
+  network_interfaces {
+    associate_public_ip_address = "true"
+    delete_on_termination       = "true"
+    ipv4_address_count          = 2
+  }
+  tags                              = {
+    "Name"         = "Template"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
     "cloud"        = "minhacloud"
@@ -243,6 +259,27 @@ resource "aws_iam_role" "role_ASG" {
 resource "aws_iam_instance_profile" "profile_ASG" {
   name = "profile_ASG"
   role = aws_iam_role.role_ASG.name
+}
+
+resource "aws_iam_role" "role_Instance" {
+  name = "role_Instance"
+  assume_role_policy                = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      }
+    }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "profile_Instance" {
+  name = "profile_Instance"
+  role = aws_iam_role.role_Instance.name
 }
 
 resource "aws_s3_bucket_versioning" "my-bucket-1234-teste-xxx_versioning" {
@@ -302,4 +339,30 @@ resource "aws_iam_policy" "policy_ASG_st_State1" {
 resource "aws_iam_role_policy_attachment" "policy_ASG_st_State1_attach" {
   policy_arn = aws_iam_policy.policy_ASG_st_State1.arn
   role       = "role_ASG"
+}
+
+data "aws_iam_policy_document" "policy_Instance_st_State1_doc" {
+  statement {
+    sid       = "AllowBucketLevelActions"
+    effect    = "Allow"
+    actions   = ["s3:ListBucket", "s3:GetBucketLocation"]
+    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}"]
+  }
+  statement {
+    sid       = "AllowObjectCRUD"
+    effect    = "Allow"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "policy_Instance_st_State1" {
+  name        = "policy_Instance_st_State1"
+  description = "Combined Policy for Instance in state State1"
+  policy      = data.aws_iam_policy_document.policy_Instance_st_State1_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "policy_Instance_st_State1_attach" {
+  policy_arn = aws_iam_policy.policy_Instance_st_State1.arn
+  role       = "role_Instance"
 }
