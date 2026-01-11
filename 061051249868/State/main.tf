@@ -8,14 +8,7 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket         = "bucket-teste-backend-terraform"
-    key            = "061051249868/State/main.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "TableBE"
-    profile        = "backend"
-    encrypt        = true
-  }
+  # Backend remoto nao configurado.
 }
 
 provider "aws" {
@@ -26,7 +19,7 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 resource "aws_vpc" "VPC" {
-  cidr_block       = "10.1.0.0/16"
+  cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
   tags                              = {
     "Name"         = "VPC"
@@ -35,23 +28,23 @@ resource "aws_vpc" "VPC" {
   }
 }
 
-resource "aws_subnet" "Subnetnew" {
+resource "aws_subnet" "Subnetj" {
   vpc_id                  = aws_vpc.VPC.id
   availability_zone       = "us-east-1a"
-  cidr_block              = "10.1.0.0/24"
-  map_public_ip_on_launch = false
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
   tags                              = {
-    "Name"         = "Subnetnew"
+    "Name"         = "Subnetj"
     "State"        = "State"
     "CloudmanUser" = "GlobalUserName"
   }
 }
 
-data "local_file" "UserData_Instance1" {
+data "local_file" "UserData_Instance2" {
   filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
 }
 
-data "aws_ami" "AMI_Data_Source_Instance1" {
+data "aws_ami" "AMI_Data_Source_Instance2" {
   most_recent = true
   owners      = ["amazon"]
   filter {
@@ -60,11 +53,11 @@ data "aws_ami" "AMI_Data_Source_Instance1" {
   }
 }
 
-resource "aws_instance" "Instance1" {
-  subnet_id                         = aws_subnet.Subnetnew.id
-  ami                               = data.aws_ami.AMI_Data_Source_Instance1.id
-  associate_public_ip_address       = false
-  iam_instance_profile              = aws_iam_instance_profile.profile_Instance1.name
+resource "aws_instance" "Instance2" {
+  subnet_id                         = aws_subnet.Subnetj.id
+  ami                               = data.aws_ami.AMI_Data_Source_Instance2.id
+  associate_public_ip_address       = true
+  iam_instance_profile              = aws_iam_instance_profile.profile_Instance2.name
   instance_type                     = "t3.micro"
   user_data_base64                  = base64encode(<<-EOFUData
 #!/bin/bash
@@ -72,85 +65,38 @@ resource "aws_instance" "Instance1" {
 # --- BEGIN CLOUDMAN VARIABLES ---
 # --- END CLOUDMAN VARIABLES ---
 
-${data.local_file.UserData_Instance1.content}
+${data.local_file.UserData_Instance2.content}
 EOFUData
   )
   user_data_replace_on_change = false
+  vpc_security_group_ids      = [aws_security_group.SG.id]
   tags                              = {
-    "Name"         = "Instance1"
+    "Name"         = "Instance2"
     "State"        = "State"
     "CloudmanUser" = "GlobalUserName"
   }
 }
 
-resource "aws_lb" "ALB" {
-  name               = "ALB"
-  idle_timeout       = 60
-  load_balancer_type = "application"
-  subnets            = [aws_subnet.Subnet2.id, aws_subnet.Subnet5.id]
-  tags                              = {
-    "Name"         = "ALB"
-    "State"        = "State"
-    "CloudmanUser" = "GlobalUserName"
+resource "aws_security_group" "SG" {
+  name                   = "SG"
+  vpc_id                 = aws_vpc.VPC.id
+  revoke_rules_on_delete = false
+  egress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    protocol    = "-1"
+    self        = false
+    to_port     = 0
   }
-}
-
-resource "aws_lb_listener" "Listener" {
-  load_balancer_arn                    = aws_lb.ALB.arn
-  port                                 = 80
-  protocol                             = "HTTP"
-  routing_http_response_server_enabled = true
-  default_action {
-    order            = 1
-    target_group_arn = aws_lb_target_group.TargetGroup.arn
-    type             = "forward"
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    protocol    = "-1"
+    self        = false
+    to_port     = 0
   }
   tags                              = {
-    "Name"         = "Listener"
-    "State"        = "State"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_lb_target_group" "TargetGroup" {
-  name                          = "TargetGroup"
-  vpc_id                        = aws_vpc.VPC.id
-  connection_termination        = false
-  deregistration_delay          = "300"
-  ip_address_type               = "ipv4"
-  load_balancing_algorithm_type = "round_robin"
-  port                          = 80
-  protocol                      = "HTTP"
-  protocol_version              = "HTTP1"
-  proxy_protocol_v2             = false
-  slow_start                    = 0
-  target_type                   = "instance"
-  tags                              = {
-    "Name"         = "TargetGroup"
-    "State"        = "State"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_subnet" "Subnet2" {
-  vpc_id                  = aws_vpc.VPC.id
-  availability_zone       = "us-east-1a"
-  cidr_block              = "10.1.3.0/24"
-  map_public_ip_on_launch = true
-  tags                              = {
-    "Name"         = "Subnet2"
-    "State"        = "State"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_subnet" "Subnet5" {
-  vpc_id                  = aws_vpc.VPC.id
-  availability_zone       = "us-east-1b"
-  cidr_block              = "10.1.2.0/24"
-  map_public_ip_on_launch = true
-  tags                              = {
-    "Name"         = "Subnet5"
+    "Name"         = "SG"
     "State"        = "State"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -174,8 +120,8 @@ resource "aws_route_table" "RT" {
   }
 }
 
-resource "aws_iam_role" "role_Instance1" {
-  name = "role_Instance1"
+resource "aws_iam_role" "role_Instance2" {
+  name = "role_Instance2"
   assume_role_policy                = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -190,29 +136,18 @@ resource "aws_iam_role" "role_Instance1" {
   })
 }
 
-resource "aws_iam_instance_profile" "profile_Instance1" {
-  name = "profile_Instance1"
-  role = aws_iam_role.role_Instance1.name
+resource "aws_iam_instance_profile" "profile_Instance2" {
+  name = "profile_Instance2"
+  role = aws_iam_role.role_Instance2.name
 }
 
-resource "aws_route_table_association" "aws_route_table_association_Subnet2_RT" {
+resource "aws_route_table_association" "aws_route_table_association_Subnetj_RT" {
   route_table_id = aws_route_table.RT.id
-  subnet_id      = aws_subnet.Subnet2.id
-}
-
-resource "aws_route_table_association" "aws_route_table_association_Subnet5_RT" {
-  route_table_id = aws_route_table.RT.id
-  subnet_id      = aws_subnet.Subnet5.id
+  subnet_id      = aws_subnet.Subnetj.id
 }
 
 resource "aws_route" "aws_route_RT_IGW" {
   gateway_id             = aws_internet_gateway.IGW.id
   route_table_id         = aws_route_table.RT.id
   destination_cidr_block = "0.0.0.0/0"
-}
-
-resource "aws_lb_target_group_attachment" "attach_Instance1_to_TargetGroup" {
-  target_id        = aws_instance.Instance1.id
-  port             = 80
-  target_group_arn = aws_lb_target_group.TargetGroup.arn
 }
