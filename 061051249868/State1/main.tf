@@ -175,7 +175,7 @@ data "aws_ami" "AMI_Data_Source_Instance" {
 resource "aws_instance" "Instance" {
   subnet_id                         = aws_subnet.Subnet4.id
   ami                               = data.aws_ami.AMI_Data_Source_Instance.id
-  associate_public_ip_address       = false
+  associate_public_ip_address       = true
   iam_instance_profile              = aws_iam_instance_profile.profile_Instance.name
   instance_type                     = "t3.micro"
   secondary_private_ips             = ["10.2.2.10"]
@@ -215,6 +215,10 @@ resource "aws_s3_bucket" "my-bucket-1234-teste-xxx" {
   }
 }
 
+data "local_file" "UserData_Template" {
+  filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
+}
+
 data "aws_ami" "AMI_Data_Source_Template" {
   most_recent = true
   owners      = ["amazon"]
@@ -241,7 +245,7 @@ echo "NAME=ASG" >> /home/ec2-user/.env
 echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
-
+${data.local_file.UserData_Template.content}
 EOFUData
   )
   vpc_security_group_ids = [aws_security_group.SG_ASG.id]
@@ -274,7 +278,6 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -375,18 +378,17 @@ resource "aws_security_group" "SG_ASG" {
   revoke_rules_on_delete = false
   egress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
+    from_port   = 80
     protocol    = "-1"
     self        = false
-    to_port     = 0
+    to_port     = 90
   }
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    port_range  = "80"
+    from_port   = 80
     protocol    = "tcp"
     self        = false
-    to_port     = 0
+    to_port     = 80
   }
   tags                              = {
     "Name"         = "SG_ASG"
@@ -400,20 +402,12 @@ resource "aws_security_group" "SG_ALB" {
   name                   = "SG_ALB"
   vpc_id                 = aws_vpc.VPC2.id
   revoke_rules_on_delete = false
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    protocol    = "-1"
-    self        = false
-    to_port     = 0
-  }
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    port_range  = "80"
+    from_port   = 80
     protocol    = "tcp"
     self        = false
-    to_port     = 0
+    to_port     = 80
   }
   tags                              = {
     "Name"         = "SG_ALB"
