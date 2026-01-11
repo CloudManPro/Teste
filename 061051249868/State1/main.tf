@@ -67,7 +67,7 @@ resource "aws_autoscaling_group" "ASG" {
   min_size                         = 1
   protect_from_scale_in            = false
   target_group_arns                = [aws_lb_target_group.TargetGroup1.arn]
-  vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet4.id]
+  vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id]
   wait_for_elb_capacity            = 0
   availability_zone_distribution {
     capacity_distribution_strategy = "balanced-best-effort"
@@ -150,63 +150,6 @@ resource "aws_subnet" "Subnet8" {
   }
 }
 
-resource "aws_subnet" "Subnet4" {
-  vpc_id                  = aws_vpc.VPC2.id
-  availability_zone       = "us-east-1c"
-  cidr_block              = "10.2.2.0/24"
-  map_public_ip_on_launch = true
-  tags                              = {
-    "Name"         = "Subnet4"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud"        = "minhacloud"
-  }
-}
-
-data "local_file" "UserData_Instance" {
-  filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
-}
-
-data "aws_ami" "AMI_Data_Source_Instance" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
-  }
-}
-
-resource "aws_instance" "Instance" {
-  subnet_id                         = aws_subnet.Subnet4.id
-  ami                               = data.aws_ami.AMI_Data_Source_Instance.id
-  associate_public_ip_address       = true
-  iam_instance_profile              = aws_iam_instance_profile.profile_Instance.name
-  instance_type                     = "t3.micro"
-  secondary_private_ips             = ["10.2.2.10"]
-  user_data_base64                  = base64encode(<<-EOFUData
-#!/bin/bash
-
-# --- BEGIN CLOUDMAN VARIABLES ---
-echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
-echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
-echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
-echo "NAME=Instance" >> /home/ec2-user/.env
-echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
-# --- END CLOUDMAN VARIABLES ---
-
-${data.local_file.UserData_Instance.content}
-EOFUData
-  )
-  user_data_replace_on_change = false
-  vpc_security_group_ids      = [aws_security_group.SG_ec2.id]
-  tags                              = {
-    "Name"         = "Instance"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud"        = "minhacloud"
-  }
-}
-
 resource "aws_s3_bucket" "my-bucket-1234-teste-xxx" {
   bucket              = "my-bucket-1234-teste-xxx"
   force_destroy       = true
@@ -252,6 +195,7 @@ echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" 
 ${data.local_file.UserData_Template.content}
 EOFUData
   )
+  vpc_security_group_ids = [aws_security_group.SG_autoscaling_group_ASG.id]
   iam_instance_profile {
     name = aws_iam_instance_profile.profile_ASG.name
   }
@@ -262,12 +206,6 @@ EOFUData
       instance_interruption_behavior = "terminate"
       spot_instance_type             = "one-time"
     }
-  }
-  network_interfaces {
-    associate_public_ip_address = "true"
-    delete_on_termination       = "true"
-    ipv4_address_count          = 1
-    security_groups             = [aws_security_group.SG_ASG.id]
   }
   tags                              = {
     "Name"         = "Template"
@@ -361,32 +299,6 @@ resource "aws_lb_target_group" "TargetGroup1" {
   }
 }
 
-resource "aws_security_group" "SG_ASG" {
-  name                   = "SG_ASG"
-  vpc_id                 = aws_vpc.VPC2.id
-  revoke_rules_on_delete = false
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    protocol    = "-1"
-    self        = false
-    to_port     = 0
-  }
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 80
-    protocol    = "tcp"
-    self        = false
-    to_port     = 80
-  }
-  tags                              = {
-    "Name"         = "SG_ASG"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud"        = "minhacloud"
-  }
-}
-
 resource "aws_security_group" "SG_ALB" {
   name                   = "SG_ALB"
   vpc_id                 = aws_vpc.VPC2.id
@@ -400,39 +312,13 @@ resource "aws_security_group" "SG_ALB" {
   }
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 80
-    protocol    = "tcp"
-    self        = false
-    to_port     = 80
-  }
-  tags                              = {
-    "Name"         = "SG_ALB"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud"        = "minhacloud"
-  }
-}
-
-resource "aws_security_group" "SG_ec2" {
-  name                   = "SG_ec2"
-  vpc_id                 = aws_vpc.VPC2.id
-  revoke_rules_on_delete = false
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
     from_port   = 0
     protocol    = "-1"
     self        = false
     to_port     = 0
   }
-  ingress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 80
-    protocol    = "tcp"
-    self        = false
-    to_port     = 80
-  }
   tags                              = {
-    "Name"         = "SG_ec2"
+    "Name"         = "SG_ALB"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
     "cloud"        = "minhacloud"
@@ -460,27 +346,6 @@ resource "aws_iam_instance_profile" "profile_ASG" {
   role = aws_iam_role.role_ASG.name
 }
 
-resource "aws_iam_role" "role_Instance" {
-  name = "role_Instance"
-  assume_role_policy                = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      }
-    }
-    ]
-  })
-}
-
-resource "aws_iam_instance_profile" "profile_Instance" {
-  name = "profile_Instance"
-  role = aws_iam_role.role_Instance.name
-}
-
 resource "aws_route_table_association" "aws_route_table_association_Subnet3_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet3.id
@@ -506,15 +371,30 @@ resource "aws_route_table_association" "aws_route_table_association_Subnet8_RT2"
   subnet_id      = aws_subnet.Subnet8.id
 }
 
-resource "aws_route_table_association" "aws_route_table_association_Subnet4_RT2" {
-  route_table_id = aws_route_table.RT2.id
-  subnet_id      = aws_subnet.Subnet4.id
-}
-
 resource "aws_route" "aws_route_RT2_IGW2" {
   gateway_id             = aws_internet_gateway.IGW2.id
   route_table_id         = aws_route_table.RT2.id
   destination_cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_security_group" "SG_autoscaling_group_ASG" {
+  name        = "SG_autoscaling_group_ASG"
+  vpc_id      = aws_vpc.VPC2.id
+  description = "Default SG for autoscaling_group ASG"
+  egress {
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    protocol    = "-1"
+    to_port     = 0
+  }
+  ingress {
+    description     = "alb80"
+    from_port       = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.SG_ALB.id]
+    to_port         = 80
+  }
 }
 
 resource "aws_s3_bucket_versioning" "my-bucket-1234-teste-xxx_versioning" {
@@ -574,30 +454,4 @@ resource "aws_iam_policy" "policy_ASG_st_State1" {
 resource "aws_iam_role_policy_attachment" "policy_ASG_st_State1_attach" {
   policy_arn = aws_iam_policy.policy_ASG_st_State1.arn
   role       = "role_ASG"
-}
-
-data "aws_iam_policy_document" "policy_Instance_st_State1_doc" {
-  statement {
-    sid       = "AllowBucketLevelActions"
-    effect    = "Allow"
-    actions   = ["s3:ListBucket", "s3:GetBucketLocation"]
-    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}"]
-  }
-  statement {
-    sid       = "AllowObjectCRUD"
-    effect    = "Allow"
-    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}/*"]
-  }
-}
-
-resource "aws_iam_policy" "policy_Instance_st_State1" {
-  name        = "policy_Instance_st_State1"
-  description = "Combined Policy for Instance in state State1"
-  policy      = data.aws_iam_policy_document.policy_Instance_st_State1_doc.json
-}
-
-resource "aws_iam_role_policy_attachment" "policy_Instance_st_State1_attach" {
-  policy_arn = aws_iam_policy.policy_Instance_st_State1.arn
-  role       = "role_Instance"
 }
