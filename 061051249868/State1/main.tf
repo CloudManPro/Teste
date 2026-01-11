@@ -40,7 +40,7 @@ resource "aws_subnet" "Subnet3" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1d"
   cidr_block              = "10.2.3.0/24"
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   tags                              = {
     "Name"         = "Subnet3"
     "State"        = "State1"
@@ -102,7 +102,7 @@ resource "aws_subnet" "Subnet" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1a"
   cidr_block              = "10.2.0.0/24"
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   tags                              = {
     "Name"         = "Subnet"
     "State"        = "State1"
@@ -128,7 +128,7 @@ resource "aws_subnet" "Subnet1" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1b"
   cidr_block              = "10.2.1.0/24"
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   tags                              = {
     "Name"         = "Subnet1"
     "State"        = "State1"
@@ -470,9 +470,24 @@ resource "aws_iam_instance_profile" "profile_Instance" {
   role = aws_iam_role.role_Instance.name
 }
 
+resource "aws_route_table_association" "aws_route_table_association_Subnet3_RT2" {
+  route_table_id = aws_route_table.RT2.id
+  subnet_id      = aws_subnet.Subnet3.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet_RT2" {
+  route_table_id = aws_route_table.RT2.id
+  subnet_id      = aws_subnet.Subnet.id
+}
+
 resource "aws_route_table_association" "aws_route_table_association_Subnet7_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet7.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet1_RT2" {
+  route_table_id = aws_route_table.RT2.id
+  subnet_id      = aws_subnet.Subnet1.id
 }
 
 resource "aws_route_table_association" "aws_route_table_association_Subnet8_RT2" {
