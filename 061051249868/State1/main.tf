@@ -338,6 +338,17 @@ resource "aws_lb_target_group" "TargetGroup1" {
   proxy_protocol_v2             = false
   slow_start                    = 0
   target_type                   = "instance"
+  health_check {
+    enabled             = true
+    healthy_threshold   = 3
+    interval            = 30
+    matcher             = "200"
+    path                = "/"
+    port                = 80
+    protocol            = "HTTP"
+    timeout             = 5
+    unhealthy_threshold = 3
+  }
   tags                              = {
     "Name"         = "TargetGroup1"
     "State"        = "State1"
