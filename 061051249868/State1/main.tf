@@ -72,7 +72,7 @@ resource "aws_autoscaling_group" "ASG" {
   force_delete                     = false
   force_delete_warm_pool           = false
   health_check_grace_period        = 300
-  health_check_type                = "EC2"
+  health_check_type                = "ELB"
   ignore_failed_scaling_activities = false
   max_instance_lifetime            = 0
   max_size                         = 3
@@ -163,6 +163,46 @@ resource "aws_subnet" "Subnet8" {
   }
 }
 
+data "local_file" "UserData_Nat" {
+  filename = "${path.module}/.external_modules/CloudMan/EC2/NATGateway/NAT.sh"
+}
+
+data "aws_ami" "AMI_Data_Source_Nat" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+  }
+}
+
+resource "aws_instance" "Nat" {
+  subnet_id                         = aws_subnet.Subnet8.id
+  ami                               = data.aws_ami.AMI_Data_Source_Nat.id
+  associate_public_ip_address       = true
+  iam_instance_profile              = aws_iam_instance_profile.profile_Nat.name
+  instance_initiated_shutdown_behavior = "auto"
+  instance_type                     = "t3.micro"
+  source_dest_check                 = false
+  user_data_base64                  = base64encode(<<-EOFUData
+#!/bin/bash
+
+# --- BEGIN CLOUDMAN VARIABLES ---
+# --- END CLOUDMAN VARIABLES ---
+
+${data.local_file.UserData_Nat.content}
+EOFUData
+  )
+  user_data_replace_on_change = false
+  vpc_security_group_ids      = [aws_security_group.SG_instance_Nat.id]
+  tags                              = {
+    "Name"         = "Nat"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
 resource "aws_s3_bucket" "my-bucket-1234-teste-xxx" {
   bucket              = "my-bucket-1234-teste-xxx"
   force_destroy       = true
@@ -233,7 +273,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id, aws_subnet.Subnet2.id]
+  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet2.id, aws_subnet.Subnet7.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -338,6 +378,28 @@ resource "aws_security_group" "SG_ALB" {
   }
 }
 
+resource "aws_route_table" "RT1" {
+  vpc_id = aws_vpc.VPC2.id
+  tags                              = {
+    "Name"         = "RT1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_security_group" "SG1" {
+  name                   = "SG1"
+  vpc_id                 = aws_vpc.VPC2.id
+  revoke_rules_on_delete = false
+  tags                              = {
+    "Name"         = "SG1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
 resource "aws_iam_role" "role_ASG" {
   name = "role_ASG"
   assume_role_policy                = jsonencode({
@@ -359,14 +421,50 @@ resource "aws_iam_instance_profile" "profile_ASG" {
   role = aws_iam_role.role_ASG.name
 }
 
+resource "aws_iam_role" "role_Nat" {
+  name = "role_Nat"
+  assume_role_policy                = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      }
+    }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "profile_Nat" {
+  name = "profile_Nat"
+  role = aws_iam_role.role_Nat.name
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet3_RT1" {
+  route_table_id = aws_route_table.RT1.id
+  subnet_id      = aws_subnet.Subnet3.id
+}
+
 resource "aws_route_table_association" "aws_route_table_association_Subnet2_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet2.id
 }
 
+resource "aws_route_table_association" "aws_route_table_association_Subnet_RT1" {
+  route_table_id = aws_route_table.RT1.id
+  subnet_id      = aws_subnet.Subnet.id
+}
+
 resource "aws_route_table_association" "aws_route_table_association_Subnet7_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet7.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet1_RT1" {
+  route_table_id = aws_route_table.RT1.id
+  subnet_id      = aws_subnet.Subnet1.id
 }
 
 resource "aws_route_table_association" "aws_route_table_association_Subnet8_RT2" {
@@ -377,6 +475,12 @@ resource "aws_route_table_association" "aws_route_table_association_Subnet8_RT2"
 resource "aws_route" "aws_route_RT2_IGW2" {
   gateway_id             = aws_internet_gateway.IGW2.id
   route_table_id         = aws_route_table.RT2.id
+  destination_cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_route" "aws_route_RT1_Nat" {
+  network_interface_id   = aws_instance.Nat.primary_network_interface_id
+  route_table_id         = aws_route_table.RT1.id
   destination_cidr_block = "0.0.0.0/0"
 }
 
@@ -397,6 +501,19 @@ resource "aws_security_group" "SG_autoscaling_group_ASG" {
     protocol        = "tcp"
     security_groups = [aws_security_group.SG_ALB.id]
     to_port         = 80
+  }
+}
+
+resource "aws_security_group" "SG_instance_Nat" {
+  name        = "SG_instance_Nat"
+  vpc_id      = aws_vpc.VPC2.id
+  description = "Default SG for instance Nat"
+  egress {
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    protocol    = "-1"
+    to_port     = 0
   }
 }
 
