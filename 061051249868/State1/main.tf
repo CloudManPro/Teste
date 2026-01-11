@@ -66,7 +66,7 @@ resource "aws_autoscaling_group" "ASG" {
   min_elb_capacity                 = 0
   min_size                         = 1
   protect_from_scale_in            = false
-  target_group_arns                = aws_lb_target_group.TargetGroup1.arn
+  target_group_arns                = [aws_lb_target_group.TargetGroup1.arn]
   vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet4.id]
   wait_for_elb_capacity            = 0
   availability_zone_distribution {
