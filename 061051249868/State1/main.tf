@@ -163,11 +163,11 @@ resource "aws_subnet" "Subnet8" {
   }
 }
 
-data "local_file" "UserData_Nat" {
-  filename = "${path.module}/.external_modules/CloudMan/EC2/NATGateway/NAT.sh"
+data "local_file" "UserData_Instance" {
+  filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
 }
 
-data "aws_ami" "AMI_Data_Source_Nat" {
+data "aws_ami" "AMI_Data_Source_Instance" {
   most_recent = true
   owners      = ["amazon"]
   filter {
@@ -176,12 +176,11 @@ data "aws_ami" "AMI_Data_Source_Nat" {
   }
 }
 
-resource "aws_instance" "Nat" {
+resource "aws_instance" "Instance" {
   subnet_id                         = aws_subnet.Subnet8.id
-  ami                               = data.aws_ami.AMI_Data_Source_Nat.id
+  ami                               = data.aws_ami.AMI_Data_Source_Instance.id
   associate_public_ip_address       = true
-  iam_instance_profile              = aws_iam_instance_profile.profile_Nat.name
-  instance_initiated_shutdown_behavior = "auto"
+  iam_instance_profile              = aws_iam_instance_profile.profile_Instance.name
   instance_type                     = "t3.micro"
   source_dest_check                 = false
   user_data_base64                  = base64encode(<<-EOFUData
@@ -190,13 +189,13 @@ resource "aws_instance" "Nat" {
 # --- BEGIN CLOUDMAN VARIABLES ---
 # --- END CLOUDMAN VARIABLES ---
 
-${data.local_file.UserData_Nat.content}
+${data.local_file.UserData_Instance.content}
 EOFUData
   )
   user_data_replace_on_change = false
-  vpc_security_group_ids      = [aws_security_group.SG_instance_Nat.id]
+  vpc_security_group_ids      = [aws_security_group.SG1.id]
   tags                              = {
-    "Name"         = "Nat"
+    "Name"         = "Instance"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
     "cloud"        = "minhacloud"
@@ -273,7 +272,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet2.id, aws_subnet.Subnet7.id]
+  subnets            = [aws_subnet.Subnet2.id, aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -421,8 +420,8 @@ resource "aws_iam_instance_profile" "profile_ASG" {
   role = aws_iam_role.role_ASG.name
 }
 
-resource "aws_iam_role" "role_Nat" {
-  name = "role_Nat"
+resource "aws_iam_role" "role_Instance" {
+  name = "role_Instance"
   assume_role_policy                = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -437,9 +436,9 @@ resource "aws_iam_role" "role_Nat" {
   })
 }
 
-resource "aws_iam_instance_profile" "profile_Nat" {
-  name = "profile_Nat"
-  role = aws_iam_role.role_Nat.name
+resource "aws_iam_instance_profile" "profile_Instance" {
+  name = "profile_Instance"
+  role = aws_iam_role.role_Instance.name
 }
 
 resource "aws_route_table_association" "aws_route_table_association_Subnet3_RT1" {
@@ -478,8 +477,8 @@ resource "aws_route" "aws_route_RT2_IGW2" {
   destination_cidr_block = "0.0.0.0/0"
 }
 
-resource "aws_route" "aws_route_RT1_Nat" {
-  network_interface_id   = aws_instance.Nat.primary_network_interface_id
+resource "aws_route" "aws_route_RT1_Instance" {
+  network_interface_id   = aws_instance.Instance.primary_network_interface_id
   route_table_id         = aws_route_table.RT1.id
   destination_cidr_block = "0.0.0.0/0"
 }
@@ -501,19 +500,6 @@ resource "aws_security_group" "SG_autoscaling_group_ASG" {
     protocol        = "tcp"
     security_groups = [aws_security_group.SG_ALB.id]
     to_port         = 80
-  }
-}
-
-resource "aws_security_group" "SG_instance_Nat" {
-  name        = "SG_instance_Nat"
-  vpc_id      = aws_vpc.VPC2.id
-  description = "Default SG for instance Nat"
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-    from_port   = 0
-    protocol    = "-1"
-    to_port     = 0
   }
 }
 
