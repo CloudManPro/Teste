@@ -66,6 +66,7 @@ resource "aws_autoscaling_group" "ASG" {
   min_elb_capacity                 = 0
   min_size                         = 1
   protect_from_scale_in            = false
+  target_group_arns                = aws_lb_target_group.TargetGroup1.arn
   vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id, aws_subnet.Subnet4.id]
   wait_for_elb_capacity            = 0
   availability_zone_distribution {
@@ -240,6 +241,104 @@ EOFUData
   }
 }
 
+resource "aws_subnet" "Subnet7" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1a"
+  cidr_block              = "10.2.13.0/24"
+  map_public_ip_on_launch = true
+  tags                              = {
+    "Name"         = "Subnet7"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_lb" "ALB1" {
+  name               = "ALB1"
+  idle_timeout       = 60
+  load_balancer_type = "application"
+  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id]
+  tags                              = {
+    "Name"         = "ALB1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_subnet" "Subnet8" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1b"
+  cidr_block              = "10.2.12.0/24"
+  map_public_ip_on_launch = true
+  tags                              = {
+    "Name"         = "Subnet8"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_route_table" "RT2" {
+  vpc_id = aws_vpc.VPC2.id
+  tags                              = {
+    "Name"         = "RT2"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_internet_gateway" "IGW2" {
+  vpc_id = aws_vpc.VPC2.id
+  tags                              = {
+    "Name"         = "IGW2"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_lb_listener" "Listener1" {
+  load_balancer_arn                    = aws_lb.ALB1.arn
+  port                                 = 80
+  protocol                             = "HTTP"
+  routing_http_response_server_enabled = true
+  default_action {
+    order            = 1
+    target_group_arn = aws_lb_target_group.TargetGroup1.arn
+    type             = "forward"
+  }
+  tags                              = {
+    "Name"         = "Listener1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_lb_target_group" "TargetGroup1" {
+  name                          = "TargetGroup1"
+  vpc_id                        = aws_vpc.VPC2.id
+  connection_termination        = false
+  deregistration_delay          = "300"
+  ip_address_type               = "ipv4"
+  load_balancing_algorithm_type = "round_robin"
+  port                          = 80
+  protocol                      = "HTTP"
+  protocol_version              = "HTTP1"
+  proxy_protocol_v2             = false
+  slow_start                    = 0
+  target_type                   = "instance"
+  tags                              = {
+    "Name"         = "TargetGroup1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
 resource "aws_iam_role" "role_ASG" {
   name = "role_ASG"
   assume_role_policy                = jsonencode({
@@ -280,6 +379,22 @@ resource "aws_iam_role" "role_Instance" {
 resource "aws_iam_instance_profile" "profile_Instance" {
   name = "profile_Instance"
   role = aws_iam_role.role_Instance.name
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet7_RT2" {
+  route_table_id = aws_route_table.RT2.id
+  subnet_id      = aws_subnet.Subnet7.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet8_RT2" {
+  route_table_id = aws_route_table.RT2.id
+  subnet_id      = aws_subnet.Subnet8.id
+}
+
+resource "aws_route" "aws_route_RT2_IGW2" {
+  gateway_id             = aws_internet_gateway.IGW2.id
+  route_table_id         = aws_route_table.RT2.id
+  destination_cidr_block = "0.0.0.0/0"
 }
 
 resource "aws_s3_bucket_versioning" "my-bucket-1234-teste-xxx_versioning" {
