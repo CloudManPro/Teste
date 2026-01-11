@@ -40,7 +40,7 @@ resource "aws_subnet" "Subnet3" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1d"
   cidr_block              = "10.2.3.0/24"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet3"
     "State"        = "State1"
@@ -67,7 +67,7 @@ resource "aws_autoscaling_group" "ASG" {
   capacity_rebalance               = true
   default_cooldown                 = 300
   default_instance_warmup          = 0
-  desired_capacity                 = 6
+  desired_capacity                 = 3
   desired_capacity_type            = "units"
   force_delete                     = false
   force_delete_warm_pool           = false
@@ -75,9 +75,9 @@ resource "aws_autoscaling_group" "ASG" {
   health_check_type                = "EC2"
   ignore_failed_scaling_activities = false
   max_instance_lifetime            = 0
-  max_size                         = 6
+  max_size                         = 3
   min_elb_capacity                 = 0
-  min_size                         = 6
+  min_size                         = 3
   protect_from_scale_in            = false
   target_group_arns                = [aws_lb_target_group.TargetGroup1.arn]
   vpc_zone_identifier              = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id]
@@ -115,7 +115,7 @@ resource "aws_subnet" "Subnet" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1a"
   cidr_block              = "10.2.0.0/24"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet"
     "State"        = "State1"
@@ -141,7 +141,7 @@ resource "aws_subnet" "Subnet1" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1b"
   cidr_block              = "10.2.1.0/24"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet1"
     "State"        = "State1"
@@ -359,29 +359,14 @@ resource "aws_iam_instance_profile" "profile_ASG" {
   role = aws_iam_role.role_ASG.name
 }
 
-resource "aws_route_table_association" "aws_route_table_association_Subnet3_RT2" {
-  route_table_id = aws_route_table.RT2.id
-  subnet_id      = aws_subnet.Subnet3.id
-}
-
 resource "aws_route_table_association" "aws_route_table_association_Subnet2_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet2.id
 }
 
-resource "aws_route_table_association" "aws_route_table_association_Subnet_RT2" {
-  route_table_id = aws_route_table.RT2.id
-  subnet_id      = aws_subnet.Subnet.id
-}
-
 resource "aws_route_table_association" "aws_route_table_association_Subnet7_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet7.id
-}
-
-resource "aws_route_table_association" "aws_route_table_association_Subnet1_RT2" {
-  route_table_id = aws_route_table.RT2.id
-  subnet_id      = aws_subnet.Subnet1.id
 }
 
 resource "aws_route_table_association" "aws_route_table_association_Subnet8_RT2" {
