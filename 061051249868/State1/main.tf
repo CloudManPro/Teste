@@ -111,6 +111,19 @@ resource "aws_subnet" "Subnet" {
   }
 }
 
+resource "aws_subnet" "Subnet7" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1a"
+  cidr_block              = "10.2.13.0/24"
+  map_public_ip_on_launch = true
+  tags                              = {
+    "Name"         = "Subnet7"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
 resource "aws_subnet" "Subnet1" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1b"
@@ -118,6 +131,19 @@ resource "aws_subnet" "Subnet1" {
   map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_subnet" "Subnet8" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1b"
+  cidr_block              = "10.2.12.0/24"
+  map_public_ip_on_launch = true
+  tags                              = {
+    "Name"         = "Subnet8"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
     "cloud"        = "minhacloud"
@@ -168,6 +194,7 @@ echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" 
 EOFUData
   )
   user_data_replace_on_change = false
+  vpc_security_group_ids      = [aws_security_group.SG_Instance.id]
   tags                              = {
     "Name"         = "Instance"
     "State"        = "State1"
@@ -241,39 +268,14 @@ EOFUData
   }
 }
 
-resource "aws_subnet" "Subnet7" {
-  vpc_id                  = aws_vpc.VPC2.id
-  availability_zone       = "us-east-1a"
-  cidr_block              = "10.2.13.0/24"
-  map_public_ip_on_launch = true
-  tags                              = {
-    "Name"         = "Subnet7"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud"        = "minhacloud"
-  }
-}
-
 resource "aws_lb" "ALB1" {
   name               = "ALB1"
   idle_timeout       = 60
   load_balancer_type = "application"
-  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id]
+  security_groups    = [aws_security_group.SG_ALB.id]
+  subnets            = [aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name"         = "ALB1"
-    "State"        = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud"        = "minhacloud"
-  }
-}
-
-resource "aws_subnet" "Subnet8" {
-  vpc_id                  = aws_vpc.VPC2.id
-  availability_zone       = "us-east-1b"
-  cidr_block              = "10.2.12.0/24"
-  map_public_ip_on_launch = true
-  tags                              = {
-    "Name"         = "Subnet8"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
     "cloud"        = "minhacloud"
@@ -333,6 +335,56 @@ resource "aws_lb_target_group" "TargetGroup1" {
   target_type                   = "instance"
   tags                              = {
     "Name"         = "TargetGroup1"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_security_group" "SG_Instance" {
+  name                   = "SG_Instance"
+  vpc_id                 = aws_vpc.VPC2.id
+  revoke_rules_on_delete = false
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    protocol    = "-1"
+    self        = false
+    to_port     = 0
+  }
+  tags                              = {
+    "Name"         = "SG_Instance"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_security_group" "SG_ASG" {
+  name                   = "SG_ASG"
+  vpc_id                 = aws_vpc.VPC2.id
+  revoke_rules_on_delete = false
+  tags                              = {
+    "Name"         = "SG_ASG"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
+resource "aws_security_group" "SG_ALB" {
+  name                   = "SG_ALB"
+  vpc_id                 = aws_vpc.VPC2.id
+  revoke_rules_on_delete = false
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    protocol    = "-1"
+    self        = false
+    to_port     = 0
+  }
+  tags                              = {
+    "Name"         = "SG_ALB"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
     "cloud"        = "minhacloud"
