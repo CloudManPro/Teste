@@ -49,6 +49,19 @@ resource "aws_subnet" "Subnet3" {
   }
 }
 
+resource "aws_subnet" "Subnet2" {
+  vpc_id                  = aws_vpc.VPC2.id
+  availability_zone       = "us-east-1d"
+  cidr_block              = "10.2.14.0/24"
+  map_public_ip_on_launch = true
+  tags                              = {
+    "Name"         = "Subnet2"
+    "State"        = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud"        = "minhacloud"
+  }
+}
+
 resource "aws_autoscaling_group" "ASG" {
   name                             = "ASG"
   capacity_rebalance               = true
@@ -220,7 +233,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
+  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id, aws_subnet.Subnet2.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -349,6 +362,11 @@ resource "aws_iam_instance_profile" "profile_ASG" {
 resource "aws_route_table_association" "aws_route_table_association_Subnet3_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet3.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet2_RT2" {
+  route_table_id = aws_route_table.RT2.id
+  subnet_id      = aws_subnet.Subnet2.id
 }
 
 resource "aws_route_table_association" "aws_route_table_association_Subnet_RT2" {
