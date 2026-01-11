@@ -115,7 +115,7 @@ resource "aws_subnet" "Subnet7" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1a"
   cidr_block              = "10.2.13.0/24"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags                              = {
     "Name"         = "Subnet7"
     "State"        = "State1"
@@ -154,7 +154,7 @@ resource "aws_subnet" "Subnet4" {
   vpc_id                  = aws_vpc.VPC2.id
   availability_zone       = "us-east-1c"
   cidr_block              = "10.2.2.0/24"
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   tags                              = {
     "Name"         = "Subnet4"
     "State"        = "State1"
@@ -244,6 +244,7 @@ echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" 
 
 EOFUData
   )
+  vpc_security_group_ids = [aws_security_group.SG_ASG.id]
   iam_instance_profile {
     name = aws_iam_instance_profile.profile_ASG.name
   }
@@ -273,7 +274,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
+  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -345,10 +346,18 @@ resource "aws_security_group" "SG_Instance" {
   name                   = "SG_Instance"
   vpc_id                 = aws_vpc.VPC2.id
   revoke_rules_on_delete = false
-  ingress {
+  egress {
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 0
     protocol    = "-1"
+    self        = false
+    to_port     = 0
+  }
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    port_range  = "80"
+    protocol    = "tcp"
     self        = false
     to_port     = 0
   }
@@ -364,6 +373,21 @@ resource "aws_security_group" "SG_ASG" {
   name                   = "SG_ASG"
   vpc_id                 = aws_vpc.VPC2.id
   revoke_rules_on_delete = false
+  egress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    protocol    = "-1"
+    self        = false
+    to_port     = 0
+  }
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    port_range  = "80"
+    protocol    = "tcp"
+    self        = false
+    to_port     = 0
+  }
   tags                              = {
     "Name"         = "SG_ASG"
     "State"        = "State1"
@@ -376,10 +400,18 @@ resource "aws_security_group" "SG_ALB" {
   name                   = "SG_ALB"
   vpc_id                 = aws_vpc.VPC2.id
   revoke_rules_on_delete = false
-  ingress {
+  egress {
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 0
     protocol    = "-1"
+    self        = false
+    to_port     = 0
+  }
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    port_range  = "80"
+    protocol    = "tcp"
     self        = false
     to_port     = 0
   }
@@ -441,6 +473,11 @@ resource "aws_route_table_association" "aws_route_table_association_Subnet7_RT2"
 resource "aws_route_table_association" "aws_route_table_association_Subnet8_RT2" {
   route_table_id = aws_route_table.RT2.id
   subnet_id      = aws_subnet.Subnet8.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet4_RT2" {
+  route_table_id = aws_route_table.RT2.id
+  subnet_id      = aws_subnet.Subnet4.id
 }
 
 resource "aws_route" "aws_route_RT2_IGW2" {
