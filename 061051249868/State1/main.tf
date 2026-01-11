@@ -248,7 +248,6 @@ echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" 
 ${data.local_file.UserData_Template.content}
 EOFUData
   )
-  vpc_security_group_ids = [aws_security_group.SG_ASG.id]
   iam_instance_profile {
     name = aws_iam_instance_profile.profile_ASG.name
   }
@@ -264,6 +263,7 @@ EOFUData
     associate_public_ip_address = "true"
     delete_on_termination       = "true"
     ipv4_address_count          = 1
+    security_groups             = [aws_security_group.SG_ASG.id]
   }
   tags                              = {
     "Name"         = "Template"
@@ -278,7 +278,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
+  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -405,7 +405,7 @@ resource "aws_security_group" "SG_ec2" {
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 80
-    protocol    = "-1"
+    protocol    = "tcp"
     self        = false
     to_port     = 80
   }
