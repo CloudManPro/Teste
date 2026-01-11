@@ -163,6 +163,10 @@ resource "aws_subnet" "Subnet4" {
   }
 }
 
+data "local_file" "UserData_Instance" {
+  filename = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
+}
+
 data "aws_ami" "AMI_Data_Source_Instance" {
   most_recent = true
   owners      = ["amazon"]
@@ -190,7 +194,7 @@ echo "NAME=Instance" >> /home/ec2-user/.env
 echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
-
+${data.local_file.UserData_Instance.content}
 EOFUData
   )
   user_data_replace_on_change = false
@@ -278,7 +282,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id]
+  subnets            = [aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -387,6 +391,13 @@ resource "aws_security_group" "SG_ALB" {
   name                   = "SG_ALB"
   vpc_id                 = aws_vpc.VPC2.id
   revoke_rules_on_delete = false
+  egress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    protocol    = "-1"
+    self        = false
+    to_port     = 0
+  }
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 80
