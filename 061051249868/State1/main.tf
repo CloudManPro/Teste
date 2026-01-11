@@ -194,7 +194,7 @@ echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" 
 EOFUData
   )
   user_data_replace_on_change = false
-  vpc_security_group_ids      = [aws_security_group.SG.id]
+  vpc_security_group_ids      = [aws_security_group.SG_ec2.id]
   tags                              = {
     "Name"         = "Instance"
     "State"        = "State1"
@@ -278,7 +278,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout       = 60
   load_balancer_type = "application"
   security_groups    = [aws_security_group.SG_ALB.id]
-  subnets            = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id]
+  subnets            = [aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name"         = "ALB1"
     "State"        = "State1"
@@ -352,10 +352,10 @@ resource "aws_security_group" "SG_ASG" {
   revoke_rules_on_delete = false
   egress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 80
+    from_port   = 0
     protocol    = "-1"
     self        = false
-    to_port     = 90
+    to_port     = 0
   }
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -391,16 +391,16 @@ resource "aws_security_group" "SG_ALB" {
   }
 }
 
-resource "aws_security_group" "SG" {
-  name                   = "SG"
+resource "aws_security_group" "SG_ec2" {
+  name                   = "SG_ec2"
   vpc_id                 = aws_vpc.VPC2.id
   revoke_rules_on_delete = false
   egress {
     cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 80
+    from_port   = 0
     protocol    = "-1"
     self        = false
-    to_port     = 200
+    to_port     = 0
   }
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -410,7 +410,7 @@ resource "aws_security_group" "SG" {
     to_port     = 80
   }
   tags                              = {
-    "Name"         = "SG"
+    "Name"         = "SG_ec2"
     "State"        = "State1"
     "CloudmanUser" = "GlobalUserName"
     "cloud"        = "minhacloud"
