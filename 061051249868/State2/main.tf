@@ -42,6 +42,7 @@ resource "aws_api_gateway_rest_api" "RestAPI" {
 resource "aws_api_gateway_resource" "Resource" {
   parent_id   = aws_api_gateway_rest_api.RestAPI.root_resource_id
   rest_api_id = aws_api_gateway_rest_api.RestAPI.id
+  path_part   = "Resource"
 }
 
 resource "aws_api_gateway_integration" "AWS" {
