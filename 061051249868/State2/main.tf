@@ -42,14 +42,13 @@ resource "aws_api_gateway_rest_api" "RestAPI" {
 resource "aws_api_gateway_resource" "Resource" {
   parent_id   = aws_api_gateway_rest_api.RestAPI.root_resource_id
   rest_api_id = aws_api_gateway_rest_api.RestAPI.id
-  path_part   = "Resource"
 }
 
 resource "aws_api_gateway_integration" "AWS" {
   resource_id             = aws_api_gateway_resource.Resource.id
   rest_api_id             = aws_api_gateway_rest_api.RestAPI.id
   content_handling        = "CONVERT_TO_BINARY"
-  http_method             = aws_api_gateway_method.Method.http_method
+  http_method             = aws_api_gateway_method.GET.http_method
   integration_http_method = "POST"
   passthrough_behavior    = "WHEN_NO_MATCH"
   type                    = "AWS"
@@ -119,7 +118,7 @@ resource "aws_api_gateway_stage" "Stage" {
   }
 }
 
-resource "aws_api_gateway_method" "Method" {
+resource "aws_api_gateway_method" "GET" {
   resource_id   = aws_api_gateway_resource.Resource.id
   rest_api_id   = aws_api_gateway_rest_api.RestAPI.id
   authorization = "NONE"
@@ -129,7 +128,7 @@ resource "aws_api_gateway_method" "Method" {
 resource "aws_api_gateway_method_response" "MResp" {
   resource_id = aws_api_gateway_resource.Resource.id
   rest_api_id = aws_api_gateway_rest_api.RestAPI.id
-  http_method = aws_api_gateway_method.Method.http_method
+  http_method = aws_api_gateway_method.GET.http_method
   status_code = "200"
   response_models                   = {
     "application/json" = "Empty"
@@ -140,7 +139,7 @@ resource "aws_api_gateway_integration_response" "IntResp" {
   resource_id      = aws_api_gateway_resource.Resource.id
   rest_api_id      = aws_api_gateway_rest_api.RestAPI.id
   content_handling = "CONVERT_TO_BINARY"
-  http_method      = aws_api_gateway_method.Method.http_method
+  http_method      = aws_api_gateway_method.GET.http_method
   status_code      = "200"
   response_templates                = {
     "application/json" = ""
@@ -150,20 +149,40 @@ resource "aws_api_gateway_integration_response" "IntResp" {
 
 resource "aws_api_gateway_deployment" "Deploy1" {
   rest_api_id = aws_api_gateway_rest_api.RestAPI.id
-  description = "Deploy1"
   lifecycle {
     create_before_destroy = true
   }
   triggers                          = {
     "redeployment" = sha1(jsonencode([
     aws_api_gateway_resource.Resource.id,
-    aws_api_gateway_method.Method.id,
+    aws_api_gateway_method.GET.id,
+    aws_api_gateway_method.OPTIONS.id,
     aws_api_gateway_integration.AWS.id,
+    aws_api_gateway_integration.MOCK.id,
     aws_api_gateway_integration_response.IntResp.id,
     aws_api_gateway_method_response.MResp.id
     ]))
   }
-  depends_on = [aws_api_gateway_integration.AWS, aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_method.Method, aws_api_gateway_integration_response.IntResp]
+  depends_on = [aws_api_gateway_method.OPTIONS, aws_api_gateway_integration_response.IntResp, aws_api_gateway_resource.Resource, aws_api_gateway_method.GET, aws_api_gateway_integration.AWS, aws_api_gateway_integration.MOCK, aws_api_gateway_method_response.MResp]
+}
+
+resource "aws_api_gateway_method" "OPTIONS" {
+  resource_id   = aws_api_gateway_resource.Resource.id
+  rest_api_id   = aws_api_gateway_rest_api.RestAPI.id
+  authorization = "NONE"
+  http_method   = "OPTIONS"
+}
+
+resource "aws_api_gateway_integration" "MOCK" {
+  resource_id             = aws_api_gateway_resource.Resource.id
+  rest_api_id             = aws_api_gateway_rest_api.RestAPI.id
+  http_method             = aws_api_gateway_method.OPTIONS.http_method
+  integration_http_method = "POST"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  type                    = "MOCK"
+  request_templates                 = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
 }
 
 resource "aws_iam_role" "role_Function" {
@@ -187,5 +206,5 @@ resource "aws_lambda_permission" "perm_AWS_Function" {
   statement_id  = "AllowExecutionFromAPIGateway"
   principal     = "apigateway.amazonaws.com"
   action        = "lambda:InvokeFunction"
-  source_arn    = "${aws_api_gateway_rest_api.RestAPI.execution_arn}/*/${aws_api_gateway_method.Method.http_method}${aws_api_gateway_resource.Resource.path}"
+  source_arn    = "${aws_api_gateway_rest_api.RestAPI.execution_arn}/*/${aws_api_gateway_method.GET.http_method}${aws_api_gateway_resource.Resource.path}"
 }
