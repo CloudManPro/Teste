@@ -122,7 +122,7 @@ resource "aws_api_gateway_deployment" "Deploy1" {
     aws_api_gateway_method_response.MResp.id
     ]))
   }
-  depends_on = [aws_api_gateway_integration.Int, aws_api_gateway_method.Method2, aws_api_gateway_method.Method1, aws_api_gateway_resource.Resource, aws_api_gateway_method_response.MResp, aws_api_gateway_integration.Int1, aws_api_gateway_integration_response.IntResp]
+  depends_on = [aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_integration.Int1, aws_api_gateway_integration.Int, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method2, aws_api_gateway_method.Method1]
 }
 
 resource "aws_api_gateway_method" "Method2" {
@@ -152,13 +152,15 @@ resource "aws_api_gateway_integration" "Int1" {
   type                    = "AWS"
   uri                     = aws_lambda_function.Function.invoke_arn
   request_templates                 = {
-    "application/json" = "{
-      \"headers\": {
-        #foreach($param in $input.params().header.keySet())
-        \"$param\": \"$util.escapeJavaScript($input.params().header.get($param))\" #if($foreach.hasNext),#end
-        #end
-      }
-    }"
+    "application/json" = <<EOF
+{
+  "headers": {
+    #foreach($param in $input.params().header.keySet())
+    "$param": "$util.escapeJavaScript($input.params().header.get($param))" #if($foreach.hasNext),#end
+    #end
+  }
+}
+EOF
   }
 }
 
