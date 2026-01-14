@@ -103,18 +103,6 @@ resource "aws_api_gateway_method_response" "MResp" {
   }
 }
 
-resource "aws_api_gateway_integration_response" "IntResp" {
-  resource_id      = aws_api_gateway_resource.Resource.id
-  rest_api_id      = aws_api_gateway_rest_api.RestAPI.id
-  content_handling = "CONVERT_TO_BINARY"
-  http_method      = aws_api_gateway_method.Method1.http_method
-  status_code      = "200"
-  response_templates                = {
-    "application/json" = ""
-  }
-  depends_on = [aws_api_gateway_integration.Int1]
-}
-
 resource "aws_api_gateway_deployment" "Deploy1" {
   rest_api_id = aws_api_gateway_rest_api.RestAPI.id
   lifecycle {
@@ -182,6 +170,17 @@ resource "aws_api_gateway_integration" "Int1" {
 }
 EOF
   }
+}
+
+resource "aws_api_gateway_integration_response" "IntResp" {
+  resource_id = aws_api_gateway_resource.Resource.id
+  rest_api_id = aws_api_gateway_rest_api.RestAPI.id
+  http_method = aws_api_gateway_method.Method1.http_method
+  status_code = "200"
+  response_templates                = {
+    "application/json" = ""
+  }
+  depends_on = [aws_api_gateway_integration.Int1]
 }
 
 resource "aws_iam_role" "role_Function" {
