@@ -146,7 +146,11 @@ resource "aws_api_gateway_integration" "Int" {
   rest_api_id             = aws_api_gateway_rest_api.RestAPI.id
   http_method             = aws_api_gateway_method.Method2.http_method
   integration_http_method = "POST"
-  type                    = "AWS"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  type                    = "MOCK"
+  request_templates                 = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
 }
 
 resource "aws_api_gateway_integration" "Int1" {
