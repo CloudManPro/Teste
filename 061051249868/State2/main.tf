@@ -57,7 +57,6 @@ resource "aws_api_gateway_integration" "AWS" {
   request_templates                 = {
     "application/json" = <<EOF
 {
-  "body" : $input.json('$'),
   "headers": {
     #foreach($param in $input.params().header.keySet())
     "$param": "$util.escapeJavaScript($input.params().header.get($param))" #if($foreach.hasNext),#end
@@ -164,7 +163,7 @@ resource "aws_api_gateway_deployment" "Deploy1" {
     aws_api_gateway_method_response.MResp.id
     ]))
   }
-  depends_on = [aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_integration.MOCK, aws_api_gateway_method.Method1, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method2, aws_api_gateway_integration.AWS]
+  depends_on = [aws_api_gateway_method.Method2, aws_api_gateway_resource.Resource, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method_response.MResp, aws_api_gateway_method.Method1, aws_api_gateway_integration.AWS, aws_api_gateway_integration.MOCK]
 }
 
 resource "aws_api_gateway_method" "Method2" {
@@ -183,6 +182,15 @@ resource "aws_api_gateway_integration" "MOCK" {
   type                    = "MOCK"
   request_templates                 = {
     "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_rest_api_bundle_" "Bundle" {
+  name = "Bundle"
+  tags                              = {
+    "Name"         = "Bundle"
+    "State"        = "State2"
+    "CloudmanUser" = "GlobalUserName"
   }
 }
 
