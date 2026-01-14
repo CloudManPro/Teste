@@ -122,7 +122,7 @@ resource "aws_api_gateway_deployment" "Deploy1" {
     aws_api_gateway_method_response.MResp.id
     ]))
   }
-  depends_on = [aws_api_gateway_method.Method1, aws_api_gateway_integration.Int1, aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method2, aws_api_gateway_integration.Int]
+  depends_on = [aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_method.Method1, aws_api_gateway_integration.Int1, aws_api_gateway_integration.Int, aws_api_gateway_method.Method2, aws_api_gateway_integration_response.IntResp]
 }
 
 resource "aws_api_gateway_method" "Method2" {
@@ -142,26 +142,6 @@ resource "aws_api_gateway_integration" "Int" {
   request_templates                 = {
     "application/json" = "{\"statusCode\": 200}"
   }
-}
-
-resource "aws_api_gateway_integration_response" "IntResp" {
-  resource_id = aws_api_gateway_resource.Resource.id
-  rest_api_id = aws_api_gateway_rest_api.RestAPI.id
-  http_method = aws_api_gateway_method.Method1.http_method
-  status_code = "200"
-  response_templates                = {
-    "application/json" = <<EOF
-{
-				"application/json": `#set($inputRoot = $input.path('$'))
-  "pathParams": {
-    #foreach($param in $input.params().path.keySet())
-    "$param": "$util.escapeJavaScript($input.params().path.get($param))" #if($foreach.hasNext),#end
-    #end
-  }
-}
-EOF
-  }
-  depends_on = [aws_api_gateway_integration.Int1]
 }
 
 resource "aws_api_gateway_integration" "Int1" {
@@ -205,6 +185,17 @@ resource "aws_api_gateway_integration" "Int1" {
 }
 EOF
   }
+}
+
+resource "aws_api_gateway_integration_response" "IntResp" {
+  resource_id = aws_api_gateway_resource.Resource.id
+  rest_api_id = aws_api_gateway_rest_api.RestAPI.id
+  http_method = aws_api_gateway_method.Method1.http_method
+  status_code = "200"
+  response_templates                = {
+    "application/json" = "$input.json('$')"
+  }
+  depends_on = [aws_api_gateway_integration.Int1]
 }
 
 resource "aws_iam_role" "role_Function" {
