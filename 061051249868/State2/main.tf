@@ -93,7 +93,7 @@ resource "aws_api_gateway_method" "Method1" {
   resource_id   = aws_api_gateway_resource.Resource.id
   rest_api_id   = aws_api_gateway_rest_api.RestAPI.id
   authorization = "NONE"
-  http_method   = "GET"
+  http_method   = "POST"
 }
 
 resource "aws_api_gateway_method_response" "MResp" {
@@ -122,7 +122,7 @@ resource "aws_api_gateway_deployment" "Deploy1" {
     aws_api_gateway_method_response.MResp.id
     ]))
   }
-  depends_on = [aws_api_gateway_method.Method1, aws_api_gateway_method_response.MResp, aws_api_gateway_method.Method2, aws_api_gateway_resource.Resource, aws_api_gateway_integration_response.IntResp, aws_api_gateway_integration.Int1, aws_api_gateway_integration.Int]
+  depends_on = [aws_api_gateway_method.Method1, aws_api_gateway_integration.Int1, aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method2, aws_api_gateway_integration.Int]
 }
 
 resource "aws_api_gateway_method" "Method2" {
@@ -144,31 +144,68 @@ resource "aws_api_gateway_integration" "Int" {
   }
 }
 
-resource "aws_api_gateway_integration" "Int1" {
-  resource_id             = aws_api_gateway_resource.Resource.id
-  rest_api_id             = aws_api_gateway_rest_api.RestAPI.id
-  http_method             = aws_api_gateway_method.Method1.http_method
-  integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.Function.invoke_arn
-  request_templates                 = {
-    "application/json" = <<EOF {   "headers": {     #foreach($param in $input.params().header.keySet())     "$param": "$util.escapeJavaScript($input.params().header.get($param))" #if($foreach.hasNext),#end     #end   },   "queryParams": {     #foreach($param in $input.params().querystring.keySet())     "$param": "$util.escapeJavaScript($input.params().querystring.get($param))" #if($foreach.hasNext),#end     #end   },   "pathParams": {     #foreach($param in $input.params().path.keySet())     "$param": "$util.escapeJavaScript($input.params().path.get($param))" #if($foreach.hasNext),#end
-      #end   
-      } 
-      } 
-      EOF
-  }
-}
-
 resource "aws_api_gateway_integration_response" "IntResp" {
   resource_id = aws_api_gateway_resource.Resource.id
   rest_api_id = aws_api_gateway_rest_api.RestAPI.id
   http_method = aws_api_gateway_method.Method1.http_method
   status_code = "200"
   response_templates                = {
-    "application/json" = ""
+    "application/json" = <<EOF
+{
+				"application/json": `#set($inputRoot = $input.path('$'))
+  "pathParams": {
+    #foreach($param in $input.params().path.keySet())
+    "$param": "$util.escapeJavaScript($input.params().path.get($param))" #if($foreach.hasNext),#end
+    #end
+  }
+}
+EOF
   }
   depends_on = [aws_api_gateway_integration.Int1]
+}
+
+resource "aws_api_gateway_integration" "Int1" {
+  resource_id             = aws_api_gateway_resource.Resource.id
+  rest_api_id             = aws_api_gateway_rest_api.RestAPI.id
+  http_method             = aws_api_gateway_method.Method1.http_method
+  integration_http_method = "POST"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.Function.invoke_arn
+  request_templates                 = {
+    "application/json" = <<EOF
+{
+  "body" : $input.json('$'),
+  "headers": {
+    #foreach($param in $input.params().header.keySet())
+    "$param": "$util.escapeJavaScript($input.params().header.get($param))" #if($foreach.hasNext),#end
+    #end
+  },
+  "queryParams": {
+    #foreach($param in $input.params().querystring.keySet())
+    "$param": "$util.escapeJavaScript($input.params().querystring.get($param))" #if($foreach.hasNext),#end
+    #end
+  },
+  "pathParams": {
+    #foreach($param in $input.params().path.keySet())
+    "$param": "$util.escapeJavaScript($input.params().path.get($param))" #if($foreach.hasNext),#end
+    #end
+  },
+
+  "context" : {
+    "apiId" : "$context.apiId",
+    "httpMethod" : "$context.httpMethod",
+    "requestId" : "$context.requestId",
+    "resourceId" : "$context.resourceId",
+    "sourceIp" : "$context.identity.sourceIp",
+    "stage" : "$context.stage",
+    "user" : "$context.identity.user",
+    "userAgent" : "$context.identity.userAgent",
+    "userArn" : "$context.identity.userArn"
+  }
+}
+EOF
+  }
 }
 
 resource "aws_iam_role" "role_Function" {
