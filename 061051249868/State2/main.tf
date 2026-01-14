@@ -93,7 +93,7 @@ resource "aws_api_gateway_method" "Method1" {
   resource_id   = aws_api_gateway_resource.Resource.id
   rest_api_id   = aws_api_gateway_rest_api.RestAPI.id
   authorization = "NONE"
-  http_method   = "POST"
+  http_method   = "GET"
 }
 
 resource "aws_api_gateway_method_response" "MResp" {
@@ -175,7 +175,6 @@ resource "aws_api_gateway_integration" "Int1" {
   request_templates                 = {
     "application/json" = <<EOF
 {
-  "body" : $input.json('$'),
   "headers": {
     #foreach($param in $input.params().header.keySet())
     "$param": "$util.escapeJavaScript($input.params().header.get($param))" #if($foreach.hasNext),#end
