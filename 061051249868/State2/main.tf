@@ -185,15 +185,6 @@ resource "aws_api_gateway_integration" "MOCK" {
   }
 }
 
-resource "aws_api_gateway_rest_api_bundle_" "Bundle" {
-  name = "Bundle"
-  tags                              = {
-    "Name"         = "Bundle"
-    "State"        = "State2"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
 resource "aws_iam_role" "role_Function" {
   name = "role_Function"
   assume_role_policy                = jsonencode({
