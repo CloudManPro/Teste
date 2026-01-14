@@ -114,15 +114,20 @@ resource "aws_api_gateway_deployment" "Deploy1" {
   triggers                          = {
     "redeployment" = sha1(jsonencode([
     aws_api_gateway_resource.Resource.id,
+    aws_api_gateway_resource.teste.id,
     aws_api_gateway_method.Method1.id,
     aws_api_gateway_method.Method2.id,
+    aws_api_gateway_method.Method.id,
     aws_api_gateway_integration.Int1.id,
     aws_api_gateway_integration.Int.id,
+    aws_api_gateway_integration.Int2.id,
     aws_api_gateway_integration_response.IntResp.id,
-    aws_api_gateway_method_response.MResp.id
+    aws_api_gateway_integration_response.IntResp1.id,
+    aws_api_gateway_method_response.MResp.id,
+    aws_api_gateway_method_response.MResp1.id
     ]))
   }
-  depends_on = [aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_integration.Int1, aws_api_gateway_integration.Int, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method2, aws_api_gateway_method.Method1]
+  depends_on = [aws_api_gateway_resource.Resource, aws_api_gateway_integration.Int1, aws_api_gateway_method.Method1, aws_api_gateway_integration_response.IntResp1, aws_api_gateway_method_response.MResp, aws_api_gateway_method.Method, aws_api_gateway_resource.teste, aws_api_gateway_method_response.MResp1, aws_api_gateway_integration.Int, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method2, aws_api_gateway_integration.Int2]
 }
 
 resource "aws_api_gateway_method" "Method2" {
@@ -175,8 +180,133 @@ resource "aws_api_gateway_integration_response" "IntResp" {
   depends_on = [aws_api_gateway_integration.Int1]
 }
 
+resource "aws_api_gateway_resource" "teste" {
+  parent_id   = aws_api_gateway_rest_api.RestAPI.root_resource_id
+  rest_api_id = aws_api_gateway_rest_api.RestAPI.id
+  path_part   = "teste"
+}
+
+resource "aws_api_gateway_method" "Method" {
+  resource_id   = aws_api_gateway_resource.teste.id
+  rest_api_id   = aws_api_gateway_rest_api.RestAPI.id
+  authorization = "NONE"
+  http_method   = "GET"
+}
+
+resource "aws_api_gateway_integration" "Int2" {
+  resource_id             = aws_api_gateway_resource.teste.id
+  rest_api_id             = aws_api_gateway_rest_api.RestAPI.id
+  http_method             = aws_api_gateway_method.Method.http_method
+  integration_http_method = "POST"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.Function1.invoke_arn
+  request_templates                 = {
+    "application/json" = <<EOF
+{
+  "headers": {
+    #foreach($param in $input.params().header.keySet())
+    "$param": "$util.escapeJavaScript($input.params().header.get($param))" #if($foreach.hasNext),#end
+    #end
+  },
+  "queryParams": {
+    #foreach($param in $input.params().querystring.keySet())
+    "$param": "$util.escapeJavaScript($input.params().querystring.get($param))" #if($foreach.hasNext),#end
+    #end
+  },
+  "pathParams": {
+    #foreach($param in $input.params().path.keySet())
+    "$param": "$util.escapeJavaScript($input.params().path.get($param))" #if($foreach.hasNext),#end
+    #end
+  },
+
+  "context" : {
+    "apiId" : "$context.apiId",
+    "httpMethod" : "$context.httpMethod",
+    "requestId" : "$context.requestId",
+    "resourceId" : "$context.resourceId",
+    "sourceIp" : "$context.identity.sourceIp",
+    "stage" : "$context.stage",
+    "user" : "$context.identity.user",
+    "userAgent" : "$context.identity.userAgent",
+    "userArn" : "$context.identity.userArn"
+  }
+}
+EOF
+  }
+}
+
+data "archive_file" "archive_CloudMan_Function1" {
+  output_path = "${path.module}/CloudMan_Function1.zip"
+  source_dir  = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub"
+  type        = "zip"
+}
+
+resource "aws_lambda_function" "Function1" {
+  function_name                  = "Function1"
+  architectures                  = ["arm64"]
+  filename                       = "${data.archive_file.archive_CloudMan_Function1.output_path}"
+  handler                        = "LambdaHub.lambda_handler"
+  memory_size                    = 3008
+  publish                        = false
+  reserved_concurrent_executions = -1
+  role                           = aws_iam_role.role_Function1.arn
+  runtime                        = "python3.13"
+  source_code_hash               = "${data.archive_file.archive_CloudMan_Function1.output_base64sha256}"
+  timeout                        = 30
+  environment {
+    variables                       = {
+      "REGION"  = "${data.aws_region.current.name}"
+      "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+      "NAME"    = "Function1"
+    }
+  }
+  tags                              = {
+    "Name"         = "Function1"
+    "State"        = "State2"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_api_gateway_integration_response" "IntResp1" {
+  resource_id = aws_api_gateway_resource.teste.id
+  rest_api_id = aws_api_gateway_rest_api.RestAPI.id
+  http_method = aws_api_gateway_method.Method.http_method
+  status_code = "200"
+  response_templates                = {
+    "application/json" = "$input.json('$')"
+  }
+  depends_on = [aws_api_gateway_integration.Int2]
+}
+
+resource "aws_api_gateway_method_response" "MResp1" {
+  resource_id = aws_api_gateway_resource.teste.id
+  rest_api_id = aws_api_gateway_rest_api.RestAPI.id
+  http_method = aws_api_gateway_method.Method.http_method
+  status_code = "200"
+  response_models                   = {
+    "application/json" = "Empty"
+  }
+}
+
 resource "aws_iam_role" "role_Function" {
   name = "role_Function"
+  assume_role_policy                = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
+    }
+    ]
+  })
+}
+
+resource "aws_iam_role" "role_Function1" {
+  name = "role_Function1"
   assume_role_policy                = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -197,4 +327,12 @@ resource "aws_lambda_permission" "perm_Int1_Function" {
   principal     = "apigateway.amazonaws.com"
   action        = "lambda:InvokeFunction"
   source_arn    = "${aws_api_gateway_rest_api.RestAPI.execution_arn}/*/${aws_api_gateway_method.Method1.http_method}${aws_api_gateway_resource.Resource.path}"
+}
+
+resource "aws_lambda_permission" "perm_Int2_Function1" {
+  function_name = aws_lambda_function.Function1.function_name
+  statement_id  = "AllowExecutionFromAPIGateway"
+  principal     = "apigateway.amazonaws.com"
+  action        = "lambda:InvokeFunction"
+  source_arn    = "${aws_api_gateway_rest_api.RestAPI.execution_arn}/*/${aws_api_gateway_method.Method.http_method}${aws_api_gateway_resource.teste.path}"
 }
