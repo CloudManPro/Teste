@@ -63,9 +63,12 @@ resource "aws_lambda_function" "Function" {
   runtime                        = "python3.13"
   source_code_hash               = "${data.archive_file.archive_CloudMan_Function.output_base64sha256}"
   timeout                        = 30
-  lifecycle {
-    create_before_destroy = true
-    prevent_destroy       = false
+  environment {
+    variables                       = {
+      "REGION"  = "${data.aws_region.current.name}"
+      "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+      "NAME"    = "Function"
+    }
   }
   tags                              = {
     "Name"         = "Function"
@@ -119,7 +122,7 @@ resource "aws_api_gateway_deployment" "Deploy1" {
     aws_api_gateway_method_response.MResp.id
     ]))
   }
-  depends_on = [aws_api_gateway_method_response.MResp, aws_api_gateway_resource.Resource, aws_api_gateway_integration.Int1, aws_api_gateway_method.Method2, aws_api_gateway_integration.Int, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method1]
+  depends_on = [aws_api_gateway_resource.Resource, aws_api_gateway_method.Method1, aws_api_gateway_method.Method2, aws_api_gateway_integration.Int1, aws_api_gateway_integration.Int, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method_response.MResp]
 }
 
 resource "aws_api_gateway_method" "Method2" {
