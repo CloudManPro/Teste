@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.0.0"
 
   required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4.2"
+    }
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
@@ -128,16 +132,23 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
   }
 }
 
+data "archive_file" "archive_CloudMan_Function2" {
+  output_path = "${path.module}/CloudMan_Function2.zip"
+  source_dir  = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub"
+  type        = "zip"
+}
+
 resource "aws_lambda_function" "Function2" {
   function_name                  = "Function2"
   architectures                  = ["arm64"]
-  filename                       = "teste"
-  handler                        = "index.lambda_handler"
+  filename                       = "${data.archive_file.archive_CloudMan_Function2.output_path}"
+  handler                        = "LambdaHub.lambda_handler"
   memory_size                    = 3008
   publish                        = false
   reserved_concurrent_executions = -1
   role                           = aws_iam_role.role_Function2.arn
   runtime                        = "python3.13"
+  source_code_hash               = "${data.archive_file.archive_CloudMan_Function2.output_base64sha256}"
   timeout                        = 30
   environment {
     variables                       = {
