@@ -164,6 +164,17 @@ resource "aws_lambda_function" "Function2" {
   }
 }
 
+resource "aws_api_gateway_stage" "Stage1" {
+  rest_api_id        = aws_api_gateway_rest_api.RestAPI1.id
+  stage_name         = "prod"
+  cache_cluster_size = "0.5"
+  tags                              = {
+    "Name"         = "Stage1"
+    "State"        = "State3"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_iam_role" "role_Function2" {
   name = "role_Function2"
   assume_role_policy                = jsonencode({
