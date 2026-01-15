@@ -25,53 +25,154 @@ provider "aws" {
 # Standard Data Sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
-data "aws_ami" "AMI_Data_Source_Template1" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+locals {
+  openapi_spec_RestAPI1 = {
+    "openapi" = "3.0.1"
+    "info" = {
+      "title"   = "RestAPI1"
+      "version" = "1.0"
+    }
+    "paths" = {
+      "/function2" = {
+        "delete" = {
+          "x-amazon-apigateway-integration" = {
+            "uri"        = "${aws_lambda_function.Function2.invoke_arn}"
+            "httpMethod" = "POST"
+            "type"       = "aws_proxy"
+          }
+        }
+        "get" = {
+          "x-amazon-apigateway-integration" = {
+            "uri"        = "${aws_lambda_function.Function2.invoke_arn}"
+            "httpMethod" = "POST"
+            "type"       = "aws_proxy"
+          }
+        }
+        "head" = {
+          "x-amazon-apigateway-integration" = {
+            "uri"        = "${aws_lambda_function.Function2.invoke_arn}"
+            "httpMethod" = "POST"
+            "type"       = "aws_proxy"
+          }
+        }
+        "patch" = {
+          "x-amazon-apigateway-integration" = {
+            "uri"        = "${aws_lambda_function.Function2.invoke_arn}"
+            "httpMethod" = "POST"
+            "type"       = "aws_proxy"
+          }
+        }
+        "post" = {
+          "x-amazon-apigateway-integration" = {
+            "uri"        = "${aws_lambda_function.Function2.invoke_arn}"
+            "httpMethod" = "POST"
+            "type"       = "aws_proxy"
+          }
+        }
+        "put" = {
+          "x-amazon-apigateway-integration" = {
+            "uri"        = "${aws_lambda_function.Function2.invoke_arn}"
+            "httpMethod" = "POST"
+            "type"       = "aws_proxy"
+          }
+        }
+        "options" = {
+          "summary"  = "CORS support"
+          "consumes" = ["application/json"]
+          "produces" = ["application/json"]
+          "responses" = {
+            "200" = {
+              "description" = "200 response"
+              "headers" = {
+                "Access-Control-Allow-Origin" = {
+                  "type" = "string"
+                }
+                "Access-Control-Allow-Methods" = {
+                  "type" = "string"
+                }
+                "Access-Control-Allow-Headers" = {
+                  "type" = "string"
+                }
+              }
+            }
+          }
+          "x-amazon-apigateway-integration" = {
+            "type" = "mock"
+            "requestTemplates" = {
+              "application/json" = "{\"statusCode\": 200}"
+            }
+            "responses" = {
+              "default" = {
+                "statusCode" = "200"
+                "responseParameters" = {
+                  "method.response.header.Access-Control-Allow-Methods" = "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT,OPTIONS'"
+                  "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                  "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
-resource "aws_launch_template" "Template1" {
-  image_id                          = data.aws_ami.AMI_Data_Source_Template1.id
-  name                              = "Template1"
-  ebs_optimized                     = true
-  instance_type                     = "t3.micro"
-  update_default_version            = true
-  user_data                         = base64encode(<<-EOFUData
-#!/bin/bash
-
-# --- BEGIN CLOUDMAN VARIABLES ---
-# --- END CLOUDMAN VARIABLES ---
-
-
-EOFUData
-  )
-  metadata_options {
-    http_endpoint               = "enabled"
-    http_protocol_ipv6          = "disabled"
-    http_put_response_hop_limit = 0
-    http_tokens                 = "required"
-    instance_metadata_tags      = "disabled"
-  }
-  network_interfaces {
-    associate_public_ip_address = "true"
-  }
+resource "aws_api_gateway_rest_api" "RestAPI1" {
+  name = "RestAPI1"
+  body = jsonencode(local.openapi_spec_RestAPI1)
   tags                              = {
-    "Name"         = "Template1"
+    "Name"         = "RestAPI1"
     "State"        = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
 }
 
-resource "aws_vpc" "VPC3" {
-  cidr_block       = "10.3.0.0/16"
-  instance_tenancy = "default"
+resource "aws_lambda_function" "Function2" {
+  function_name                  = "Function2"
+  architectures                  = ["arm64"]
+  filename                       = "teste"
+  handler                        = "index.lambda_handler"
+  memory_size                    = 3008
+  publish                        = false
+  reserved_concurrent_executions = -1
+  role                           = aws_iam_role.role_Function2.arn
+  runtime                        = "python3.13"
+  timeout                        = 30
+  environment {
+    variables                       = {
+      "REGION"  = "${data.aws_region.current.name}"
+      "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+      "NAME"    = "Function2"
+    }
+  }
   tags                              = {
-    "Name"         = "VPC3"
+    "Name"         = "Function2"
     "State"        = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
+}
+
+resource "aws_iam_role" "role_Function2" {
+  name = "role_Function2"
+  assume_role_policy                = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
+    }
+    ]
+  })
+}
+
+resource "aws_lambda_permission" "perm_api_RestAPI1_to_Function2" {
+  function_name = aws_lambda_function.Function2.function_name
+  statement_id  = "perm_api_RestAPI1_to_Function2"
+  principal     = "apigateway.amazonaws.com"
+  action        = "lambda:InvokeFunction"
+  source_arn    = "${aws_api_gateway_rest_api.RestAPI1.execution_arn}/*/*"
 }
