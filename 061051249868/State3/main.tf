@@ -30,20 +30,22 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 locals {
-  api_config_RestAPI1 = [{
-    "path"        = "/function2"
-    "uri"         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:Function2/invocations"
-    "type"        = aws_proxy
-    "methods"     = ["delete", "get", "head", "options", "patch", "post", "put"]
-    "enable_mock" = true
-    }, {
-      "path"        = "/function3"
-      "uri"         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:Function3/invocations"
-      "type"        = aws_proxy
-      "methods"     = ["delete", "get", "head", "options", "patch", "post", "put"]
-      "enable_mock" = true
-    }
-  }]
+  api_config_RestAPI1 = [
+  {
+    path        = "/function2"
+    uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:Function2/invocations"
+    type        = "aws_proxy"
+    methods     = ["delete", "get", "head", "options", "patch", "post", "put"]
+    enable_mock = true
+  },
+  {
+    path        = "/function3"
+    uri         = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:Function3/invocations"
+    type        = "aws_proxy"
+    methods     = ["delete", "get", "head", "options", "patch", "post", "put"]
+    enable_mock = true
+  },
+  ]
   openapi_spec_RestAPI1 = {
     openapi = "3.0.1"
     info = {
@@ -53,7 +55,6 @@ locals {
     paths = {
       for item in local.api_config_RestAPI1 :
       item.path = > merge(
-      # 1. Gera bloco para cada método HTTP configurado (GET, POST, etc)
       {
         for method in item.methods :
         method => {
@@ -65,7 +66,6 @@ locals {
         }
         if method ! = "options"
       },
-      # 2. Gera bloco OPTIONS (Mock) se habilitado
       item.enable_mock ? { "options" = {
         summary  = "CORS support"
         consumes = ["application/json"]
