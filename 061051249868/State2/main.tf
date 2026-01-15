@@ -65,9 +65,11 @@ resource "aws_lambda_function" "Function" {
   timeout                        = 30
   environment {
     variables                       = {
-      "REGION"  = "${data.aws_region.current.name}"
-      "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
-      "NAME"    = "Function"
+      "AWS_CLOUDWATCH_LOG_GROUP_TARGET_NAME_0" = "LogGroup"
+      "REGION"                                 = "${data.aws_region.current.name}"
+      "ACCOUNT"                                = "${data.aws_caller_identity.current.account_id}"
+      "NAME"                                   = "Function"
+      "AWS_CLOUDWATCH_LOG_GROUP_TARGET_ARN_0"  = "${aws_cloudwatch_log_group.LogGroup.arn}"
     }
   }
   tags                              = {
@@ -127,7 +129,7 @@ resource "aws_api_gateway_deployment" "Deploy1" {
     aws_api_gateway_method_response.MResp1.id
     ]))
   }
-  depends_on = [aws_api_gateway_resource.Resource, aws_api_gateway_integration.Int1, aws_api_gateway_method.Method1, aws_api_gateway_integration_response.IntResp1, aws_api_gateway_method_response.MResp, aws_api_gateway_method.Method, aws_api_gateway_resource.teste, aws_api_gateway_method_response.MResp1, aws_api_gateway_integration.Int, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method.Method2, aws_api_gateway_integration.Int2]
+  depends_on = [aws_api_gateway_integration.Int, aws_api_gateway_integration_response.IntResp1, aws_api_gateway_method_response.MResp1, aws_api_gateway_method.Method, aws_api_gateway_integration_response.IntResp, aws_api_gateway_method_response.MResp, aws_api_gateway_resource.teste, aws_api_gateway_method.Method1, aws_api_gateway_resource.Resource, aws_api_gateway_integration.Int1, aws_api_gateway_integration.Int2, aws_api_gateway_method.Method2]
 }
 
 resource "aws_api_gateway_method" "Method2" {
@@ -256,9 +258,11 @@ resource "aws_lambda_function" "Function1" {
   timeout                        = 30
   environment {
     variables                       = {
-      "REGION"  = "${data.aws_region.current.name}"
-      "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
-      "NAME"    = "Function1"
+      "AWS_CLOUDWATCH_LOG_GROUP_TARGET_NAME_0" = "LogGroup2"
+      "REGION"                                 = "${data.aws_region.current.name}"
+      "ACCOUNT"                                = "${data.aws_caller_identity.current.account_id}"
+      "NAME"                                   = "Function1"
+      "AWS_CLOUDWATCH_LOG_GROUP_TARGET_ARN_0"  = "${aws_cloudwatch_log_group.LogGroup2.arn}"
     }
   }
   tags                              = {
@@ -286,6 +290,30 @@ resource "aws_api_gateway_method_response" "MResp1" {
   status_code = "200"
   response_models                   = {
     "application/json" = "Empty"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "LogGroup" {
+  name              = "/aws/lambda/Function"
+  log_group_class   = "STANDARD"
+  retention_in_days = 1
+  skip_destroy      = false
+  tags                              = {
+    "Name"         = "LogGroup"
+    "State"        = "State2"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "LogGroup2" {
+  name              = "/aws/lambda/Function1"
+  log_group_class   = "STANDARD"
+  retention_in_days = 1
+  skip_destroy      = false
+  tags                              = {
+    "Name"         = "LogGroup2"
+    "State"        = "State2"
+    "CloudmanUser" = "GlobalUserName"
   }
 }
 
@@ -319,6 +347,46 @@ resource "aws_iam_role" "role_Function1" {
     }
     ]
   })
+}
+
+data "aws_iam_policy_document" "policy_Function_st_State2_doc" {
+  statement {
+    sid       = "AllowWriteLogs"
+    effect    = "Allow"
+    actions   = ["cloudwatch:FilterLogEvents", "logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.LogGroup.arn}:*"]
+  }
+}
+
+resource "aws_iam_policy" "policy_Function_st_State2" {
+  name        = "policy_Function_st_State2"
+  description = "Combined Policy for Function in state State2"
+  policy      = data.aws_iam_policy_document.policy_Function_st_State2_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "policy_Function_st_State2_attach" {
+  policy_arn = aws_iam_policy.policy_Function_st_State2.arn
+  role       = "role_Function"
+}
+
+data "aws_iam_policy_document" "policy_Function1_st_State2_doc" {
+  statement {
+    sid       = "AllowWriteLogs"
+    effect    = "Allow"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents", "logs:CreateLogGroup"]
+    resources = ["${aws_cloudwatch_log_group.LogGroup2.arn}:*"]
+  }
+}
+
+resource "aws_iam_policy" "policy_Function1_st_State2" {
+  name        = "policy_Function1_st_State2"
+  description = "Combined Policy for Function1 in state State2"
+  policy      = data.aws_iam_policy_document.policy_Function1_st_State2_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "policy_Function1_st_State2_attach" {
+  policy_arn = aws_iam_policy.policy_Function1_st_State2.arn
+  role       = "role_Function1"
 }
 
 resource "aws_lambda_permission" "perm_Int1_Function" {
