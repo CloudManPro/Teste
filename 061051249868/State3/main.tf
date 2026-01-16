@@ -32,23 +32,33 @@ locals {
       path             = "/queue"
       uri              = "arn:aws:apigateway:us-east-1:sqs:path/${data.aws_caller_identity.current.account_id}/Queue"
       type             = "aws"
-      methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
+      methods          = ["post", "get"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.arn}"
       requestTemplates = {
-        "application/json" = "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
+        "application/json" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
+        "application/x-www-form-urlencoded" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
       }
+      integ_method     = "POST"
+      parameters       = null
     },
     {
-      path             = "/my-bucket-12345jhkjhkj"
-      uri              = "arn:aws:apigateway:us-east-1:s3:path/my-bucket-12345jhkjhkj"
+      path             = "/my-bucket-12345jhkjhkj/{proxy+}"
+      uri              = "arn:aws:apigateway:us-east-1:s3:path/my-bucket-12345jhkjhkj/{proxy}"
       type             = "aws"
       methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj.arn}"
-      requestTemplates = {
-        "application/json" = ""
-      }
+      requestTemplates = null
+      integ_method     = "MATCH"
+      parameters       = [
+          {
+            name = "proxy"
+            in = "path"
+            required = true
+            schema = { type = "string" }
+          }
+        ]
     },
   ]
   openapi_spec_RestAPI1 = {
@@ -62,17 +72,20 @@ locals {
       item.path => merge(
         {
           for method in item.methods :
-          method => {
-            "x-amazon-apigateway-integration" = merge(
-              {
-                uri        = item.uri
-                httpMethod = "POST"
-                type       = item.type
-              },
-              item.credentials != null ? { credentials = item.credentials } : {},
-              item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {}
-            )
-          }
+          method => merge(
+            {
+              "x-amazon-apigateway-integration" = merge(
+                {
+                  uri        = item.uri
+                  httpMethod = item.integ_method == "MATCH" ? upper(method) : item.integ_method
+                  type       = item.type
+                },
+                item.credentials != null ? { credentials = item.credentials } : {},
+                item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {}
+              )
+            },
+            item.parameters != null ? { parameters = item.parameters } : {}
+          )
           if method != "options"
         },
         item.enable_mock ? { "options" = {
