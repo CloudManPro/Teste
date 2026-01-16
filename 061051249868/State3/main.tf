@@ -154,7 +154,7 @@ locals {
                 responseParameters = {
                   "method.response.header.Access-Control-Allow-Methods" = "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT,OPTIONS'"
                   "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-                  "method.response.header.Access-Control-Allow-Origin"  = "'.cloudman.pro'"
+                  "method.response.header.Access-Control-Allow-Origin"  = "'*'"
                 }
               }
             }
