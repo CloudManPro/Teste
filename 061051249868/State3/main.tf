@@ -78,6 +78,20 @@ locals {
         "integration.request.path.proxy" = "method.request.path.proxy"
       }
     },
+    {
+      path             = "/tableopenapi"
+      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/PutItem"
+      type             = "aws"
+      methods          = ["post"]
+      enable_mock      = true
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
+      requestTemplates = {
+        "application/json" = "{\n            \"TableName\": \"TableOpenAPI\",\n            \"Item\": {\n                \"Hash\": { \"S\": \"$input.path('$.Hash')\" },\n                \"Sort\": { \"S\": \"$input.path('$.Sort')\" },\n                \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" }\n            }\n        }"
+      }
+      integ_method     = "POST"
+      parameters       = null
+      integ_req_params = null
+    },
   ]
   openapi_spec_RestAPI1 = {
     openapi = "3.0.1"
@@ -184,7 +198,7 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
-  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_Queue, aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj]
+  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj, aws_iam_role.role_apigw_RestAPI1_to_Queue, aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI]
 }
 
 resource "aws_api_gateway_stage" "Stage1" {
@@ -211,7 +225,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3]
+  depends_on                        = [aws_api_gateway_method.Method3, aws_api_gateway_integration.Int3, aws_api_gateway_resource.Resource1]
 }
 
 resource "aws_sqs_queue" "Queue" {
@@ -287,10 +301,35 @@ resource "aws_lambda_function" "Function2" {
 
 resource "aws_s3_bucket" "my-bucket-aghjklkksjj" {
   bucket                            = "my-bucket-aghjklkksjj"
-  force_destroy                     = false
+  force_destroy                     = true
   object_lock_enabled               = false
   tags                              = {
     "Name" = "my-bucket-aghjklkksjj"
+    "State" = "State3"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_dynamodb_table" "TableOpenAPI" {
+  name                              = "TableOpenAPI"
+  billing_mode                      = "PROVISIONED"
+  deletion_protection_enabled       = false
+  hash_key                          = "Hash"
+  range_key                         = "Sort"
+  read_capacity                     = 1
+  stream_enabled                    = false
+  table_class                       = "STANDARD"
+  write_capacity                    = 1
+  attribute {
+    name                            = "Hash"
+    type                            = "S"
+  }
+  attribute {
+    name                            = "Sort"
+    type                            = "S"
+  }
+  tags                              = {
+    "Name" = "TableOpenAPI"
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -411,6 +450,37 @@ resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_my-bucket-aghjklkk
   name                              = "access-my-bucket-aghjklkksjj"
   policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_my-bucket-aghjklkksjj.json
   role                              = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj.id}"
+}
+
+data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_TableOpenAPI" {
+  statement {
+    effect                          = "Allow"
+    principals {
+      identifiers                   = ["apigateway.amazonaws.com"]
+      type                          = "Service"
+    }
+    actions                         = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "role_apigw_RestAPI1_to_TableOpenAPI" {
+  name                              = "api-RestAPI1-TableOpenAPI-role"
+  assume_role_policy                = data.aws_iam_policy_document.doc_trust_role_apigw_RestAPI1_to_TableOpenAPI.json
+}
+
+data "aws_iam_policy_document" "doc_perm_role_apigw_RestAPI1_to_TableOpenAPI" {
+  statement {
+    sid                             = "AllowDynamoDBCRUD"
+    effect                          = "Allow"
+    actions                         = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Query"]
+    resources                       = ["${aws_dynamodb_table.TableOpenAPI.arn}", "${aws_dynamodb_table.TableOpenAPI.arn}/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_TableOpenAPI" {
+  name                              = "access-TableOpenAPI"
+  policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_TableOpenAPI.json
+  role                              = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.id}"
 }
 
 resource "aws_lambda_permission" "perm_Int3_Function2" {
