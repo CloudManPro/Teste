@@ -6,12 +6,12 @@
       "branch": "main",
       "target_dir": ".external_modules/CloudMan",
       "folders": [
-        "LambdaFiles/LambdaHub"
+        "LambdaFiles/LambdaHub2"
       ]
     }
   ],
   "action": "apply",
-  "trigger_id": "1768573348822",
+  "trigger_id": "1768573597393",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
