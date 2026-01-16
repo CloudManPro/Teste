@@ -40,14 +40,42 @@ locals {
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.arn}"
       requestTemplates = {
-        "application/json" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=1&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
-        "application/x-www-form-urlencoded" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=1&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
-        "text/plain" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=1&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
+        "application/json" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=20&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
+        "application/x-www-form-urlencoded" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=20&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
+        "text/plain" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=20&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
       }
       integ_method     = "POST"
-      parameters       = null
+      parameters       = [
+          {
+            "name": "receiptHandle",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ]
       integ_req_params = {
         "integration.request.header.Content-Type" = "'application/x-www-form-urlencoded'"
+      }
+    },
+    {
+      path             = "/my-bucket-aghjklkksjj/{proxy+}"
+      uri              = "arn:aws:apigateway:us-east-1:s3:path/my-bucket-aghjklkksjj/{proxy}"
+      type             = "aws"
+      methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
+      enable_mock      = true
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj.arn}"
+      requestTemplates = null
+      integ_method     = "MATCH"
+      parameters       = [
+          {
+            name = "proxy"
+            in = "path"
+            required = true
+            schema = { type = "string" }
+          }
+        ]
+      integ_req_params = {
+        "integration.request.path.proxy" = "method.request.path.proxy"
       }
     },
   ]
@@ -64,25 +92,35 @@ locals {
           for method in item.methods :
           method => merge(
             {
-              # 1. Method Response: Diz ao cliente que 200 é possível
+              # 1. Method Response (O que o cliente espera receber)
               "responses" = {
                 "200" = {
                   description = "Successful operation"
                 }
               }
 
-              # 2. Integration: Configura o mapeamento
+              # 2. Integration (Como o Gateway fala com o Backend)
               "x-amazon-apigateway-integration" = merge(
                 {
                   uri        = item.uri
                   httpMethod = item.integ_method == "MATCH" ? upper(method) : item.integ_method
                   type       = item.type
-                  # Mapeamento de Resposta Default (Pega qualquer 2xx do backend e devolve 200)
+                  
+                  # --- BLOCO DE RESPOSTA UNIVERSAL ---
+                  # Mapeia qualquer resposta 'default' (2xx) do backend para 200 OK.
+                  # Os templates garantem que o conteúdo (seja XML do SQS ou JSON do S3) seja repassado.
                   responses  = {
                     "default" = {
                       statusCode = "200"
+                      responseTemplates = {
+                        "application/json" = "$input.body"
+                        "application/xml"  = "$input.body"
+                        "text/plain"       = "$input.body"
+                      }
                     }
                   }
+                  # -----------------------------------
+                  
                 },
                 item.credentials != null ? { credentials = item.credentials } : {},
                 item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {},
@@ -135,7 +173,7 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
-  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_Queue]
+  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj, aws_iam_role.role_apigw_RestAPI1_to_Queue]
 }
 
 resource "aws_api_gateway_stage" "Stage1" {
@@ -236,6 +274,17 @@ resource "aws_lambda_function" "Function2" {
   }
 }
 
+resource "aws_s3_bucket" "my-bucket-aghjklkksjj" {
+  bucket                            = "my-bucket-aghjklkksjj"
+  force_destroy                     = false
+  object_lock_enabled               = false
+  tags                              = {
+    "Name" = "my-bucket-aghjklkksjj"
+    "State" = "State3"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_iam_role" "role_Function2" {
   name                              = "role_Function2"
   assume_role_policy                = jsonencode({
@@ -250,6 +299,39 @@ resource "aws_iam_role" "role_Function2" {
     }
   ]
 })
+}
+
+resource "aws_s3_bucket_versioning" "my-bucket-aghjklkksjj_versioning" {
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjj.id
+  versioning_configuration {
+    mfa_delete                      = "Disabled"
+    status                          = "Suspended"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "my-bucket-aghjklkksjj_block" {
+  block_public_acls                 = true
+  block_public_policy               = true
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjj.id
+  ignore_public_acls                = true
+  restrict_public_buckets           = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket-aghjklkksjj_configuration" {
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjj.id
+  expected_bucket_owner             = data.aws_caller_identity.current.account_id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm                 = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "my-bucket-aghjklkksjj_controls" {
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjj.id
+  rule {
+    object_ownership                = "BucketOwnerEnforced"
+  }
 }
 
 data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_Queue" {
@@ -281,6 +363,43 @@ resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_Queue" {
   name                              = "access-Queue"
   policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_Queue.json
   role                              = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.id}"
+}
+
+data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_my-bucket-aghjklkksjj" {
+  statement {
+    effect                          = "Allow"
+    principals {
+      identifiers                   = ["apigateway.amazonaws.com"]
+      type                          = "Service"
+    }
+    actions                         = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "role_apigw_RestAPI1_to_my-bucket-aghjklkksjj" {
+  name                              = "api-RestAPI1-my-bucket-aghjklkksjj-role"
+  assume_role_policy                = data.aws_iam_policy_document.doc_trust_role_apigw_RestAPI1_to_my-bucket-aghjklkksjj.json
+}
+
+data "aws_iam_policy_document" "doc_perm_role_apigw_RestAPI1_to_my-bucket-aghjklkksjj" {
+  statement {
+    sid                             = "AllowBucketLevelActions"
+    effect                          = "Allow"
+    actions                         = ["s3:ListBucket", "s3:GetBucketLocation"]
+    resources                       = ["${aws_s3_bucket.my-bucket-aghjklkksjj.arn}"]
+  }
+  statement {
+    sid                             = "AllowObjectCRUD"
+    effect                          = "Allow"
+    actions                         = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources                       = ["${aws_s3_bucket.my-bucket-aghjklkksjj.arn}/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_my-bucket-aghjklkksjj" {
+  name                              = "access-my-bucket-aghjklkksjj"
+  policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_my-bucket-aghjklkksjj.json
+  role                              = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj.id}"
 }
 
 resource "aws_lambda_permission" "perm_Int3_Function2" {
