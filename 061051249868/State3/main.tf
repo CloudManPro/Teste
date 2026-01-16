@@ -79,45 +79,87 @@ locals {
       }
     },
     {
-      path             = "/tableopenapi/{Hash}/{Sort}"
+      path             = "/tableopenapi/{Hash}"
       uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/GetItem"
       type             = "aws"
       methods          = ["get"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
       requestTemplates = {
-        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } } }"
+        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" } } }"
       }
       integ_method     = "POST"
-      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
+      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}]
       integ_req_params = null
     },
     {
-      path             = "/tableopenapi/{Hash}/{Sort}"
+      path             = "/tableopenapi/{Hash}"
       uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/DeleteItem"
       type             = "aws"
       methods          = ["delete"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
       requestTemplates = {
-        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } } }"
+        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" } } }"
       }
       integ_method     = "POST"
-      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
+      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}]
       integ_req_params = null
     },
     {
-      path             = "/tableopenapi/{Hash}/{Sort}"
+      path             = "/tableopenapi/{Hash}"
       uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/PutItem"
       type             = "aws"
       methods          = ["post", "put"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
       requestTemplates = {
-        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Item\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } } }"
+        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Item\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } } }"
       }
       integ_method     = "POST"
-      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
+      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}]
+      integ_req_params = null
+    },
+    {
+      path             = "/tableo2/{ID}/{Sort}"
+      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/GetItem"
+      type             = "aws"
+      methods          = ["get"]
+      enable_mock      = true
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableO2.arn}"
+      requestTemplates = {
+        "application/json" = "{\"TableName\": \"TableO2\", \"Key\": { \"ID\": { \"S\": \"$util.escapeJavaScript($input.params('ID'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } } }"
+      }
+      integ_method     = "POST"
+      parameters       = [{"name": "ID", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
+      integ_req_params = null
+    },
+    {
+      path             = "/tableo2/{ID}/{Sort}"
+      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/DeleteItem"
+      type             = "aws"
+      methods          = ["delete"]
+      enable_mock      = true
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableO2.arn}"
+      requestTemplates = {
+        "application/json" = "{\"TableName\": \"TableO2\", \"Key\": { \"ID\": { \"S\": \"$util.escapeJavaScript($input.params('ID'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } } }"
+      }
+      integ_method     = "POST"
+      parameters       = [{"name": "ID", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
+      integ_req_params = null
+    },
+    {
+      path             = "/tableo2/{ID}/{Sort}"
+      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/PutItem"
+      type             = "aws"
+      methods          = ["post", "put"]
+      enable_mock      = true
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableO2.arn}"
+      requestTemplates = {
+        "application/json" = "{\"TableName\": \"TableO2\", \"Item\": { \"ID\": { \"S\": \"$util.escapeJavaScript($input.params('ID'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } } }"
+      }
+      integ_method     = "POST"
+      parameters       = [{"name": "ID", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
       integ_req_params = null
     },
   ]
@@ -216,7 +258,7 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
-  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI, aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj, aws_iam_role.role_apigw_RestAPI1_to_Queue]
+  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_Queue, aws_iam_role.role_apigw_RestAPI1_to_TableO2, aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI, aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj]
 }
 
 resource "aws_api_gateway_stage" "Stage1" {
@@ -243,7 +285,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3, aws_api_gateway_resource.Resource1]
+  depends_on                        = [aws_api_gateway_integration.Int3, aws_api_gateway_resource.Resource1, aws_api_gateway_method.Method3]
 }
 
 resource "aws_sqs_queue" "Queue" {
@@ -333,7 +375,6 @@ resource "aws_dynamodb_table" "TableOpenAPI" {
   billing_mode                      = "PROVISIONED"
   deletion_protection_enabled       = false
   hash_key                          = "Hash"
-  range_key                         = "Sort"
   read_capacity                     = 1
   stream_enabled                    = false
   table_class                       = "STANDARD"
@@ -348,6 +389,31 @@ resource "aws_dynamodb_table" "TableOpenAPI" {
   }
   tags                              = {
     "Name" = "TableOpenAPI"
+    "State" = "State3"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_dynamodb_table" "TableO2" {
+  name                              = "TableO2"
+  billing_mode                      = "PROVISIONED"
+  deletion_protection_enabled       = false
+  hash_key                          = "ID"
+  range_key                         = "Sort"
+  read_capacity                     = 1
+  stream_enabled                    = false
+  table_class                       = "STANDARD"
+  write_capacity                    = 1
+  attribute {
+    name                            = "ID"
+    type                            = "S"
+  }
+  attribute {
+    name                            = "Sort"
+    type                            = "S"
+  }
+  tags                              = {
+    "Name" = "TableO2"
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -499,6 +565,37 @@ resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_TableOpenAPI" {
   name                              = "access-TableOpenAPI"
   policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_TableOpenAPI.json
   role                              = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.id}"
+}
+
+data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_TableO2" {
+  statement {
+    effect                          = "Allow"
+    principals {
+      identifiers                   = ["apigateway.amazonaws.com"]
+      type                          = "Service"
+    }
+    actions                         = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "role_apigw_RestAPI1_to_TableO2" {
+  name                              = "api-RestAPI1-TableO2-role"
+  assume_role_policy                = data.aws_iam_policy_document.doc_trust_role_apigw_RestAPI1_to_TableO2.json
+}
+
+data "aws_iam_policy_document" "doc_perm_role_apigw_RestAPI1_to_TableO2" {
+  statement {
+    sid                             = "AllowDynamoDBCRUD"
+    effect                          = "Allow"
+    actions                         = ["dynamodb:PutItem", "dynamodb:UpdateItem"]
+    resources                       = ["${aws_dynamodb_table.TableO2.arn}", "${aws_dynamodb_table.TableO2.arn}/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_TableO2" {
+  name                              = "access-TableO2"
+  policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_TableO2.json
+  role                              = "${aws_iam_role.role_apigw_RestAPI1_to_TableO2.id}"
 }
 
 resource "aws_lambda_permission" "perm_Int3_Function2" {
