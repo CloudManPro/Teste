@@ -82,11 +82,11 @@ locals {
       path             = "/tableopenapi"
       uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/PutItem"
       type             = "aws"
-      methods          = ["post"]
+      methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
       requestTemplates = {
-        "application/json" = "{\n            \"TableName\": \"TableOpenAPI\",\n            \"Item\": {\n                \"Hash\": { \"S\": \"$input.path('$.Hash')\" },\n                \"Sort\": { \"S\": \"$input.path('$.Sort')\" },\n                \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" }\n            }\n        }"
+        "application/json" = "\n        #set($method = $context.httpMethod)\n        {\n            \"TableName\": \"TableOpenAPI\",\n            \n            #if($method == 'POST' || $method == 'PUT')\n                \"Item\": { \"Hash\": { \"S\": \"$input.path('$.Hash')\" }, \"Sort\": { \"S\": \"$input.path('$.Sort')\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } }\n            #elseif($method == 'DELETE' || $method == 'GET')\n                \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } }\n            #else\n                \"Item\": { \"Hash\": { \"S\": \"$input.path('$.Hash')\" }, \"Sort\": { \"S\": \"$input.path('$.Sort')\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } }\n            #end\n        }\n        "
       }
       integ_method     = "POST"
       parameters       = null
@@ -198,7 +198,7 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
-  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj, aws_iam_role.role_apigw_RestAPI1_to_Queue, aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI]
+  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI, aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj, aws_iam_role.role_apigw_RestAPI1_to_Queue]
 }
 
 resource "aws_api_gateway_stage" "Stage1" {
@@ -225,7 +225,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_method.Method3, aws_api_gateway_integration.Int3, aws_api_gateway_resource.Resource1]
+  depends_on                        = [aws_api_gateway_method.Method3, aws_api_gateway_resource.Resource1, aws_api_gateway_integration.Int3]
 }
 
 resource "aws_sqs_queue" "Queue" {
