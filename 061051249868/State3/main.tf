@@ -383,10 +383,6 @@ resource "aws_dynamodb_table" "TableOpenAPI" {
     name                            = "Hash"
     type                            = "S"
   }
-  attribute {
-    name                            = "Sort"
-    type                            = "S"
-  }
   tags                              = {
     "Name" = "TableOpenAPI"
     "State" = "State3"
