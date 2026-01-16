@@ -40,12 +40,12 @@ locals {
       }
     },
     {
-      path             = "/my-bucket"
-      uri              = "arn:aws:apigateway:us-east-1:s3:path/my-bucket"
+      path             = "/my-bucket-12345jhkjhkj"
+      uri              = "arn:aws:apigateway:us-east-1:s3:path/my-bucket-12345jhkjhkj"
       type             = "aws"
       methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
       enable_mock      = true
-      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket.arn}"
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj.arn}"
       requestTemplates = {
         "application/json" = ""
       }
@@ -155,35 +155,35 @@ resource "aws_sqs_queue" "Queue" {
   }
 }
 
-resource "aws_s3_bucket" "my-bucket" {
-  bucket                            = "my-bucket"
+resource "aws_s3_bucket" "my-bucket-12345jhkjhkj" {
+  bucket                            = "my-bucket-12345jhkjhkj"
   force_destroy                     = false
   object_lock_enabled               = false
   tags                              = {
-    "Name" = "my-bucket"
+    "Name" = "my-bucket-12345jhkjhkj"
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
 }
 
-resource "aws_s3_bucket_versioning" "my-bucket_versioning" {
-  bucket                            = aws_s3_bucket.my-bucket.id
+resource "aws_s3_bucket_versioning" "my-bucket-12345jhkjhkj_versioning" {
+  bucket                            = aws_s3_bucket.my-bucket-12345jhkjhkj.id
   versioning_configuration {
     mfa_delete                      = "Disabled"
     status                          = "Suspended"
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "my-bucket_block" {
+resource "aws_s3_bucket_public_access_block" "my-bucket-12345jhkjhkj_block" {
   block_public_acls                 = true
   block_public_policy               = true
-  bucket                            = aws_s3_bucket.my-bucket.id
+  bucket                            = aws_s3_bucket.my-bucket-12345jhkjhkj.id
   ignore_public_acls                = true
   restrict_public_buckets           = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket_configuration" {
-  bucket                            = aws_s3_bucket.my-bucket.id
+resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket-12345jhkjhkj_configuration" {
+  bucket                            = aws_s3_bucket.my-bucket-12345jhkjhkj.id
   expected_bucket_owner             = data.aws_caller_identity.current.account_id
   rule {
     apply_server_side_encryption_by_default {
@@ -192,8 +192,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket_configu
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "my-bucket_controls" {
-  bucket                            = aws_s3_bucket.my-bucket.id
+resource "aws_s3_bucket_ownership_controls" "my-bucket-12345jhkjhkj_controls" {
+  bucket                            = aws_s3_bucket.my-bucket-12345jhkjhkj.id
   rule {
     object_ownership                = "BucketOwnerEnforced"
   }
@@ -230,7 +230,7 @@ resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_Queue" {
   role                              = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.id}"
 }
 
-data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_my-bucket" {
+data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj" {
   statement {
     effect                          = "Allow"
     principals {
@@ -241,28 +241,28 @@ data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_my-bucket" {
   }
 }
 
-resource "aws_iam_role" "role_apigw_RestAPI1_to_my-bucket" {
-  name                              = "api-RestAPI1-my-bucket-role"
-  assume_role_policy                = data.aws_iam_policy_document.doc_trust_role_apigw_RestAPI1_to_my-bucket.json
+resource "aws_iam_role" "role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj" {
+  name                              = "api-RestAPI1-my-bucket-12345jhkjhkj-role"
+  assume_role_policy                = data.aws_iam_policy_document.doc_trust_role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj.json
 }
 
-data "aws_iam_policy_document" "doc_perm_role_apigw_RestAPI1_to_my-bucket" {
+data "aws_iam_policy_document" "doc_perm_role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj" {
   statement {
     sid                             = "AllowBucketLevelActions"
     effect                          = "Allow"
     actions                         = ["s3:ListBucket", "s3:GetBucketLocation"]
-    resources                       = ["${aws_s3_bucket.my-bucket.arn}"]
+    resources                       = ["${aws_s3_bucket.my-bucket-12345jhkjhkj.arn}"]
   }
   statement {
     sid                             = "AllowObjectCRUD"
     effect                          = "Allow"
     actions                         = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-    resources                       = ["${aws_s3_bucket.my-bucket.arn}/*"]
+    resources                       = ["${aws_s3_bucket.my-bucket-12345jhkjhkj.arn}/*"]
   }
 }
 
-resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_my-bucket" {
-  name                              = "access-my-bucket"
-  policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_my-bucket.json
-  role                              = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket.id}"
+resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj" {
+  name                              = "access-my-bucket-12345jhkjhkj"
+  policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj.json
+  role                              = "${aws_iam_role.role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj.id}"
 }
