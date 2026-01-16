@@ -36,21 +36,19 @@ locals {
       path             = "/queue"
       uri              = "arn:aws:apigateway:us-east-1:sqs:path/${data.aws_caller_identity.current.account_id}/Queue"
       type             = "aws"
-      methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
+      methods          = ["get", "post", "put", "delete", "head", "options"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.arn}"
       requestTemplates = {
-        "application/json"                  = "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
-        "application/x-www-form-urlencoded" = "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
-        "text/plain"                        = "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
+        "application/json" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=1&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
+        "application/x-www-form-urlencoded" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=1&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
+        "text/plain" = "#set($method = $context.httpMethod)#if($method == 'POST' || $method == 'PUT')Action=SendMessage&MessageBody=$util.urlEncode($input.body)#elseif($method == 'GET')Action=ReceiveMessage&MaxNumberOfMessages=10&WaitTimeSeconds=1&VisibilityTimeout=30#elseif($method == 'DELETE')Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.params('receiptHandle'))#elseif($method == 'HEAD')Action=GetQueueAttributes&AttributeName=ApproximateNumberOfMessages#elseAction=GetQueueAttributes#end"
       }
-
       integ_method     = "POST"
       parameters       = null
       integ_req_params = {
         "integration.request.header.Content-Type" = "'application/x-www-form-urlencoded'"
       }
-
     },
   ]
   openapi_spec_RestAPI1 = {
@@ -164,7 +162,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3, aws_api_gateway_resource.Resource1]
+  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_method.Method3, aws_api_gateway_integration.Int3]
 }
 
 resource "aws_sqs_queue" "Queue" {
