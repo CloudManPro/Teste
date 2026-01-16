@@ -117,7 +117,7 @@ locals {
                       
                       # Headers CORS para a resposta real (S3/SQS)
                       responseParameters = {
-                        "method.response.header.Access-Control-Allow-Origin" = '*'
+                        "method.response.header.Access-Control-Allow-Origin" = "'*'"
                       }
 
                       # Templates para passar o corpo (Body Passthrough)
@@ -184,7 +184,7 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
-  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj, aws_iam_role.role_apigw_RestAPI1_to_Queue]
+  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_Queue, aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj]
 }
 
 resource "aws_api_gateway_stage" "Stage1" {
@@ -211,7 +211,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_method.Method3, aws_api_gateway_integration.Int3, aws_api_gateway_resource.Resource1]
+  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3]
 }
 
 resource "aws_sqs_queue" "Queue" {
