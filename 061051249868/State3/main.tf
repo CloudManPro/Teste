@@ -258,7 +258,7 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
-  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_Queue, aws_iam_role.role_apigw_RestAPI1_to_TableO2, aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI, aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj]
+  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI, aws_iam_role.role_apigw_RestAPI1_to_TableO2, aws_iam_role.role_apigw_RestAPI1_to_my-bucket-aghjklkksjj, aws_iam_role.role_apigw_RestAPI1_to_Queue]
 }
 
 resource "aws_api_gateway_stage" "Stage1" {
@@ -347,9 +347,11 @@ resource "aws_lambda_function" "Function2" {
   timeout                           = 30
   environment {
     variables                       = {
+    "AWS_CLOUDWATCH_LOG_GROUP_TARGET_NAME_0" = "LogGroup1"
     "REGION" = "${data.aws_region.current.name}"
     "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
     "NAME" = "Function2"
+    "AWS_CLOUDWATCH_LOG_GROUP_TARGET_ARN_0" = "${aws_cloudwatch_log_group.LogGroup1.arn}"
   }
   }
   tags                              = {
@@ -415,6 +417,18 @@ resource "aws_dynamodb_table" "TableO2" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "LogGroup1" {
+  name                              = "/aws/lambda/Function2"
+  log_group_class                   = "STANDARD"
+  retention_in_days                 = 1
+  skip_destroy                      = false
+  tags                              = {
+    "Name" = "LogGroup1"
+    "State" = "State3"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_iam_role" "role_Function2" {
   name                              = "role_Function2"
   assume_role_policy                = jsonencode({
@@ -462,6 +476,26 @@ resource "aws_s3_bucket_ownership_controls" "my-bucket-aghjklkksjj_controls" {
   rule {
     object_ownership                = "BucketOwnerEnforced"
   }
+}
+
+data "aws_iam_policy_document" "policy_Function2_st_State3_doc" {
+  statement {
+    sid                             = "AllowWriteLogs"
+    effect                          = "Allow"
+    actions                         = ["logs:CreateLogStream", "logs:PutLogEvents", "logs:CreateLogGroup"]
+    resources                       = ["${aws_cloudwatch_log_group.LogGroup1.arn}:*"]
+  }
+}
+
+resource "aws_iam_policy" "policy_Function2_st_State3" {
+  name                              = "policy_Function2_st_State3"
+  description                       = "Combined Policy for Function2 in state State3"
+  policy                            = data.aws_iam_policy_document.policy_Function2_st_State3_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "policy_Function2_st_State3_attach" {
+  policy_arn                        = aws_iam_policy.policy_Function2_st_State3.arn
+  role                              = "role_Function2"
 }
 
 data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_Queue" {
