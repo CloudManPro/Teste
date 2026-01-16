@@ -63,11 +63,25 @@ locals {
           for method in item.methods :
           method => merge(
             {
+              # 1. Method Response: Diz ao cliente que 200 é possível
+              "responses" = {
+                "200" = {
+                  description = "Successful operation"
+                }
+              }
+
+              # 2. Integration: Configura o mapeamento
               "x-amazon-apigateway-integration" = merge(
                 {
                   uri        = item.uri
                   httpMethod = item.integ_method == "MATCH" ? upper(method) : item.integ_method
                   type       = item.type
+                  # Mapeamento de Resposta Default (Pega qualquer 2xx do backend e devolve 200)
+                  responses  = {
+                    "default" = {
+                      statusCode = "200"
+                    }
+                  }
                 },
                 item.credentials != null ? { credentials = item.credentials } : {},
                 item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {},
@@ -120,6 +134,7 @@ resource "aws_api_gateway_rest_api" "RestAPI1" {
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
+  depends_on                        = [aws_iam_role.role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj]
 }
 
 resource "aws_api_gateway_stage" "Stage1" {
