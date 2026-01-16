@@ -29,20 +29,6 @@ data "aws_region" "current" {}
 locals {
   api_config_RestAPI1 = [
     {
-      path             = "/queue"
-      uri              = "arn:aws:apigateway:us-east-1:sqs:path/${data.aws_caller_identity.current.account_id}/Queue"
-      type             = "aws"
-      methods          = ["post", "get"]
-      enable_mock      = true
-      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.arn}"
-      requestTemplates = {
-        "application/json" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
-        "application/x-www-form-urlencoded" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
-      }
-      integ_method     = "POST"
-      parameters       = null
-    },
-    {
       path             = "/my-bucket-12345jhkjhkj/{proxy+}"
       uri              = "arn:aws:apigateway:us-east-1:s3:path/my-bucket-12345jhkjhkj/{proxy}"
       type             = "aws"
@@ -59,6 +45,9 @@ locals {
             schema = { type = "string" }
           }
         ]
+      integ_req_params = {
+        "integration.request.path.proxy" = "method.request.path.proxy"
+      }
     },
   ]
   openapi_spec_RestAPI1 = {
@@ -81,7 +70,8 @@ locals {
                   type       = item.type
                 },
                 item.credentials != null ? { credentials = item.credentials } : {},
-                item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {}
+                item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {},
+                item.integ_req_params != null ? { requestParameters = item.integ_req_params } : {}
               )
             },
             item.parameters != null ? { parameters = item.parameters } : {}
@@ -151,23 +141,6 @@ resource "aws_api_gateway_deployment" "Deploy" {
   }
 }
 
-resource "aws_sqs_queue" "Queue" {
-  name                              = "Queue"
-  delay_seconds                     = 0
-  fifo_queue                        = false
-  kms_data_key_reuse_period_seconds = 300
-  max_message_size                  = 262144
-  message_retention_seconds         = 345600
-  receive_wait_time_seconds         = 0
-  sqs_managed_sse_enabled           = true
-  visibility_timeout_seconds        = 30
-  tags                              = {
-    "Name" = "Queue"
-    "State" = "State3"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
 resource "aws_s3_bucket" "my-bucket-12345jhkjhkj" {
   bucket                            = "my-bucket-12345jhkjhkj"
   force_destroy                     = false
@@ -210,37 +183,6 @@ resource "aws_s3_bucket_ownership_controls" "my-bucket-12345jhkjhkj_controls" {
   rule {
     object_ownership                = "BucketOwnerEnforced"
   }
-}
-
-data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_Queue" {
-  statement {
-    effect                          = "Allow"
-    principals {
-      identifiers                   = ["apigateway.amazonaws.com"]
-      type                          = "Service"
-    }
-    actions                         = ["sts:AssumeRole"]
-  }
-}
-
-resource "aws_iam_role" "role_apigw_RestAPI1_to_Queue" {
-  name                              = "api-RestAPI1-Queue-role"
-  assume_role_policy                = data.aws_iam_policy_document.doc_trust_role_apigw_RestAPI1_to_Queue.json
-}
-
-data "aws_iam_policy_document" "doc_perm_role_apigw_RestAPI1_to_Queue" {
-  statement {
-    sid                             = "AllowSQSActions"
-    effect                          = "Allow"
-    actions                         = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
-    resources                       = ["${aws_sqs_queue.Queue.arn}"]
-  }
-}
-
-resource "aws_iam_role_policy" "policy_role_apigw_RestAPI1_to_Queue" {
-  name                              = "access-Queue"
-  policy                            = data.aws_iam_policy_document.doc_perm_role_apigw_RestAPI1_to_Queue.json
-  role                              = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.id}"
 }
 
 data "aws_iam_policy_document" "doc_trust_role_apigw_RestAPI1_to_my-bucket-12345jhkjhkj" {
