@@ -189,7 +189,7 @@ resource "aws_api_gateway_method" "Method3" {
   resource_id                       = aws_api_gateway_resource.Resource1.id
   rest_api_id                       = aws_api_gateway_rest_api.RestAPI1.id
   authorization                     = "NONE"
-  http_method                       = "POST"
+  http_method                       = "GET"
 }
 
 resource "aws_api_gateway_integration" "Int3" {
