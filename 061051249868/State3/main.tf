@@ -42,7 +42,6 @@ locals {
       requestTemplates = {
         "application/json" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
         "application/x-www-form-urlencoded" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
-        "*/*" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
       }
       integ_method     = "POST"
       parameters       = null
@@ -160,7 +159,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3]
+  depends_on                        = [aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3, aws_api_gateway_resource.Resource1]
 }
 
 resource "aws_sqs_queue" "Queue" {
