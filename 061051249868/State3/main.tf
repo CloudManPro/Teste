@@ -79,17 +79,17 @@ locals {
       }
     },
     {
-      path             = "/tableopenapi"
+      path             = "/tableopenapi/{Hash}/{Sort}"
       uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/PutItem"
       type             = "aws"
       methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
       requestTemplates = {
-        "application/json" = "\n        #set($method = $context.httpMethod)\n        {\n            \"TableName\": \"TableOpenAPI\",\n            \n            #if($method == 'POST' || $method == 'PUT')\n                \"Item\": { \"Hash\": { \"S\": \"$input.path('$.Hash')\" }, \"Sort\": { \"S\": \"$input.path('$.Sort')\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } }\n            #elseif($method == 'DELETE' || $method == 'GET')\n                \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } }\n            #else\n                \"Item\": { \"Hash\": { \"S\": \"$input.path('$.Hash')\" }, \"Sort\": { \"S\": \"$input.path('$.Sort')\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } }\n            #end\n        }\n        "
+        "application/json" = "\n        #set($method = $context.httpMethod)\n        {\n            \"TableName\": \"TableOpenAPI\",\n            #if($method == 'POST' || $method == 'PUT')\n                \"Item\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } }\n            #else\n                \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } }\n            #end\n        }\n        "
       }
       integ_method     = "POST"
-      parameters       = null
+      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
       integ_req_params = null
     },
   ]
@@ -225,7 +225,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_method.Method3, aws_api_gateway_resource.Resource1, aws_api_gateway_integration.Int3]
+  depends_on                        = [aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3, aws_api_gateway_resource.Resource1]
 }
 
 resource "aws_sqs_queue" "Queue" {
