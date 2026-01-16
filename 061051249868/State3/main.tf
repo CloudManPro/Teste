@@ -92,26 +92,35 @@ locals {
           for method in item.methods :
           method => merge(
             {
-              # 1. Method Response (O que o cliente espera receber)
+              # 1. Method Response (Definição da Interface)
               "responses" = {
                 "200" = {
                   description = "Successful operation"
+                  # --- MUDANÇA 1: Declarar que o header existe na resposta 200 ---
+                  headers = {
+                    "Access-Control-Allow-Origin" = { type = "string" }
+                  }
                 }
               }
 
-              # 2. Integration (Como o Gateway fala com o Backend)
+              # 2. Integration (Implementação)
               "x-amazon-apigateway-integration" = merge(
                 {
                   uri        = item.uri
                   httpMethod = item.integ_method == "MATCH" ? upper(method) : item.integ_method
                   type       = item.type
                   
-                  # --- BLOCO DE RESPOSTA UNIVERSAL ---
-                  # Mapeia qualquer resposta 'default' (2xx) do backend para 200 OK.
-                  # Os templates garantem que o conteúdo (seja XML do SQS ou JSON do S3) seja repassado.
+                  # --- MUDANÇA 2: Injetar o valor do header na resposta do Backend ---
                   responses  = {
                     "default" = {
                       statusCode = "200"
+                      
+                      # Headers CORS para a resposta real (S3/SQS)
+                      responseParameters = {
+                        "method.response.header.Access-Control-Allow-Origin" = '*'
+                      }
+
+                      # Templates para passar o corpo (Body Passthrough)
                       responseTemplates = {
                         "application/json" = "$input.body"
                         "application/xml"  = "$input.body"
@@ -119,7 +128,7 @@ locals {
                       }
                     }
                   }
-                  # -----------------------------------
+                  # ---------------------------------------------------------------
                   
                 },
                 item.credentials != null ? { credentials = item.credentials } : {},
@@ -131,6 +140,8 @@ locals {
           )
           if method != "options"
         },
+        
+        # Bloco OPTIONS (Mock) - Já estava correto, mantido.
         item.enable_mock ? { "options" = {
           summary  = "CORS support"
           consumes = ["application/json"]
@@ -200,7 +211,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_method.Method3, aws_api_gateway_integration.Int3]
+  depends_on                        = [aws_api_gateway_method.Method3, aws_api_gateway_integration.Int3, aws_api_gateway_resource.Resource1]
 }
 
 resource "aws_sqs_queue" "Queue" {
