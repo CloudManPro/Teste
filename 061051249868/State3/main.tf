@@ -40,12 +40,17 @@ locals {
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_Queue.arn}"
       requestTemplates = {
-        "application/json" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
-        "application/x-www-form-urlencoded" = "Action=$util.defaultIfEmpty($input.params('Action'), 'SendMessage')&MessageBody=$util.urlEncode($input.body)&ReceiptHandle=$util.defaultIfEmpty($input.params('ReceiptHandle'), '')&MaxNumberOfMessages=$util.defaultIfEmpty($input.params('MaxNumberOfMessages'), '1')&WaitTimeSeconds=$util.defaultIfEmpty($input.params('WaitTimeSeconds'), '0')"
+        "application/json"                  = "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
+        "application/x-www-form-urlencoded" = "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
+        "text/plain"                        = "Action=SendMessage&MessageBody=$util.urlEncode($input.body)"
       }
+
       integ_method     = "POST"
       parameters       = null
-      integ_req_params = null
+      integ_req_params = {
+        "integration.request.header.Content-Type" = "'application/x-www-form-urlencoded'"
+      }
+
     },
   ]
   openapi_spec_RestAPI1 = {
