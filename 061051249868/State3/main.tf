@@ -80,13 +80,41 @@ locals {
     },
     {
       path             = "/tableopenapi/{Hash}/{Sort}"
-      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/PutItem"
+      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/GetItem"
       type             = "aws"
-      methods          = ["delete", "get", "head", "options", "patch", "post", "put"]
+      methods          = ["get"]
       enable_mock      = true
       credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
       requestTemplates = {
-        "application/json" = "\n        #set($method = $context.httpMethod)\n        {\n            \"TableName\": \"TableOpenAPI\",\n            #if($method == 'POST' || $method == 'PUT')\n                \"Item\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } }\n            #else\n                \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } }\n            #end\n        }\n        "
+        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } } }"
+      }
+      integ_method     = "POST"
+      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
+      integ_req_params = null
+    },
+    {
+      path             = "/tableopenapi/{Hash}/{Sort}"
+      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/DeleteItem"
+      type             = "aws"
+      methods          = ["delete"]
+      enable_mock      = true
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
+      requestTemplates = {
+        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Key\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" } } }"
+      }
+      integ_method     = "POST"
+      parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
+      integ_req_params = null
+    },
+    {
+      path             = "/tableopenapi/{Hash}/{Sort}"
+      uri              = "arn:aws:apigateway:us-east-1:dynamodb:action/PutItem"
+      type             = "aws"
+      methods          = ["post", "put"]
+      enable_mock      = true
+      credentials      = "${aws_iam_role.role_apigw_RestAPI1_to_TableOpenAPI.arn}"
+      requestTemplates = {
+        "application/json" = "{\"TableName\": \"TableOpenAPI\", \"Item\": { \"Hash\": { \"S\": \"$util.escapeJavaScript($input.params('Hash'))\" }, \"Sort\": { \"S\": \"$util.escapeJavaScript($input.params('Sort'))\" }, \"Payload\": { \"S\": \"$util.escapeJavaScript($input.body)\" } } }"
       }
       integ_method     = "POST"
       parameters       = [{"name": "Hash", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "Sort", "in": "path", "required": true, "schema": {"type": "string"}}]
@@ -100,63 +128,51 @@ locals {
       version = "1.0"
     }
     paths = {
-      for item in local.api_config_RestAPI1 :
-      item.path => merge(
-        {
-          for method in item.methods :
-          method => merge(
-            {
-              # 1. Method Response (Definição da Interface)
-              "responses" = {
-                "200" = {
-                  description = "Successful operation"
-                  # --- MUDANÇA 1: Declarar que o header existe na resposta 200 ---
-                  headers = {
-                    "Access-Control-Allow-Origin" = { type = "string" }
-                  }
-                }
-              }
-
-              # 2. Integration (Implementação)
-              "x-amazon-apigateway-integration" = merge(
-                {
-                  uri        = item.uri
-                  httpMethod = item.integ_method == "MATCH" ? upper(method) : item.integ_method
-                  type       = item.type
-                  
-                  # --- MUDANÇA 2: Injetar o valor do header na resposta do Backend ---
-                  responses  = {
-                    "default" = {
-                      statusCode = "200"
-                      
-                      # Headers CORS para a resposta real (S3/SQS)
-                      responseParameters = {
-                        "method.response.header.Access-Control-Allow-Origin" = "'*'"
-                      }
-
-                      # Templates para passar o corpo (Body Passthrough)
-                      responseTemplates = {
-                        "application/json" = "$input.body"
-                        "application/xml"  = "$input.body"
-                        "text/plain"       = "$input.body"
-                      }
+      for path in distinct([for i in local.api_config_RestAPI1 : i.path]) :
+      path => merge([
+        for item in local.api_config_RestAPI1 :
+        merge(
+          {
+            for method in item.methods :
+            method => merge(
+              {
+                "responses" = {
+                  "200" = {
+                    description = "Successful operation"
+                    headers = {
+                      "Access-Control-Allow-Origin" = { type = "string" }
                     }
                   }
-                  # ---------------------------------------------------------------
-                  
-                },
-                item.credentials != null ? { credentials = item.credentials } : {},
-                item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {},
-                item.integ_req_params != null ? { requestParameters = item.integ_req_params } : {}
-              )
-            },
-            item.parameters != null ? { parameters = item.parameters } : {}
-          )
-          if method != "options"
-        },
-        
-        # Bloco OPTIONS (Mock) - Já estava correto, mantido.
-        item.enable_mock ? { "options" = {
+                }
+                "x-amazon-apigateway-integration" = merge(
+                  {
+                    uri        = item.uri
+                    httpMethod = item.integ_method == "MATCH" ? upper(method) : item.integ_method
+                    type       = item.type
+                    responses  = {
+                      "default" = {
+                        statusCode = "200"
+                        responseParameters = {
+                          "method.response.header.Access-Control-Allow-Origin" = "'*'"
+                        }
+                        responseTemplates = {
+                          "application/json" = "$input.body"
+                          "application/xml"  = "$input.body"
+                          "text/plain"       = "$input.body"
+                        }
+                      }
+                    }
+                  },
+                  item.credentials != null ? { credentials = item.credentials } : {},
+                  item.requestTemplates != null ? { requestTemplates = item.requestTemplates } : {},
+                  item.integ_req_params != null ? { requestParameters = item.integ_req_params } : {}
+                )
+              },
+              item.parameters != null ? { parameters = item.parameters } : {}
+            )
+            if method != "options"
+          },
+          item.enable_mock ? { "options" = {
           summary  = "CORS support"
           consumes = ["application/json"]
           produces = ["application/json"]
@@ -185,7 +201,9 @@ locals {
             }
           }
         } } : {}
-      )
+        )
+        if item.path == path
+      ]...)
     }
   }
 }
