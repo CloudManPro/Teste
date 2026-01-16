@@ -156,12 +156,10 @@ resource "aws_api_gateway_deployment" "Deploy" {
     "redeployment" = sha1(join(",", [jsonencode([
 aws_api_gateway_resource.Resource1.id,
 aws_api_gateway_method.Method3.id,
-aws_api_gateway_integration.Int3.id,
-aws_api_gateway_integration_response.IntResp2.id,
-aws_api_gateway_method_response.MResp2.id
+aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_method.Method3, aws_api_gateway_integration_response.IntResp2, aws_api_gateway_method_response.MResp2, aws_api_gateway_integration.Int3]
+  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_method.Method3, aws_api_gateway_integration.Int3]
 }
 
 resource "aws_sqs_queue" "Queue" {
@@ -232,23 +230,6 @@ resource "aws_lambda_function" "Function2" {
     "Name" = "Function2"
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_api_gateway_integration_response" "IntResp2" {
-  response_templates                = jsonencode({
-      "application/json" = "$input.json('$')"
-    })
-  status_code                       = "200"
-}
-
-resource "aws_api_gateway_method_response" "MResp2" {
-  resource_id                       = aws_api_gateway_resource.Resource1.id
-  rest_api_id                       = aws_api_gateway_rest_api.RestAPI1.id
-  http_method                       = aws_api_gateway_method.Method3.http_method
-  status_code                       = "200"
-  response_models                   = {
-    "application/json" = "Empty"
   }
 }
 
