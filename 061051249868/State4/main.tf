@@ -30,6 +30,29 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+### CATEGORY: IAM ###
+
+resource "aws_iam_role" "role_Function3" {
+  name                              = "role_Function3"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
+    }
+  ]
+})
+}
+
+
+
+
+### CATEGORY: COMPUTE ###
+
 data "archive_file" "archive_CloudMan_Function3" {
   output_path                       = "${path.module}/CloudMan_Function3.zip"
   source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub"
@@ -50,6 +73,7 @@ resource "aws_lambda_function" "Function3" {
   timeout                           = 30
   environment {
     variables                       = {
+    "AWS_SNS_TOPIC_TARGET_NAME_0" = "Topic"
     "REGION" = "${data.aws_region.current.name}"
     "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
     "NAME" = "Function3"
@@ -62,30 +86,4 @@ resource "aws_lambda_function" "Function3" {
   }
 }
 
-resource "aws_iam_role" "role_Function3" {
-  name                              = "role_Function3"
-  assume_role_policy                = jsonencode({
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      }
-    }
-  ]
-})
-}
 
-resource "aws_lambda_permission" "perm_Topic_to_Function3" {
-  function_name                     = aws_lambda_function.Function3.function_name
-  statement_id                      = "perm_Topic_to_Function3"
-  principal                         = "sns.amazonaws.com"
-  action                            = "lambda:InvokeFunction"
-  source_arn                        = data.aws_sns_topic.Topic.arn
-}
-
-data "aws_sns_topic" "Topic" {
-  name                              = "Topic"
-}
