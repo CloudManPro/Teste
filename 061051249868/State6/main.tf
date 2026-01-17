@@ -34,3 +34,27 @@ resource "aws_sns_topic" "Topic" {
     "CloudmanUser" = "GlobalUserName"
   }
 }
+
+data "aws_iam_policy_document" "policy_Function3_st_State6_doc" {
+  statement {
+    sid                             = "AllowSNSPublish"
+    effect                          = "Allow"
+    actions                         = ["sns:Publish"]
+    resources                       = ["${aws_sns_topic.Topic.arn}"]
+  }
+}
+
+resource "aws_iam_policy" "policy_Function3_st_State6" {
+  name                              = "policy_Function3_st_State6"
+  description                       = "Combined Policy for Function3 in state State6"
+  policy                            = data.aws_iam_policy_document.policy_Function3_st_State6_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "policy_Function3_st_State6_attach" {
+  policy_arn                        = aws_iam_policy.policy_Function3_st_State6.arn
+  role                              = data.aws_iam_role.role_Function3.name
+}
+
+data "aws_iam_role" "role_Function3" {
+  name                              = "role_Function3"
+}
