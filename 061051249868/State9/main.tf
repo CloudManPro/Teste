@@ -28,8 +28,8 @@ data "aws_region" "current" {}
 
 ### CATEGORY: IAM ###
 
-resource "aws_iam_role" "role_Account" {
-  name                              = "role_Account"
+resource "aws_iam_role" "role_Account-US-EAST-1" {
+  name                              = "role_Account-US-EAST-1"
   assume_role_policy                = jsonencode({
   "Version": "2012-10-17",
   "Statement": [
@@ -44,9 +44,9 @@ resource "aws_iam_role" "role_Account" {
 })
 }
 
-resource "aws_iam_role_policy_attachment" "attach_cw_Account" {
+resource "aws_iam_role_policy_attachment" "attach_cw_Account-US-EAST-1" {
   policy_arn                        = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
-  role                              = aws_iam_role.role_Account.name
+  role                              = aws_iam_role.role_Account-US-EAST-1.name
 }
 
 
@@ -54,8 +54,8 @@ resource "aws_iam_role_policy_attachment" "attach_cw_Account" {
 
 ### CATEGORY: NETWORK ###
 
-resource "aws_api_gateway_account" "Account" {
-  cloudwatch_role_arn               = aws_iam_role.role_Account.arn
+resource "aws_api_gateway_account" "Account-US-EAST-1" {
+  cloudwatch_role_arn               = aws_iam_role.role_Account-US-EAST-1.arn
 }
 
 
