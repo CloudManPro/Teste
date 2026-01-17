@@ -87,8 +87,5 @@ resource "aws_lambda_permission" "perm_Topic_to_Function3" {
 }
 
 data "aws_sns_topic" "Topic" {
-  filter                            = {
-    "name" = "tag:Name"
-    "values" = ["Topic"]
-  }
+  name                              = "Topic"
 }
