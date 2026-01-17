@@ -215,7 +215,7 @@ aws_api_gateway_method.Method3.id,
 aws_api_gateway_integration.Int3.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI1.body)]))
   }
-  depends_on                        = [aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3, aws_api_gateway_resource.Resource1]
+  depends_on                        = [aws_api_gateway_resource.Resource1, aws_api_gateway_integration.Int3, aws_api_gateway_method.Method3]
 }
 
 resource "aws_api_gateway_integration" "Int3" {
@@ -476,10 +476,6 @@ resource "aws_api_gateway_stage" "Stage1" {
   rest_api_id                       = aws_api_gateway_rest_api.RestAPI1.id
   stage_name                        = "prod"
   cache_cluster_size                = "0.5"
-  access_log_settings               = {
-    "destination_arn" = aws_cloudwatch_log_group.LogGroup3.arn
-    "format" = "{ \"requestId\":\"$context.requestId\", \"ip\": \"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\", \"requestTime\":\"$context.requestTime\", \"httpMethod\":\"$context.httpMethod\", \"resourcePath\":\"$context.resourcePath\", \"status\":\"$context.status\", \"protocol\":\"$context.protocol\", \"responseLength\":\"$context.responseLength\" }"
-  }
   tags                              = {
     "Name" = "Stage1"
     "State" = "State3"
@@ -662,18 +658,6 @@ resource "aws_cloudwatch_log_group" "LogGroup1" {
   skip_destroy                      = false
   tags                              = {
     "Name" = "LogGroup1"
-    "State" = "State3"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "LogGroup3" {
-  name                              = "/aws/apigateway/Stage1"
-  log_group_class                   = "STANDARD"
-  retention_in_days                 = 1
-  skip_destroy                      = false
-  tags                              = {
-    "Name" = "LogGroup3"
     "State" = "State3"
     "CloudmanUser" = "GlobalUserName"
   }
