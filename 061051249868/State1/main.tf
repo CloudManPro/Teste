@@ -154,7 +154,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet2.id, aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
+  subnets                           = [aws_subnet.Subnet7.id, aws_subnet.Subnet2.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
@@ -507,6 +507,8 @@ resource "aws_autoscaling_group" "ASG" {
   wait_for_elb_capacity             = 0
   availability_zone_distribution {
     capacity_distribution_strategy  = "balanced-best-effort"
+  }
+  capacity_reservation_specification {
   }
   launch_template {
     version                         = "$Latest"
