@@ -35,15 +35,16 @@ resource "aws_iam_instance_profile" "profile_InstancePol" {
 
 data "aws_iam_policy_document" "policy_InstancePol_consolidated_doc" {
   statement {
+    sid                             = "EC2AndConsoleAccess"
     effect                          = "Allow"
     actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
     resources                       = ["*"]
   }
   statement {
-    sid                             = "AllowSNSPublish"
+    sid                             = "SSMSessionManagerPermissions"
     effect                          = "Allow"
-    actions                         = ["sns:Publish"]
-    resources                       = ["${aws_sns_topic.Topic1.arn}"]
+    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
+    resources                       = ["*"]
   }
 }
 
@@ -167,11 +168,9 @@ resource "aws_instance" "InstancePol" {
 #!/bin/bash
 
 # --- BEGIN CLOUDMAN VARIABLES ---
-echo "AWS_SNS_TOPIC_TARGET_NAME_0=Topic1" > /home/ec2-user/.env
-echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
+echo "REGION=${data.aws_region.current.name}" > /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=InstancePol" >> /home/ec2-user/.env
-echo "AWS_SNS_TOPIC_TARGET_ARN_0=${aws_sns_topic.Topic1.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 
@@ -181,20 +180,6 @@ EOFUData
   vpc_security_group_ids            = [aws_security_group.SG_instance_InstancePol.id]
   tags                              = {
     "Name" = "InstancePol"
-    "State" = "State12"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-
-
-
-### CATEGORY: INTEGRATION ###
-
-resource "aws_sns_topic" "Topic1" {
-  name                              = "Topic1"
-  tags                              = {
-    "Name" = "Topic1"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
   }
