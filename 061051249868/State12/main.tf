@@ -35,9 +35,15 @@ resource "aws_iam_instance_profile" "profile_Instance2" {
 
 data "aws_iam_policy_document" "policy_Instance2_consolidated_doc" {
   statement {
-    Effect                          = "Allow"
-    Action                          = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
-    Resource                        = "*"
+    effect                          = "Allow"
+    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
+    resources                       = ["*"]
+  }
+  statement {
+    sid                             = "AllowSNSPublish"
+    effect                          = "Allow"
+    actions                         = ["sns:Publish"]
+    resources                       = ["${aws_sns_topic.Topic1.arn}"]
   }
 }
 
@@ -161,9 +167,11 @@ resource "aws_instance" "Instance2" {
 #!/bin/bash
 
 # --- BEGIN CLOUDMAN VARIABLES ---
-echo "REGION=${data.aws_region.current.name}" > /home/ec2-user/.env
+echo "AWS_SNS_TOPIC_TARGET_NAME_0=Topic1" > /home/ec2-user/.env
+echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=Instance2" >> /home/ec2-user/.env
+echo "AWS_SNS_TOPIC_TARGET_ARN_0=${aws_sns_topic.Topic1.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 
@@ -173,6 +181,20 @@ EOFUData
   vpc_security_group_ids            = [aws_security_group.SG_instance_Instance2.id]
   tags                              = {
     "Name" = "Instance2"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+
+
+
+### CATEGORY: INTEGRATION ###
+
+resource "aws_sns_topic" "Topic1" {
+  name                              = "Topic1"
+  tags                              = {
+    "Name" = "Topic1"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
   }
