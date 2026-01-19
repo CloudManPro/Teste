@@ -49,6 +49,18 @@ resource "aws_iam_instance_profile" "profile_Instance" {
 
 data "aws_iam_policy_document" "policy_ASG_consolidated_doc" {
   statement {
+    sid                             = "EC2AndConsoleAccess"
+    effect                          = "Allow"
+    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
+    resources                       = ["*"]
+  }
+  statement {
+    sid                             = "SSMSessionManagerPermissions"
+    effect                          = "Allow"
+    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
+    resources                       = ["*"]
+  }
+  statement {
     sid                             = "AllowBucketLevelActions"
     effect                          = "Allow"
     actions                         = ["s3:ListBucket", "s3:GetBucketLocation"]
@@ -72,6 +84,27 @@ resource "aws_iam_policy" "policy_ASG_consolidated" {
   name                              = "policy_ASG_consolidated"
   description                       = "Consolidated Policy for ASG"
   policy                            = data.aws_iam_policy_document.policy_ASG_consolidated_doc.json
+}
+
+data "aws_iam_policy_document" "policy_Instance_consolidated_doc" {
+  statement {
+    sid                             = "EC2AndConsoleAccess"
+    effect                          = "Allow"
+    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
+    resources                       = ["*"]
+  }
+  statement {
+    sid                             = "SSMSessionManagerPermissions"
+    effect                          = "Allow"
+    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
+    resources                       = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "policy_Instance_consolidated" {
+  name                              = "policy_Instance_consolidated"
+  description                       = "Consolidated Policy for Instance"
+  policy                            = data.aws_iam_policy_document.policy_Instance_consolidated_doc.json
 }
 
 resource "aws_iam_role" "role_ASG" {
@@ -111,6 +144,11 @@ resource "aws_iam_role_policy_attachment" "policy_ASG_consolidated_attach" {
   role                              = "role_ASG"
 }
 
+resource "aws_iam_role_policy_attachment" "policy_Instance_consolidated_attach" {
+  policy_arn                        = aws_iam_policy.policy_Instance_consolidated.arn
+  role                              = "role_Instance"
+}
+
 
 
 
@@ -131,7 +169,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet8.id, aws_subnet.Subnet2.id, aws_subnet.Subnet7.id]
+  subnets                           = [aws_subnet.Subnet2.id, aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
@@ -600,23 +638,12 @@ EOFUData
 )
   user_data_replace_on_change       = false
   vpc_security_group_ids            = [aws_security_group.SG1.id]
-  cpu_options {
-    core_count                      = 0
-    threads_per_core                = 0
-  }
-  credit_specification {
-    cpu_credits                     = "standard"
-  }
   enclave_options {
     enabled                         = false
   }
   lifecycle {
     create_before_destroy           = false
-    ignore_changes                  = [ami, associate_public_ip_address, capacity_reservation_specification]
     prevent_destroy                 = false
-  }
-  maintenance_options {
-    auto_recovery                   = "auto"
   }
   metadata_options {
     http_protocol_ipv6              = "enabled"
@@ -669,26 +696,8 @@ ${data.local_file.UserData_Template.content}
 EOFUData
 )
   vpc_security_group_ids            = [aws_security_group.SG_autoscaling_group_ASG.id]
-  block_device_mappings {
-    ebs {
-      delete_on_termination         = "true"
-      iops                          = 3000
-      throughput                    = 125
-      volume_initialization_rate    = 0
-      volume_size                   = 8
-      volume_type                   = "gp3"
-    }
-  }
   iam_instance_profile {
     name                            = aws_iam_instance_profile.profile_ASG.name
-  }
-  instance_market_options {
-    market_type                     = "spot"
-    spot_options {
-      block_duration_minutes        = 0
-      instance_interruption_behavior = "terminate"
-      spot_instance_type            = "one-time"
-    }
   }
   tags                              = {
     "Name" = "Template"
