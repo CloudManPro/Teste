@@ -26,15 +26,6 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-### EXTERNAL REFERENCES ###
-
-data "aws_secretsmanager_secret" "Secret" {
-  name                              = "Secret"
-}
-
-
-
-
 ### CATEGORY: IAM ###
 
 resource "aws_iam_instance_profile" "profile_ASG" {
@@ -71,12 +62,6 @@ data "aws_iam_policy_document" "policy_ASG_consolidated_doc" {
     effect                          = "Allow"
     actions                         = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources                       = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}/*"]
-  }
-  statement {
-    sid                             = "AllowSecretAccess"
-    effect                          = "Allow"
-    actions                         = ["secretsmanager:GetSecretValue"]
-    resources                       = ["${data.aws_secretsmanager_secret.Secret.arn}"]
   }
 }
 
@@ -683,13 +668,11 @@ resource "aws_launch_template" "Template" {
 # --- BEGIN CLOUDMAN VARIABLES ---
 echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
 echo "AWS_DB_INSTANCE_TARGET_NAME_0=Database" >> /home/ec2-user/.env
-echo "AWS_SECRETSMANAGER_SECRET_TARGET_NAME_0=Secret" >> /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=ASG" >> /home/ec2-user/.env
 echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
 echo "AWS_DB_INSTANCE_TARGET_ARN_0=${aws_db_instance.Database.arn}" >> /home/ec2-user/.env
-echo "AWS_SECRETSMANAGER_SECRET_TARGET_ARN_0=${data.aws_secretsmanager_secret.Secret.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 ${data.local_file.UserData_Template.content}
