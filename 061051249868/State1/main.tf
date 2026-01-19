@@ -154,7 +154,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet2.id, aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
+  subnets                           = [aws_subnet.Subnet7.id, aws_subnet.Subnet2.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
@@ -341,26 +341,6 @@ resource "aws_security_group" "SG_autoscaling_group_ASG" {
   }
 }
 
-resource "aws_security_group" "SG_db_instance_Database" {
-  name                              = "SG_db_instance_Database"
-  vpc_id                            = aws_vpc.VPC2.id
-  description                       = "Default SG for db_instance Database"
-  egress {
-    cidr_blocks                     = ["0.0.0.0/0"]
-    description                     = "Allow all outbound traffic"
-    from_port                       = 0
-    protocol                        = "-1"
-    to_port                         = 0
-  }
-  ingress {
-    description                     = "Allow from ASG"
-    from_port                       = 0
-    protocol                        = "tcp"
-    security_groups                 = [aws_security_group.SG_autoscaling_group_ASG.id]
-    to_port                         = 0
-  }
-}
-
 resource "aws_subnet" "Subnet" {
   vpc_id                            = aws_vpc.VPC2.id
   availability_zone                 = "us-east-1a"
@@ -455,42 +435,6 @@ resource "aws_vpc" "VPC2" {
 
 ### CATEGORY: STORAGE ###
 
-resource "aws_db_instance" "Database" {
-  db_subnet_group_name              = aws_db_subnet_group.subnet_group_Database.name
-  allocated_storage                 = 20
-  availability_zone                 = aws_subnet.Subnet1.availability_zone
-  backup_retention_period           = 0
-  copy_tags_to_snapshot             = true
-  delete_automated_backups          = false
-  engine                            = "mysql"
-  engine_version                    = "8.0"
-  instance_class                    = "db.t3.micro"
-  max_allocated_storage             = 100
-  password                          = "admina!!"
-  skip_final_snapshot               = true
-  storage_encrypted                 = true
-  storage_type                      = "gp3"
-  upgrade_storage_config            = false
-  username                          = "admin"
-  vpc_security_group_ids            = [aws_security_group.SG_db_instance_Database.id]
-  tags                              = {
-    "Name" = "Database"
-    "State" = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud" = "minhacloud"
-  }
-}
-
-resource "aws_db_subnet_group" "subnet_group_Database" {
-  name                              = "database-subnet-group"
-  subnet_ids                        = [aws_subnet.Subnet1.id, aws_subnet.Subnet3.id]
-  tags                              = {
-    "Name" = "subnet_group_Database"
-    "State" = "State1"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
 resource "aws_s3_bucket" "my-bucket-1234-teste-xxx" {
   bucket                            = "my-bucket-1234-teste-xxx"
   force_destroy                     = true
@@ -546,7 +490,7 @@ resource "aws_autoscaling_group" "ASG" {
   capacity_rebalance                = true
   default_cooldown                  = 300
   default_instance_warmup           = 0
-  desired_capacity                  = 3
+  desired_capacity                  = 1
   desired_capacity_type             = "units"
   force_delete                      = false
   force_delete_warm_pool            = false
@@ -554,9 +498,9 @@ resource "aws_autoscaling_group" "ASG" {
   health_check_type                 = "ELB"
   ignore_failed_scaling_activities  = false
   max_instance_lifetime             = 0
-  max_size                          = 3
+  max_size                          = 1
   min_elb_capacity                  = 0
-  min_size                          = 3
+  min_size                          = 1
   protect_from_scale_in             = false
   target_group_arns                 = [aws_lb_target_group.Targetoup1.arn]
   vpc_zone_identifier               = [aws_subnet.Subnet3.id, aws_subnet.Subnet.id, aws_subnet.Subnet1.id]
@@ -668,12 +612,10 @@ resource "aws_launch_template" "Template" {
 
 # --- BEGIN CLOUDMAN VARIABLES ---
 echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
-echo "AWS_DB_INSTANCE_TARGET_NAME_0=Database" >> /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=ASG" >> /home/ec2-user/.env
 echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
-echo "AWS_DB_INSTANCE_TARGET_ARN_0=${aws_db_instance.Database.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 ${data.local_file.UserData_Template.content}
