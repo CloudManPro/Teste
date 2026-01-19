@@ -49,11 +49,6 @@ resource "aws_iam_instance_profile" "profile_Instance" {
 
 data "aws_iam_policy_document" "policy_ASG_consolidated_doc" {
   statement {
-    Effect                          = "Allow"
-    Action                          = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
-    Resource                        = "*"
-  }
-  statement {
     sid                             = "AllowBucketLevelActions"
     effect                          = "Allow"
     actions                         = ["s3:ListBucket", "s3:GetBucketLocation"]
@@ -77,20 +72,6 @@ resource "aws_iam_policy" "policy_ASG_consolidated" {
   name                              = "policy_ASG_consolidated"
   description                       = "Consolidated Policy for ASG"
   policy                            = data.aws_iam_policy_document.policy_ASG_consolidated_doc.json
-}
-
-data "aws_iam_policy_document" "policy_Instance_consolidated_doc" {
-  statement {
-    Effect                          = "Allow"
-    Action                          = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
-    Resource                        = "*"
-  }
-}
-
-resource "aws_iam_policy" "policy_Instance_consolidated" {
-  name                              = "policy_Instance_consolidated"
-  description                       = "Consolidated Policy for Instance"
-  policy                            = data.aws_iam_policy_document.policy_Instance_consolidated_doc.json
 }
 
 resource "aws_iam_role" "role_ASG" {
@@ -130,11 +111,6 @@ resource "aws_iam_role_policy_attachment" "policy_ASG_consolidated_attach" {
   role                              = "role_ASG"
 }
 
-resource "aws_iam_role_policy_attachment" "policy_Instance_consolidated_attach" {
-  policy_arn                        = aws_iam_policy.policy_Instance_consolidated.arn
-  role                              = "role_Instance"
-}
-
 
 
 
@@ -155,7 +131,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet7.id, aws_subnet.Subnet8.id, aws_subnet.Subnet2.id]
+  subnets                           = [aws_subnet.Subnet8.id, aws_subnet.Subnet2.id, aws_subnet.Subnet7.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
