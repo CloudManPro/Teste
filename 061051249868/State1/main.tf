@@ -154,7 +154,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet2.id, aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
+  subnets                           = [aws_subnet.Subnet8.id, aws_subnet.Subnet2.id, aws_subnet.Subnet7.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
@@ -482,7 +482,7 @@ resource "aws_db_instance" "Database" {
 
 resource "aws_db_subnet_group" "subnet_group_Database" {
   name                              = "database-subnet-group"
-  subnet_ids                        = [aws_subnet.Subnet1.id]
+  subnet_ids                        = [aws_subnet.Subnet1.id, aws_subnet.Subnet3.id]
   tags                              = {
     "Name" = "subnet_group_Database"
     "State" = "State1"
