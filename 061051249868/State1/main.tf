@@ -154,7 +154,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet7.id, aws_subnet.Subnet2.id, aws_subnet.Subnet8.id]
+  subnets                           = [aws_subnet.Subnet2.id, aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
@@ -535,7 +535,7 @@ resource "aws_autoscaling_group" "ASG" {
 }
 
 data "local_file" "UserData_Instance" {
-  filename                          = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
+  filename                          = "${path.module}/.external_modules/CloudMan/EC2/NATGateway/NAT.sh"
 }
 
 data "aws_ami" "AMI_Data_Source_Instance" {
