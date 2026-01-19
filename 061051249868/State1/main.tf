@@ -31,11 +31,23 @@ data "aws_region" "current" {}
 resource "aws_iam_instance_profile" "profile_ASG" {
   name                              = "profile_ASG"
   role                              = aws_iam_role.role_ASG.name
+  tags                              = {
+    "Name" = "profile_ASG"
+    "State" = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud" = "minhacloud"
+  }
 }
 
 resource "aws_iam_instance_profile" "profile_Instance" {
   name                              = "profile_Instance"
   role                              = aws_iam_role.role_Instance.name
+  tags                              = {
+    "Name" = "profile_Instance"
+    "State" = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud" = "minhacloud"
+  }
 }
 
 data "aws_iam_policy_document" "policy_ASG_consolidated_doc" {
@@ -94,6 +106,12 @@ resource "aws_iam_role" "role_ASG" {
     }
   ]
 })
+  tags                              = {
+    "Name" = "role_ASG"
+    "State" = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud" = "minhacloud"
+  }
 }
 
 resource "aws_iam_role" "role_Instance" {
@@ -110,6 +128,12 @@ resource "aws_iam_role" "role_Instance" {
     }
   ]
 })
+  tags                              = {
+    "Name" = "role_Instance"
+    "State" = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud" = "minhacloud"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "policy_ASG_consolidated_attach" {
@@ -332,6 +356,12 @@ resource "aws_security_group" "SG_autoscaling_group_ASG" {
     security_groups                 = [aws_security_group.SG_ALB.id]
     to_port                         = 80
   }
+  tags                              = {
+    "Name" = "SG_autoscaling_group_ASG"
+    "State" = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud" = "minhacloud"
+  }
 }
 
 resource "aws_security_group" "SG_instance_Instance" {
@@ -352,6 +382,12 @@ resource "aws_security_group" "SG_instance_Instance" {
     security_groups                 = [aws_security_group.SG_autoscaling_group_ASG.id]
     to_port                         = 0
   }
+  tags                              = {
+    "Name" = "SG_instance_Instance"
+    "State" = "State1"
+    "CloudmanUser" = "GlobalUserName"
+    "cloud" = "minhacloud"
+  }
 }
 
 resource "aws_lb" "ALB1" {
@@ -359,7 +395,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet8.id, aws_subnet.Subnet2.id, aws_subnet.Subnet7.id]
+  subnets                           = [aws_subnet.Subnet8.id, aws_subnet.Subnet7.id, aws_subnet.Subnet2.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
