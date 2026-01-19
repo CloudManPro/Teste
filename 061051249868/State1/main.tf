@@ -51,18 +51,6 @@ data "aws_iam_policy_document" "policy_ASG_consolidated_doc" {
     actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
     resources                       = ["*"]
   }
-  statement {
-    sid                             = "AllowBucketLevelActions"
-    effect                          = "Allow"
-    actions                         = ["s3:ListBucket", "s3:GetBucketLocation"]
-    resources                       = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}"]
-  }
-  statement {
-    sid                             = "AllowObjectCRUD"
-    effect                          = "Allow"
-    actions                         = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-    resources                       = ["${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}/*"]
-  }
 }
 
 resource "aws_iam_policy" "policy_ASG_consolidated" {
@@ -277,24 +265,6 @@ resource "aws_route_table_association" "aws_route_table_association_Subnet_RT1" 
   subnet_id                         = aws_subnet.Subnet.id
 }
 
-resource "aws_security_group" "SG1" {
-  name                              = "SG1"
-  vpc_id                            = aws_vpc.VPC2.id
-  revoke_rules_on_delete            = false
-  ingress {
-    from_port                       = 0
-    protocol                        = "-1"
-    self                            = false
-    to_port                         = 0
-  }
-  tags                              = {
-    "Name" = "SG1"
-    "State" = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud" = "minhacloud"
-  }
-}
-
 resource "aws_security_group" "SG_ALB" {
   name                              = "SG_ALB"
   vpc_id                            = aws_vpc.VPC2.id
@@ -338,6 +308,26 @@ resource "aws_security_group" "SG_autoscaling_group_ASG" {
     protocol                        = "tcp"
     security_groups                 = [aws_security_group.SG_ALB.id]
     to_port                         = 80
+  }
+}
+
+resource "aws_security_group" "SG_instance_Instance" {
+  name                              = "SG_instance_Instance"
+  vpc_id                            = aws_vpc.VPC2.id
+  description                       = "Default SG for instance Instance"
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    description                     = "Allow all outbound traffic"
+    from_port                       = 0
+    protocol                        = "-1"
+    to_port                         = 0
+  }
+  ingress {
+    description                     = "Allow from ASG"
+    from_port                       = 0
+    protocol                        = "-1"
+    security_groups                 = [aws_security_group.SG_autoscaling_group_ASG.id]
+    to_port                         = 0
   }
 }
 
@@ -433,56 +423,6 @@ resource "aws_vpc" "VPC2" {
 
 
 
-### CATEGORY: STORAGE ###
-
-resource "aws_s3_bucket" "my-bucket-1234-teste-xxx" {
-  bucket                            = "my-bucket-1234-teste-xxx"
-  force_destroy                     = true
-  object_lock_enabled               = false
-  tags                              = {
-    "Name" = "my-bucket-1234-teste-xxx"
-    "State" = "State1"
-    "CloudmanUser" = "GlobalUserName"
-    "cloud" = "minhacloud"
-  }
-}
-
-resource "aws_s3_bucket_ownership_controls" "my-bucket-1234-teste-xxx_controls" {
-  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx.id
-  rule {
-    object_ownership                = "BucketOwnerEnforced"
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "my-bucket-1234-teste-xxx_block" {
-  block_public_acls                 = true
-  block_public_policy               = true
-  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx.id
-  ignore_public_acls                = true
-  restrict_public_buckets           = true
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket-1234-teste-xxx_configuration" {
-  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx.id
-  expected_bucket_owner             = data.aws_caller_identity.current.account_id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm                 = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_versioning" "my-bucket-1234-teste-xxx_versioning" {
-  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx.id
-  versioning_configuration {
-    mfa_delete                      = "Disabled"
-    status                          = "Suspended"
-  }
-}
-
-
-
-
 ### CATEGORY: COMPUTE ###
 
 resource "aws_autoscaling_group" "ASG" {
@@ -569,7 +509,7 @@ ${data.local_file.UserData_Instance.content}
 EOFUData
 )
   user_data_replace_on_change       = false
-  vpc_security_group_ids            = [aws_security_group.SG1.id]
+  vpc_security_group_ids            = [aws_security_group.SG_instance_Instance.id]
   enclave_options {
     enabled                         = false
   }
@@ -613,11 +553,11 @@ resource "aws_launch_template" "Template" {
 #!/bin/bash
 
 # --- BEGIN CLOUDMAN VARIABLES ---
-echo "AWS_S3_BUCKET_TARGET_NAME_0=my-bucket-1234-teste-xxx" > /home/ec2-user/.env
+echo "AWS_INSTANCE_TARGET_NAME_0=Instance" > /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=ASG" >> /home/ec2-user/.env
-echo "AWS_S3_BUCKET_TARGET_ARN_0=${aws_s3_bucket.my-bucket-1234-teste-xxx.arn}" >> /home/ec2-user/.env
+echo "AWS_INSTANCE_TARGET_ARN_0=${aws_instance.Instance.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 ${data.local_file.UserData_Template.content}
