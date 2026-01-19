@@ -154,7 +154,7 @@ resource "aws_lb" "ALB1" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.SG_ALB.id]
-  subnets                           = [aws_subnet.Subnet8.id, aws_subnet.Subnet2.id, aws_subnet.Subnet7.id]
+  subnets                           = [aws_subnet.Subnet2.id, aws_subnet.Subnet7.id, aws_subnet.Subnet8.id]
   tags                              = {
     "Name" = "ALB1"
     "State" = "State1"
@@ -466,6 +466,7 @@ resource "aws_db_instance" "Database" {
   engine_version                    = "8.0"
   instance_class                    = "db.t3.micro"
   max_allocated_storage             = 100
+  password                          = "admina!!"
   skip_final_snapshot               = true
   storage_encrypted                 = true
   storage_type                      = "gp3"
