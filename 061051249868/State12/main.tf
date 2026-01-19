@@ -28,12 +28,12 @@ data "aws_region" "current" {}
 
 ### CATEGORY: IAM ###
 
-resource "aws_iam_instance_profile" "profile_Instance2" {
-  name                              = "profile_Instance2"
-  role                              = aws_iam_role.role_Instance2.name
+resource "aws_iam_instance_profile" "profile_InstancePol" {
+  name                              = "profile_InstancePol"
+  role                              = aws_iam_role.role_InstancePol.name
 }
 
-data "aws_iam_policy_document" "policy_Instance2_consolidated_doc" {
+data "aws_iam_policy_document" "policy_InstancePol_consolidated_doc" {
   statement {
     effect                          = "Allow"
     actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
@@ -47,14 +47,14 @@ data "aws_iam_policy_document" "policy_Instance2_consolidated_doc" {
   }
 }
 
-resource "aws_iam_policy" "policy_Instance2_consolidated" {
-  name                              = "policy_Instance2_consolidated"
-  description                       = "Consolidated Policy for Instance2"
-  policy                            = data.aws_iam_policy_document.policy_Instance2_consolidated_doc.json
+resource "aws_iam_policy" "policy_InstancePol_consolidated" {
+  name                              = "policy_InstancePol_consolidated"
+  description                       = "Consolidated Policy for InstancePol"
+  policy                            = data.aws_iam_policy_document.policy_InstancePol_consolidated_doc.json
 }
 
-resource "aws_iam_role" "role_Instance2" {
-  name                              = "role_Instance2"
+resource "aws_iam_role" "role_InstancePol" {
+  name                              = "role_InstancePol"
   assume_role_policy                = jsonencode({
   "Version": "2012-10-17",
   "Statement": [
@@ -69,9 +69,9 @@ resource "aws_iam_role" "role_Instance2" {
 })
 }
 
-resource "aws_iam_role_policy_attachment" "policy_Instance2_consolidated_attach" {
-  policy_arn                        = aws_iam_policy.policy_Instance2_consolidated.arn
-  role                              = "role_Instance2"
+resource "aws_iam_role_policy_attachment" "policy_InstancePol_consolidated_attach" {
+  policy_arn                        = aws_iam_policy.policy_InstancePol_consolidated.arn
+  role                              = "role_InstancePol"
 }
 
 
@@ -108,10 +108,10 @@ resource "aws_route_table_association" "aws_route_table_association_SubnetPolicy
   subnet_id                         = aws_subnet.SubnetPolicy.id
 }
 
-resource "aws_security_group" "SG_instance_Instance2" {
-  name                              = "SG_instance_Instance2"
+resource "aws_security_group" "SG_instance_InstancePol" {
+  name                              = "SG_instance_InstancePol"
   vpc_id                            = aws_vpc.VPC1.id
-  description                       = "Default SG for instance Instance2"
+  description                       = "Default SG for instance InstancePol"
   egress {
     cidr_blocks                     = ["0.0.0.0/0"]
     description                     = "Allow all outbound traffic"
@@ -148,7 +148,7 @@ resource "aws_vpc" "VPC1" {
 
 ### CATEGORY: COMPUTE ###
 
-data "aws_ami" "AMI_Data_Source_Instance2" {
+data "aws_ami" "AMI_Data_Source_InstancePol" {
   most_recent                       = true
   owners                            = ["amazon"]
   filter {
@@ -157,11 +157,11 @@ data "aws_ami" "AMI_Data_Source_Instance2" {
   }
 }
 
-resource "aws_instance" "Instance2" {
+resource "aws_instance" "InstancePol" {
   subnet_id                         = aws_subnet.SubnetPolicy.id
-  ami                               = data.aws_ami.AMI_Data_Source_Instance2.id
+  ami                               = data.aws_ami.AMI_Data_Source_InstancePol.id
   associate_public_ip_address       = true
-  iam_instance_profile              = aws_iam_instance_profile.profile_Instance2.name
+  iam_instance_profile              = aws_iam_instance_profile.profile_InstancePol.name
   instance_type                     = "t3.micro"
   user_data_base64                  = base64encode(<<-EOFUData
 #!/bin/bash
@@ -170,7 +170,7 @@ resource "aws_instance" "Instance2" {
 echo "AWS_SNS_TOPIC_TARGET_NAME_0=Topic1" > /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
-echo "NAME=Instance2" >> /home/ec2-user/.env
+echo "NAME=InstancePol" >> /home/ec2-user/.env
 echo "AWS_SNS_TOPIC_TARGET_ARN_0=${aws_sns_topic.Topic1.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
@@ -178,9 +178,9 @@ echo "AWS_SNS_TOPIC_TARGET_ARN_0=${aws_sns_topic.Topic1.arn}" >> /home/ec2-user/
 EOFUData
 )
   user_data_replace_on_change       = false
-  vpc_security_group_ids            = [aws_security_group.SG_instance_Instance2.id]
+  vpc_security_group_ids            = [aws_security_group.SG_instance_InstancePol.id]
   tags                              = {
-    "Name" = "Instance2"
+    "Name" = "InstancePol"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
   }
