@@ -70,7 +70,7 @@ aws_api_gateway_method.Method4.id,
 aws_api_gateway_integration.Int4.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI3.body)]))
   }
-  depends_on                        = [aws_api_gateway_method.Method4, aws_api_gateway_integration.Int4, aws_api_gateway_resource.Resource2]
+  depends_on                        = [aws_api_gateway_method.Method4, aws_api_gateway_resource.Resource2, aws_api_gateway_integration.Int4]
 }
 
 resource "aws_api_gateway_integration" "Int4" {
@@ -262,11 +262,6 @@ resource "aws_lambda_permission" "perm_RestAPI3_to_Function10" {
   principal                         = "apigateway.amazonaws.com"
   action                            = "lambda:InvokeFunction"
   source_arn                        = "${aws_api_gateway_rest_api.RestAPI3.execution_arn}/*/*"
-  tags                              = {
-    "Name" = "perm_RestAPI3_to_Function10"
-    "State" = "State10"
-    "CloudmanUser" = "GlobalUserName"
-  }
 }
 
 
