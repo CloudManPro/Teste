@@ -41,7 +41,7 @@ resource "aws_secretsmanager_secret" "Secret" {
 
 resource "aws_secretsmanager_secret_version" "SecVersion" {
   secret_id                         = aws_secretsmanager_secret.Secret.id
-  secret_string                     = " "
+  secret_string                     = "username=YourUserName,password=YourPassword"
   version_stages                    = ["AWSCURRENT"]
 }
 
