@@ -60,7 +60,7 @@ resource "aws_iam_role" "role_Function3" {
 
 data "archive_file" "archive_CloudMan_Function3" {
   output_path                       = "${path.module}/CloudMan_Function3.zip"
-  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub"
+  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
   type                              = "zip"
 }
 
@@ -68,7 +68,7 @@ resource "aws_lambda_function" "Function3" {
   function_name                     = "Function3"
   architectures                     = ["arm64"]
   filename                          = "${data.archive_file.archive_CloudMan_Function3.output_path}"
-  handler                           = "LambdaHub.lambda_handler"
+  handler                           = "LambdaHub2.lambda_handler"
   memory_size                       = 3008
   publish                           = false
   reserved_concurrent_executions    = -1
