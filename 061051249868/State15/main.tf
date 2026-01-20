@@ -99,12 +99,12 @@ resource "aws_lambda_function" "Function5" {
   }
 }
 
-resource "aws_lambda_permission" "perm_RestAPI3_to_Function5" {
+resource "aws_lambda_permission" "perm_RestAPI3_to_Function5_openapi" {
   function_name                     = aws_lambda_function.Function5.function_name
-  statement_id                      = "perm_RestAPI3_to_Function5"
+  statement_id                      = "perm_RestAPI3_to_Function5_openapi"
   principal                         = "apigateway.amazonaws.com"
   action                            = "lambda:InvokeFunction"
-  source_arn                        = "${data.aws_api_gateway_rest_api.RestAPI3.execution_arn}/*/*"
+  source_arn                        = "${data.aws_api_gateway_rest_api.RestAPI3.execution_arn}/*/*/function5"
 }
 
 
