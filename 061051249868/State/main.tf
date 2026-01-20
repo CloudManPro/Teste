@@ -31,9 +31,7 @@ data "aws_region" "current" {}
 resource "aws_secretsmanager_secret" "Secret" {
   name                              = "Secret"
   force_overwrite_replica_secret    = false
-  recovery_window_in_days           = 0
-  replica {
-  }
+  recovery_window_in_days           = 30
   tags                              = {
     "Name" = "Secret"
     "State" = "State"
