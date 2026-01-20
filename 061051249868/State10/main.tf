@@ -53,6 +53,27 @@ resource "aws_iam_role" "role_Function10" {
   }
 }
 
+resource "aws_iam_role" "role_Function11" {
+  name                              = "role_Function11"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_Function11"
+    "State" = "State10"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 
 
 
@@ -100,6 +121,18 @@ locals {
     {
       path             = "/function5"
       uri              = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:Function5/invocations"
+      type             = "aws_proxy"
+      methods          = ["get", "post"]
+      enable_mock      = true
+      credentials      = null
+      requestTemplates = null
+      integ_method     = "POST"
+      parameters       = null
+      integ_req_params = null
+    },
+    {
+      path             = "/function11"
+      uri              = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:Function11/invocations"
       type             = "aws_proxy"
       methods          = ["get", "post"]
       enable_mock      = true
@@ -256,12 +289,52 @@ resource "aws_lambda_function" "Function10" {
   }
 }
 
-resource "aws_lambda_permission" "perm_RestAPI3_to_Function10" {
+data "archive_file" "archive_CloudMan_Function11" {
+  output_path                       = "${path.module}/CloudMan_Function11.zip"
+  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
+  type                              = "zip"
+}
+
+resource "aws_lambda_function" "Function11" {
+  function_name                     = "Function11"
+  architectures                     = ["arm64"]
+  filename                          = "${data.archive_file.archive_CloudMan_Function11.output_path}"
+  handler                           = "LambdaHub2.lambda_handler"
+  memory_size                       = 3008
+  publish                           = false
+  reserved_concurrent_executions    = -1
+  role                              = aws_iam_role.role_Function11.arn
+  runtime                           = "python3.13"
+  source_code_hash                  = "${data.archive_file.archive_CloudMan_Function11.output_base64sha256}"
+  timeout                           = 30
+  environment {
+    variables                       = {
+    "REGION" = "${data.aws_region.current.name}"
+    "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+    "NAME" = "Function11"
+  }
+  }
+  tags                              = {
+    "Name" = "Function11"
+    "State" = "State10"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_lambda_permission" "perm_RestAPI3_to_Function10_Method4" {
   function_name                     = aws_lambda_function.Function10.function_name
-  statement_id                      = "perm_RestAPI3_to_Function10"
+  statement_id                      = "perm_RestAPI3_to_Function10_Method4"
   principal                         = "apigateway.amazonaws.com"
   action                            = "lambda:InvokeFunction"
-  source_arn                        = "${aws_api_gateway_rest_api.RestAPI3.execution_arn}/*/*"
+  source_arn                        = "${aws_api_gateway_rest_api.RestAPI3.execution_arn}/*/GET${aws_api_gateway_resource.Resource2.path}"
+}
+
+resource "aws_lambda_permission" "perm_RestAPI3_to_Function11_openapi" {
+  function_name                     = aws_lambda_function.Function11.function_name
+  statement_id                      = "perm_RestAPI3_to_Function11_openapi"
+  principal                         = "apigateway.amazonaws.com"
+  action                            = "lambda:InvokeFunction"
+  source_arn                        = "${aws_api_gateway_rest_api.RestAPI3.execution_arn}/*/*/function11"
 }
 
 
