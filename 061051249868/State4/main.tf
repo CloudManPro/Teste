@@ -46,6 +46,11 @@ resource "aws_iam_role" "role_Function3" {
     }
   ]
 })
+  tags                              = {
+    "Name" = "role_Function3"
+    "State" = "State4"
+    "CloudmanUser" = "GlobalUserName"
+  }
 }
 
 
