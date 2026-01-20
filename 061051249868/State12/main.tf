@@ -26,32 +26,45 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+### EXTERNAL REFERENCES ###
+
+data "aws_secretsmanager_secret" "Secret" {
+  name                              = "Secret"
+}
+
+data "aws_secretsmanager_secret_version" "SecVersion" {
+  name                              = "SecVersion"
+}
+
+
+
+
 ### CATEGORY: IAM ###
 
 resource "aws_iam_instance_profile" "profile_InstancePol" {
   name                              = "profile_InstancePol"
   role                              = aws_iam_role.role_InstancePol.name
-}
-
-data "aws_iam_policy_document" "policy_InstancePol_consolidated_doc" {
-  statement {
-    sid                             = "EC2AndConsoleAccess"
-    effect                          = "Allow"
-    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
-    resources                       = ["*"]
-  }
-  statement {
-    sid                             = "SSMSessionManagerPermissions"
-    effect                          = "Allow"
-    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
-    resources                       = ["*"]
+  tags                              = {
+    "Name" = "profile_InstancePol"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
   }
 }
 
-resource "aws_iam_policy" "policy_InstancePol_consolidated" {
-  name                              = "policy_InstancePol_consolidated"
-  description                       = "Consolidated Policy for InstancePol"
-  policy                            = data.aws_iam_policy_document.policy_InstancePol_consolidated_doc.json
+data "aws_iam_policy_document" "instance_InstancePol_st_State12_doc" {
+  statement {
+    sid                             = "AllowSecretAccess"
+    effect                          = "Allow"
+    actions                         = ["secretsmanager:GetSecretValue"]
+    resources                       = ["${data.aws_secretsmanager_secret.Secret.arn}"]
+  }
+}
+
+resource "aws_iam_policy" "instance_InstancePol_st_State12" {
+  name                              = "instance_InstancePol_st_State12"
+  description                       = "Access Policy for InstancePol in State12"
+  policy                            = data.aws_iam_policy_document.instance_InstancePol_st_State12_doc.json
 }
 
 resource "aws_iam_role" "role_InstancePol" {
@@ -68,11 +81,17 @@ resource "aws_iam_role" "role_InstancePol" {
     }
   ]
 })
+  tags                              = {
+    "Name" = "role_InstancePol"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
 }
 
-resource "aws_iam_role_policy_attachment" "policy_InstancePol_consolidated_attach" {
-  policy_arn                        = aws_iam_policy.policy_InstancePol_consolidated.arn
-  role                              = "role_InstancePol"
+resource "aws_iam_role_policy_attachment" "instance_InstancePol_st_State12_attach" {
+  policy_arn                        = aws_iam_policy.instance_InstancePol_st_State12.arn
+  role                              = aws_iam_role.role_InstancePol.name
 }
 
 
@@ -80,12 +99,76 @@ resource "aws_iam_role_policy_attachment" "policy_InstancePol_consolidated_attac
 
 ### CATEGORY: NETWORK ###
 
+resource "aws_vpc" "VPC1" {
+  cidr_block                        = "10.0.0.0/16"
+  instance_tenancy                  = "default"
+  tags                              = {
+    "Name" = "VPC1"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_subnet" "Subnet11" {
+  vpc_id                            = aws_vpc.VPC1.id
+  availability_zone                 = "us-east-1a"
+  cidr_block                        = "10.0.2.0/24"
+  map_public_ip_on_launch           = false
+  tags                              = {
+    "Name" = "Subnet11"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_subnet" "Subnet5" {
+  vpc_id                            = aws_vpc.VPC1.id
+  availability_zone                 = "us-east-1b"
+  cidr_block                        = "10.0.3.0/24"
+  map_public_ip_on_launch           = false
+  tags                              = {
+    "Name" = "Subnet5"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_subnet" "SubnetPolicy" {
+  vpc_id                            = aws_vpc.VPC1.id
+  availability_zone                 = "us-east-1a"
+  cidr_block                        = "10.0.0.0/24"
+  map_public_ip_on_launch           = true
+  tags                              = {
+    "Name" = "SubnetPolicy"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_subnet" "SubnetRDS" {
+  vpc_id                            = aws_vpc.VPC1.id
+  availability_zone                 = "us-east-1a"
+  cidr_block                        = "10.0.1.0/24"
+  map_public_ip_on_launch           = false
+  tags                              = {
+    "Name" = "SubnetRDS"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
 resource "aws_internet_gateway" "IGW" {
   vpc_id                            = aws_vpc.VPC1.id
   tags                              = {
     "Name" = "IGW"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
   }
 }
 
@@ -101,12 +184,32 @@ resource "aws_route_table" "RT" {
     "Name" = "RT"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
   }
 }
 
 resource "aws_route_table_association" "aws_route_table_association_SubnetPolicy_RT" {
   route_table_id                    = aws_route_table.RT.id
   subnet_id                         = aws_subnet.SubnetPolicy.id
+}
+
+resource "aws_security_group" "SG_db_instance_Database1" {
+  name                              = "SG_db_instance_Database1"
+  vpc_id                            = aws_vpc.VPC1.id
+  description                       = "Default SG for db_instance Database1"
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    description                     = "Allow all outbound traffic"
+    from_port                       = 0
+    protocol                        = "-1"
+    to_port                         = 0
+  }
+  tags                              = {
+    "Name" = "SG_db_instance_Database1"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
 }
 
 resource "aws_security_group" "SG_instance_InstancePol" {
@@ -120,25 +223,50 @@ resource "aws_security_group" "SG_instance_InstancePol" {
     protocol                        = "-1"
     to_port                         = 0
   }
-}
-
-resource "aws_subnet" "SubnetPolicy" {
-  vpc_id                            = aws_vpc.VPC1.id
-  availability_zone                 = "us-east-1a"
-  cidr_block                        = "10.0.0.0/24"
-  map_public_ip_on_launch           = true
   tags                              = {
-    "Name" = "SubnetPolicy"
+    "Name" = "SG_instance_InstancePol"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
   }
 }
 
-resource "aws_vpc" "VPC1" {
-  cidr_block                        = "10.0.0.0/16"
-  instance_tenancy                  = "default"
+
+
+
+### CATEGORY: STORAGE ###
+
+resource "aws_db_instance" "Database1" {
+  db_subnet_group_name              = aws_db_subnet_group.subnet_group_Database1.name
+  allocated_storage                 = 20
+  availability_zone                 = aws_subnet.Subnet11.availability_zone
+  backup_retention_period           = 0
+  copy_tags_to_snapshot             = true
+  delete_automated_backups          = false
+  engine                            = "mysql"
+  engine_version                    = "8.0"
+  instance_class                    = "db.t3.micro"
+  max_allocated_storage             = 100
+  password                          = jsondecode(data.aws_secretsmanager_secret_version.SecVersion.secret_string)["password"]
+  skip_final_snapshot               = true
+  storage_encrypted                 = true
+  storage_type                      = "gp3"
+  upgrade_storage_config            = false
+  username                          = jsondecode(data.aws_secretsmanager_secret_version.SecVersion.secret_string)["username"]
+  vpc_security_group_ids            = [aws_security_group.SG_db_instance_Database1.id]
   tags                              = {
-    "Name" = "VPC1"
+    "Name" = "Database1"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_db_subnet_group" "subnet_group_Database1" {
+  name                              = "database1-subnet-group"
+  subnet_ids                        = [aws_subnet.Subnet11.id, aws_subnet.Subnet5.id]
+  tags                              = {
+    "Name" = "subnet_group_Database1"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -168,9 +296,13 @@ resource "aws_instance" "InstancePol" {
 #!/bin/bash
 
 # --- BEGIN CLOUDMAN VARIABLES ---
-echo "REGION=${data.aws_region.current.name}" > /home/ec2-user/.env
+echo "AWS_DB_INSTANCE_TARGET_NAME_0=Database1" > /home/ec2-user/.env
+echo "AWS_SECRETSMANAGER_SECRET_TARGET_NAME_0=Secret" >> /home/ec2-user/.env
+echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=InstancePol" >> /home/ec2-user/.env
+echo "AWS_DB_INSTANCE_TARGET_ARN_0=${aws_db_instance.Database1.arn}" >> /home/ec2-user/.env
+echo "AWS_SECRETSMANAGER_SECRET_TARGET_ARN_0=${data.aws_secretsmanager_secret.Secret.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 
@@ -182,6 +314,7 @@ EOFUData
     "Name" = "InstancePol"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
   }
 }
 
