@@ -70,7 +70,7 @@ aws_api_gateway_method.Method4.id,
 aws_api_gateway_integration.Int4.id
 ]), jsonencode(aws_api_gateway_rest_api.RestAPI3.body)]))
   }
-  depends_on                        = [aws_api_gateway_method.Method4, aws_api_gateway_resource.Resource2, aws_api_gateway_integration.Int4]
+  depends_on                        = [aws_api_gateway_resource.Resource2, aws_api_gateway_integration.Int4, aws_api_gateway_method.Method4]
 }
 
 resource "aws_api_gateway_integration" "Int4" {
@@ -101,7 +101,7 @@ locals {
       path             = "/function5"
       uri              = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:Function5/invocations"
       type             = "aws_proxy"
-      methods          = ["post"]
+      methods          = ["get", "post"]
       enable_mock      = true
       credentials      = null
       requestTemplates = null
@@ -182,7 +182,7 @@ locals {
               default = {
                 statusCode = "200"
                 responseParameters = {
-                  "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+                  "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS'"
                   "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
                   "method.response.header.Access-Control-Allow-Origin"  = "'*'"
                 }
