@@ -10,11 +10,11 @@
       ]
     }
   ],
-  "action": "destroy",
-  "trigger_id": "1769003677937",
+  "action": "apply",
+  "trigger_id": "1769023268990",
   "backend_global_config": {
     "provider": "aws",
-    "role_arn": "arn:aws:iam::061051249868:role/CloudMan-Gitops-CloudManPro-Teste",
+    "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
     "region": "us-east-1"
   },
   "pipeline_stages": [
