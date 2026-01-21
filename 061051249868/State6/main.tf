@@ -61,3 +61,22 @@ resource "aws_sns_topic" "Topic" {
 }
 
 
+
+
+### CATEGORY: MISC ###
+
+resource "aws_ssm_parameter" "Parameter" {
+  name                              = "Parameter"
+  data_type                         = "text"
+  overwrite                         = false
+  tier                              = "Standard"
+  type                              = "String"
+  value_wo_version                  = 0
+  tags                              = {
+    "Name" = "Parameter"
+    "State" = "State6"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+
