@@ -8,7 +8,14 @@ terraform {
     }
   }
 
-  # Backend remoto nao configurado.
+  backend "s3" {
+    bucket         = "bucket-teste-backend-terraform"
+    key            = "061051249868/State6/main.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TableBE"
+    profile        = "backend"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
@@ -19,35 +26,21 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-### EXTERNAL REFERENCES ###
-
-data "aws_iam_role" "role_Function3" {
-  name                              = "role_Function3"
-}
-
-
-
-
 ### CATEGORY: IAM ###
 
-data "aws_iam_policy_document" "policy_Function3_consolidated_doc" {
+data "aws_iam_policy_document" "lambda_function_Function3_st_State6_doc" {
   statement {
     sid                             = "AllowSNSPublish"
     effect                          = "Allow"
-    actions                         = ["sns:GetDataProtectionPolicy", "sns:GetTopicAttributes", "sns:Publish", "sns:RemovePermission", "sns:SetTopicAttributes"]
+    actions                         = ["sns:Publish"]
     resources                       = ["${aws_sns_topic.Topic.arn}"]
   }
 }
 
-resource "aws_iam_policy" "policy_Function3_consolidated" {
-  name                              = "policy_Function3_consolidated"
-  description                       = "Consolidated Policy for Function3"
-  policy                            = data.aws_iam_policy_document.policy_Function3_consolidated_doc.json
-}
-
-resource "aws_iam_role_policy_attachment" "policy_Function3_consolidated_attach" {
-  policy_arn                        = aws_iam_policy.policy_Function3_consolidated.arn
-  role                              = data.aws_iam_role.role_Function3.name
+resource "aws_iam_policy" "lambda_function_Function3_st_State6" {
+  name                              = "lambda_function_Function3_st_State6"
+  description                       = "Access Policy for Function3 in State6"
+  policy                            = data.aws_iam_policy_document.lambda_function_Function3_st_State6_doc.json
 }
 
 
@@ -57,9 +50,8 @@ resource "aws_iam_role_policy_attachment" "policy_Function3_consolidated_attach"
 
 resource "aws_sns_topic" "Topic" {
   name                              = "Topic"
-  content_based_deduplication       = false
-  delivery_policy                   = jsonencode([])
-  fifo_throughput_scope             = "auto"
+  content_based_deduplication       = true
+  fifo_throughput_scope             = "Topic"
   fifo_topic                        = true
   tags                              = {
     "Name" = "Topic"
