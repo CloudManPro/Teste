@@ -51,7 +51,7 @@ resource "aws_iam_policy" "lambda_function_Function3_st_State6" {
 resource "aws_sns_topic" "Topic" {
   name                              = "Topic.fifo"
   content_based_deduplication       = true
-  fifo_throughput_scopex             = "Topic"
+  fifo_throughput_scope             = "Topic"
   fifo_topic                        = true
   tags                              = {
     "Name" = "Topic"
@@ -60,20 +60,10 @@ resource "aws_sns_topic" "Topic" {
   }
 }
 
-
-
-
-### CATEGORY: MISC ###
-
-resource "aws_ssm_parameter" "Parameter" {
-  name                              = "Parameter"
-  data_type                         = "text"
-  overwrite                         = false
-  tier                              = "Standard"
-  type                              = "String"
-  value_wo_version                  = 0
+resource "aws_sns_topic" "Topic1" {
+  name                              = "Topic1"
   tags                              = {
-    "Name" = "Parameter"
+    "Name" = "Topic1"
     "State" = "State6"
     "CloudmanUser" = "GlobalUserName"
   }
