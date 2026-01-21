@@ -51,7 +51,7 @@ resource "aws_iam_policy" "lambda_function_Function3_st_State6" {
 resource "aws_sns_topic" "Topic" {
   name                              = "Topic.fifo"
   content_based_deduplication       = true
-  fifo_throughput_scope             = "Topic"
+  fifo_throughput_scopex             = "Topic"
   fifo_topic                        = true
   tags                              = {
     "Name" = "Topic"
