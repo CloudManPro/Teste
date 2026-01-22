@@ -31,7 +31,7 @@ data "aws_region" "current" {}
 resource "aws_secretsmanager_secret" "Secret" {
   name                              = "Secret"
   force_overwrite_replica_secret    = false
-  recovery_window_in_days           = 30
+  recovery_window_in_days           = 0
   tags                              = {
     "Name" = "Secret"
     "State" = "State"
@@ -41,7 +41,12 @@ resource "aws_secretsmanager_secret" "Secret" {
 
 resource "aws_secretsmanager_secret_version" "SecVersion" {
   secret_id                         = aws_secretsmanager_secret.Secret.id
-  secret_string                     = "username=YourUserName,password=YourPassword"
+  secret_string                     = <<EOF
+{
+  "username": "admin",
+  "password": "CHANGE_ME"
+}
+EOF
   version_stages                    = ["AWSCURRENT"]
 }
 
