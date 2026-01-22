@@ -54,6 +54,18 @@ resource "aws_iam_instance_profile" "profile_InstancePol" {
 
 data "aws_iam_policy_document" "instance_InstancePol_st_State12_doc" {
   statement {
+    sid                             = "EC2AndConsoleAccess"
+    effect                          = "Allow"
+    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
+    resources                       = ["*"]
+  }
+  statement {
+    sid                             = "SSMSessionManagerPermissions"
+    effect                          = "Allow"
+    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
+    resources                       = ["*"]
+  }
+  statement {
     sid                             = "AllowSecretAccess"
     effect                          = "Allow"
     actions                         = ["secretsmanager:GetSecretValue"]
@@ -264,7 +276,7 @@ resource "aws_db_instance" "Database1" {
 
 resource "aws_db_subnet_group" "subnet_group_Database1" {
   name                              = "database1-subnet-group"
-  subnet_ids                        = [aws_subnet.Subnet5.id, aws_subnet.Subnet11.id]
+  subnet_ids                        = [aws_subnet.Subnet11.id, aws_subnet.Subnet5.id]
   tags                              = {
     "Name" = "subnet_group_Database1"
     "State" = "State12"
