@@ -216,6 +216,13 @@ resource "aws_security_group" "SG_db_instance_Database1" {
     protocol                        = "-1"
     to_port                         = 0
   }
+  ingress {
+    description                     = "Allow from InstancePol"
+    from_port                       = 0
+    protocol                        = "-1"
+    security_groups                 = [aws_security_group.SG_instance_InstancePol.id]
+    to_port                         = 0
+  }
   tags                              = {
     "Name" = "SG_db_instance_Database1"
     "State" = "State12"
@@ -276,7 +283,7 @@ resource "aws_db_instance" "Database1" {
 
 resource "aws_db_subnet_group" "subnet_group_Database1" {
   name                              = "database1-subnet-group"
-  subnet_ids                        = [aws_subnet.Subnet11.id, aws_subnet.Subnet5.id]
+  subnet_ids                        = [aws_subnet.Subnet5.id, aws_subnet.Subnet11.id]
   tags                              = {
     "Name" = "subnet_group_Database1"
     "State" = "State12"
