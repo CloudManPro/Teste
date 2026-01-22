@@ -33,7 +33,7 @@ data "aws_secretsmanager_secret" "Secret" {
 }
 
 data "aws_secretsmanager_secret_version" "SecVersion" {
-  name                              = "SecVersion"
+  secret_id                         = data.aws_secretsmanager_secret.SecVersion.id
 }
 
 
@@ -264,7 +264,7 @@ resource "aws_db_instance" "Database1" {
 
 resource "aws_db_subnet_group" "subnet_group_Database1" {
   name                              = "database1-subnet-group"
-  subnet_ids                        = [aws_subnet.Subnet11.id, aws_subnet.Subnet5.id]
+  subnet_ids                        = [aws_subnet.Subnet5.id, aws_subnet.Subnet11.id]
   tags                              = {
     "Name" = "subnet_group_Database1"
     "State" = "State12"
