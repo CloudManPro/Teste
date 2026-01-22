@@ -33,7 +33,7 @@ data "aws_secretsmanager_secret" "Secret" {
 }
 
 data "aws_secretsmanager_secret_version" "SecVersion" {
-  secret_id                         = data.aws_secretsmanager_secret.SecVersion.id
+  secret_id                         = data.data.aws_secretsmanager_secret.Secret.id
 }
 
 
