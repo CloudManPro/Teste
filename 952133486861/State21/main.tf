@@ -122,6 +122,11 @@ resource "aws_cloudfront_distribution" "CDN" {
     origin_access_control_id        = aws_cloudfront_origin_access_control.oac_my-bucket-cf-test1234.id
     origin_id                       = "default_CDN"
   }
+  restrictions {
+    geo_restriction {
+      restriction_type              = "none"
+    }
+  }
   tags                              = {
     "Name" = "CDN"
     "State" = "State21"
