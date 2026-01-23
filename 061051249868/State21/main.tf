@@ -51,11 +51,6 @@ resource "aws_acm_certificate" "Certificate" {
 resource "aws_acm_certificate_validation" "Validation_Certificate" {
   certificate_arn                   = aws_acm_certificate.Certificate.arn
   validation_record_fqdns           = [for record in aws_route53_record.Route53_Record_Certificate : record.fqdn]
-  tags                              = {
-    "Name" = "Validation_Certificate"
-    "State" = "State21"
-    "CloudmanUser" = "GlobalUserName"
-  }
 }
 
 
