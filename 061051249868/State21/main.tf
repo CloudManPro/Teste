@@ -44,7 +44,7 @@ resource "aws_route53_record" "Route53_Record_Certificate" {
       type   = dvo.resource_record_type
     }}
   name                              = "${each.value.name}"
-  zone_id                           = "${aws_route53_zone.CloudMan.zone_id}"
+  zone_id                           = data.aws_route53_zone.CloudMan.zone_id
   allow_overwrite                   = true
   records                           = ["${each.value.record}"]
   ttl                               = 300
@@ -58,22 +58,22 @@ resource "aws_route53_record" "Route53_Record_Certificate" {
 
 resource "aws_route53_record" "alias_a_testecf_to_CDN" {
   name                              = "testecf.cloudman.pro"
-  zone_id                           = "${aws_route53_zone.CloudMan.zone_id}"
+  zone_id                           = data.aws_route53_zone.CloudMan.zone_id
   type                              = "A"
   alias {
-    name                            = "${aws_cloudfront_distribution.CDN.domain_name}"
-    zone_id                         = "${aws_cloudfront_distribution.CDN.hosted_zone_id}"
+    name                            = aws_cloudfront_distribution.CDN.domain_name
+    zone_id                         = aws_cloudfront_distribution.CDN.hosted_zone_id
     evaluate_target_health          = false
   }
 }
 
 resource "aws_route53_record" "alias_aaaa_testecf_to_CDN" {
   name                              = "testecf.cloudman.pro"
-  zone_id                           = "${aws_route53_zone.CloudMan.zone_id}"
+  zone_id                           = data.aws_route53_zone.CloudMan.zone_id
   type                              = "AAAA"
   alias {
-    name                            = "${aws_cloudfront_distribution.CDN.domain_name}"
-    zone_id                         = "${aws_cloudfront_distribution.CDN.hosted_zone_id}"
+    name                            = aws_cloudfront_distribution.CDN.domain_name
+    zone_id                         = aws_cloudfront_distribution.CDN.hosted_zone_id
     evaluate_target_health          = false
   }
 }
@@ -144,7 +144,7 @@ resource "aws_acm_certificate" "Certificate" {
 }
 
 resource "aws_acm_certificate_validation" "Validation_Certificate" {
-  certificate_arn                   = "${aws_acm_certificate.Certificate.arn}"
+  certificate_arn                   = aws_acm_certificate.Certificate.arn
   validation_record_fqdns           = [for record in aws_route53_record.Route53_Record_Certificate : record.fqdn]
   tags                              = {
     "Name" = "Validation_Certificate"
@@ -167,8 +167,8 @@ resource "aws_cloudfront_distribution" "CDN" {
     viewer_protocol_policy          = "redirect-to-https"
   }
   origin {
-    domain_name                     = "${aws_s3_bucket.my-bucket-cf-test1234.bucket_regional_domain_name}"
-    origin_access_control_id        = "${aws_cloudfront_origin_access_control.oac_my-bucket-cf-test1234.id}"
+    domain_name                     = aws_s3_bucket.my-bucket-cf-test1234.bucket_regional_domain_name
+    origin_access_control_id        = aws_cloudfront_origin_access_control.oac_my-bucket-cf-test1234.id
     origin_id                       = "default_CDN"
   }
   restrictions {
@@ -182,7 +182,7 @@ resource "aws_cloudfront_distribution" "CDN" {
     "CloudmanUser" = "GlobalUserName"
   }
   viewer_certificate {
-    acm_certificate_arn             = "${aws_acm_certificate.Certificate.arn}"
+    acm_certificate_arn             = aws_acm_certificate.Certificate.arn
     cloudfront_default_certificate  = false
     minimum_protocol_version        = "TLSv1.2_2021"
     ssl_support_method              = "sni-only"
