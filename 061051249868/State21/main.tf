@@ -35,6 +35,32 @@ data "aws_route53_zone" "CloudMan" {
 
 
 
+### CATEGORY: IAM ###
+
+resource "aws_acm_certificate" "Certificate" {
+  domain_name                       = "testecf.cloudman.pro"
+  key_algorithm                     = "RSA_2048"
+  validation_method                 = "DNS"
+  tags                              = {
+    "Name" = "Certificate"
+    "State" = "State21"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_acm_certificate_validation" "Validation_Certificate" {
+  certificate_arn                   = aws_acm_certificate.Certificate.arn
+  validation_record_fqdns           = [for record in aws_route53_record.Route53_Record_Certificate : record.fqdn]
+  tags                              = {
+    "Name" = "Validation_Certificate"
+    "State" = "State21"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+
+
+
 ### CATEGORY: NETWORK ###
 
 resource "aws_route53_record" "Route53_Record_Certificate" {
@@ -49,11 +75,6 @@ resource "aws_route53_record" "Route53_Record_Certificate" {
   records                           = ["${each.value.record}"]
   ttl                               = 300
   type                              = "${each.value.type}"
-  tags                              = {
-    "Name" = "Route53_Record_Certificate"
-    "State" = "State21"
-    "CloudmanUser" = "GlobalUserName"
-  }
 }
 
 resource "aws_route53_record" "alias_a_testecf_to_CDN" {
@@ -76,6 +97,50 @@ resource "aws_route53_record" "alias_aaaa_testecf_to_CDN" {
     zone_id                         = aws_cloudfront_distribution.CDN.hosted_zone_id
     evaluate_target_health          = false
   }
+}
+
+resource "aws_cloudfront_distribution" "CDN" {
+  aliases                           = ["testecf.cloudman.pro"]
+  default_root_object               = "index.html"
+  enabled                           = true
+  http_version                      = "http2and3"
+  is_ipv6_enabled                   = true
+  price_class                       = "PriceClass_All"
+  default_cache_behavior {
+    target_origin_id                = "default_CDN"
+    allowed_methods                 = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods                  = ["GET", "HEAD", "OPTIONS"]
+    viewer_protocol_policy          = "redirect-to-https"
+  }
+  origin {
+    domain_name                     = aws_s3_bucket.my-bucket-cf-test1234.bucket_regional_domain_name
+    origin_access_control_id        = aws_cloudfront_origin_access_control.oac_my-bucket-cf-test1234.id
+    origin_id                       = "default_CDN"
+  }
+  restrictions {
+    geo_restriction {
+      restriction_type              = "none"
+    }
+  }
+  tags                              = {
+    "Name" = "CDN"
+    "State" = "State21"
+    "CloudmanUser" = "GlobalUserName"
+  }
+  viewer_certificate {
+    acm_certificate_arn             = aws_acm_certificate.Certificate.arn
+    cloudfront_default_certificate  = false
+    minimum_protocol_version        = "TLSv1.2_2021"
+    ssl_support_method              = "sni-only"
+  }
+}
+
+resource "aws_cloudfront_origin_access_control" "oac_my-bucket-cf-test1234" {
+  name                              = "oac-my-bucket-cf-test1234"
+  description                       = "OAC for my-bucket-cf-test1234"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 
@@ -125,76 +190,6 @@ resource "aws_s3_bucket_versioning" "my-bucket-cf-test1234_versioning" {
     mfa_delete                      = "Disabled"
     status                          = "Suspended"
   }
-}
-
-
-
-
-### CATEGORY: MISC ###
-
-resource "aws_acm_certificate" "Certificate" {
-  domain_name                       = "testecf.cloudman.pro"
-  key_algorithm                     = "RSA_2048"
-  validation_method                 = "DNS"
-  tags                              = {
-    "Name" = "Certificate"
-    "State" = "State21"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_acm_certificate_validation" "Validation_Certificate" {
-  certificate_arn                   = aws_acm_certificate.Certificate.arn
-  validation_record_fqdns           = [for record in aws_route53_record.Route53_Record_Certificate : record.fqdn]
-  tags                              = {
-    "Name" = "Validation_Certificate"
-    "State" = "State21"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_cloudfront_distribution" "CDN" {
-  aliases                           = ["testecf.cloudman.pro"]
-  default_root_object               = "index.html"
-  enabled                           = true
-  http_version                      = "http2and3"
-  is_ipv6_enabled                   = true
-  price_class                       = "PriceClass_All"
-  default_cache_behavior {
-    target_origin_id                = "default_CDN"
-    allowed_methods                 = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods                  = ["GET", "HEAD", "OPTIONS"]
-    viewer_protocol_policy          = "redirect-to-https"
-  }
-  origin {
-    domain_name                     = aws_s3_bucket.my-bucket-cf-test1234.bucket_regional_domain_name
-    origin_access_control_id        = aws_cloudfront_origin_access_control.oac_my-bucket-cf-test1234.id
-    origin_id                       = "default_CDN"
-  }
-  restrictions {
-    geo_restriction {
-      restriction_type              = "none"
-    }
-  }
-  tags                              = {
-    "Name" = "CDN"
-    "State" = "State21"
-    "CloudmanUser" = "GlobalUserName"
-  }
-  viewer_certificate {
-    acm_certificate_arn             = aws_acm_certificate.Certificate.arn
-    cloudfront_default_certificate  = false
-    minimum_protocol_version        = "TLSv1.2_2021"
-    ssl_support_method              = "sni-only"
-  }
-}
-
-resource "aws_cloudfront_origin_access_control" "oac_my-bucket-cf-test1234" {
-  name                              = "oac-my-bucket-cf-test1234"
-  description                       = "OAC for my-bucket-cf-test1234"
-  origin_access_control_origin_type = "s3"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
 }
 
 
