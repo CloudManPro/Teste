@@ -224,7 +224,7 @@ resource "aws_s3_object" "index_html" {
   source                            = "${path.module}/.external_modules/CloudMan/HTML/Tretris.html"
   bucket                            = aws_s3_bucket.my-bucket-cf-test1234.bucket
   checksum_algorithm                = "CRC32"
-  content_type                      = "application/html"
+  content_type                      = "text/html"
   etag                              = filemd5("${path.module}/.external_modules/CloudMan/HTML/Tretris.html")
   key                               = "index.html"
   tags                              = {
