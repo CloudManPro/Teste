@@ -6,12 +6,12 @@
       "branch": "main",
       "target_dir": ".external_modules/CloudMan",
       "folders": [
-        "Tretris.html"
+        "HTML/Tretris.html"
       ]
     }
   ],
   "action": "apply",
-  "trigger_id": "1769274209733",
+  "trigger_id": "1769274391169",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
