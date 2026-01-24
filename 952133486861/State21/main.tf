@@ -28,7 +28,7 @@ data "aws_region" "current" {}
 
 ### SYSTEM DATA SOURCES ###
 
-data "aws_route53_zone" "CloudMan" {
+data "aws_route53_zone" "Cloudman" {
   name                              = "cloudman.pro"
 }
 
@@ -73,7 +73,7 @@ resource "aws_route53_record" "Route53_Record_Certificate" {
       type   = dvo.resource_record_type
     }}
   name                              = "${each.value.name}"
-  zone_id                           = data.aws_route53_zone.CloudMan.zone_id
+  zone_id                           = data.aws_route53_zone.Cloudman.zone_id
   allow_overwrite                   = true
   records                           = ["${each.value.record}"]
   ttl                               = 300
@@ -82,7 +82,7 @@ resource "aws_route53_record" "Route53_Record_Certificate" {
 
 resource "aws_route53_record" "alias_a_testecf_to_CDN" {
   name                              = "testecf.cloudman.pro"
-  zone_id                           = data.aws_route53_zone.CloudMan.zone_id
+  zone_id                           = data.aws_route53_zone.Cloudman.zone_id
   type                              = "A"
   alias {
     name                            = aws_cloudfront_distribution.CDN.domain_name
@@ -93,7 +93,7 @@ resource "aws_route53_record" "alias_a_testecf_to_CDN" {
 
 resource "aws_route53_record" "alias_aaaa_testecf_to_CDN" {
   name                              = "testecf.cloudman.pro"
-  zone_id                           = data.aws_route53_zone.CloudMan.zone_id
+  zone_id                           = data.aws_route53_zone.Cloudman.zone_id
   type                              = "AAAA"
   alias {
     name                            = aws_cloudfront_distribution.CDN.domain_name
@@ -171,6 +171,29 @@ resource "aws_s3_bucket_ownership_controls" "my-bucket-cf-test1234_controls" {
   }
 }
 
+data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket-cf-test1234_st_State21_doc" {
+  statement {
+    sid                             = "AllowCloudFrontServicePrincipalReadOnly"
+    effect                          = "Allow"
+    principals {
+      identifiers                   = ["cloudfront.amazonaws.com"]
+      type                          = "Service"
+    }
+    actions                         = ["s3:GetObject"]
+    resources                       = ["${aws_s3_bucket.my-bucket-cf-test1234.arn}/*"]
+    condition                       = {
+    "StringEquals" = {
+    "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.CDN.id}"
+  }
+  }
+  }
+}
+
+resource "aws_s3_bucket_policy" "aws_s3_bucket_policy_my-bucket-cf-test1234_st_State21" {
+  bucket                            = aws_s3_bucket.my-bucket-cf-test1234.id
+  policy                            = data.aws_iam_policy_document.aws_s3_bucket_policy_my-bucket-cf-test1234_st_State21_doc.json
+}
+
 resource "aws_s3_bucket_public_access_block" "my-bucket-cf-test1234_block" {
   block_public_acls                 = true
   block_public_policy               = true
@@ -194,6 +217,20 @@ resource "aws_s3_bucket_versioning" "my-bucket-cf-test1234_versioning" {
   versioning_configuration {
     mfa_delete                      = "Disabled"
     status                          = "Suspended"
+  }
+}
+
+resource "aws_s3_object" "index_html" {
+  source                            = "${path.module}/.external_modules//HTML/Tretris.html"
+  bucket                            = aws_s3_bucket.my-bucket-cf-test1234.bucket
+  checksum_algorithm                = "CRC32"
+  content_type                      = "application/octet-stream"
+  etag                              = filemd5("${path.module}/.external_modules//HTML/Tretris.html")
+  key                               = "index.html"
+  tags                              = {
+    "Name" = "index_html"
+    "State" = "State21"
+    "CloudmanUser" = "GlobalUserName"
   }
 }
 
