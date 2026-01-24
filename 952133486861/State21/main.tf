@@ -221,11 +221,11 @@ resource "aws_s3_bucket_versioning" "my-bucket-cf-test1234_versioning" {
 }
 
 resource "aws_s3_object" "index_html" {
-  source                            = "${path.module}/.external_modules//HTML/Tretris.html"
+  source                            = "${path.module}/.external_modules/CloudMan/HTML/Tretris.html"
   bucket                            = aws_s3_bucket.my-bucket-cf-test1234.bucket
   checksum_algorithm                = "CRC32"
   content_type                      = "application/octet-stream"
-  etag                              = filemd5("${path.module}/.external_modules//HTML/Tretris.html")
+  etag                              = filemd5("${path.module}/.external_modules/CloudMan/HTML/Tretris.html")
   key                               = "index.html"
   tags                              = {
     "Name" = "index_html"
