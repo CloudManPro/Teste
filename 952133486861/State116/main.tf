@@ -75,16 +75,10 @@ resource "aws_s3_bucket_versioning" "my-bucket1-cloudman-123_versioning" {
 resource "aws_s3_object" "Tretris_html" {
   source                            = "${path.module}/.external_modules/CloudMan/HTML/Tretris.html"
   bucket                            = aws_s3_bucket.my-bucket1-cloudman-123.bucket
-  bucket_key_enabled                = false
   checksum_algorithm                = "CRC32"
   content_type                      = "application/octet-stream"
   etag                              = filemd5("${path.module}/.external_modules/CloudMan/HTML/Tretris.html")
-  force_destroy                     = false
   key                               = "Tretris.html"
-  object_lock_legal_hold_status     = "OFF"
-  object_lock_mode                  = "GOVERNANCE"
-  server_side_encryption            = "AES256"
-  storage_class                     = "STANDARD"
   tags                              = {
     "Name" = "Tretris_html"
     "State" = "State116"
