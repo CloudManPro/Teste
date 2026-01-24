@@ -181,11 +181,11 @@ data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket-cf-test1234_st_St
     }
     actions                         = ["s3:GetObject"]
     resources                       = ["${aws_s3_bucket.my-bucket-cf-test1234.arn}/*"]
-    condition                       = {
-    "StringEquals" = {
-    "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.CDN.id}"
-  }
-  }
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = ["arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.CDN.id}"]
+    }
   }
 }
 
