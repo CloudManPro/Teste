@@ -40,11 +40,10 @@ resource "aws_s3_bucket" "my-bucket1" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "my-bucket1_controls" {
-  name                              = "oac-my-bucket1"
-  description                       = "OAC for my-bucket1"
-  origin_access_control_origin_type = "s3"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
+  bucket                            = aws_s3_bucket.my-bucket1.id
+  rule {
+    object_ownership                = "BucketOwnerEnforced"
+  }
 }
 
 data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket1_st_State116_doc" {
@@ -93,21 +92,6 @@ resource "aws_s3_bucket_versioning" "my-bucket1_versioning" {
   versioning_configuration {
     mfa_delete                      = "Disabled"
     status                          = "Suspended"
-  }
-}
-
-resource "aws_s3_object" "index_html1" {
-  source                            = "${path.module}/.external_modules/CloudMan/HTML/Tretris.html"
-  bucket                            = aws_s3_bucket.my-bucket1.bucket
-  checksum_algorithm                = "CRC32"
-  content_language                  = "en-US"
-  content_type                      = "text/html"
-  etag                              = filemd5("${path.module}/.external_modules/CloudMan/HTML/Tretris.html")
-  key                               = "index.html"
-  tags                              = {
-    "Name" = "index_html1"
-    "State" = "State116"
-    "CloudmanUser" = "GlobalUserName"
   }
 }
 
