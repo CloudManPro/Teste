@@ -10,8 +10,8 @@
       ]
     }
   ],
-  "action": "destroy",
-  "trigger_id": "1769306372579",
+  "action": "apply",
+  "trigger_id": "1769306512072",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
