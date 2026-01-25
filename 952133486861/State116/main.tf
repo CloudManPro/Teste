@@ -95,4 +95,19 @@ resource "aws_s3_bucket_versioning" "my-bucket-1234-teste-xxx-abb_versioning" {
   }
 }
 
+resource "aws_s3_object" "index_html1" {
+  source                            = "${path.module}/.external_modules/CloudMan/HTML/Tretris.html"
+  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx-abb.bucket
+  checksum_algorithm                = "CRC32"
+  content_language                  = "en-US"
+  content_type                      = "text/html"
+  etag                              = filemd5("${path.module}/.external_modules/CloudMan/HTML/Tretris.html")
+  key                               = "index.html"
+  tags                              = {
+    "Name" = "index_html1"
+    "State" = "State116"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 
