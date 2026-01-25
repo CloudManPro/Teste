@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.0.0"
 
   required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4.2"
+    }
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
@@ -45,39 +49,8 @@ data "aws_cloudfront_cache_policy" "policy_cachingdisabled" {
 
 ### CATEGORY: IAM ###
 
-resource "aws_iam_instance_profile" "profile_Instance4" {
-  name                              = "profile_Instance4"
-  role                              = aws_iam_role.role_Instance4.name
-  tags                              = {
-    "Name" = "profile_Instance4"
-    "State" = "State23"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-data "aws_iam_policy_document" "instance_Instance4_st_State23_doc" {
-  statement {
-    sid                             = "EC2AndConsoleAccess"
-    effect                          = "Allow"
-    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
-    resources                       = ["*"]
-  }
-  statement {
-    sid                             = "SSMSessionManagerPermissions"
-    effect                          = "Allow"
-    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
-    resources                       = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "instance_Instance4_st_State23" {
-  name                              = "instance_Instance4_st_State23"
-  description                       = "Access Policy for Instance4 in State23"
-  policy                            = data.aws_iam_policy_document.instance_Instance4_st_State23_doc.json
-}
-
-resource "aws_iam_role" "role_Instance4" {
-  name                              = "role_Instance4"
+resource "aws_iam_role" "role_Function4" {
+  name                              = "role_Function4"
   assume_role_policy                = jsonencode({
   "Version": "2012-10-17",
   "Statement": [
@@ -85,21 +58,16 @@ resource "aws_iam_role" "role_Instance4" {
       "Action": "sts:AssumeRole",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "lambda.amazonaws.com"
       }
     }
   ]
 })
   tags                              = {
-    "Name" = "role_Instance4"
+    "Name" = "role_Function4"
     "State" = "State23"
     "CloudmanUser" = "GlobalUserName"
   }
-}
-
-resource "aws_iam_role_policy_attachment" "instance_Instance4_st_State23_attach" {
-  policy_arn                        = aws_iam_policy.instance_Instance4_st_State23.arn
-  role                              = aws_iam_role.role_Instance4.name
 }
 
 resource "aws_acm_certificate" "Certificate2" {
@@ -293,47 +261,12 @@ resource "aws_security_group" "ALB_group" {
   }
 }
 
-resource "aws_security_group" "Instance4_group" {
-  name                              = "Instance4_group"
-  vpc_id                            = aws_vpc.VPC4.id
-  revoke_rules_on_delete            = false
-  egress {
-    cidr_blocks                     = ["0.0.0.0/0"]
-    from_port                       = 0
-    protocol                        = "-1"
-    self                            = false
-    to_port                         = 0
-  }
-  ingress {
-    cidr_blocks                     = ["0.0.0.0/0"]
-    from_port                       = 0
-    protocol                        = "-1"
-    self                            = false
-    to_port                         = 0
-  }
-  tags                              = {
-    "Name" = "Instance4_group"
-    "State" = "State23"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-resource "aws_security_group_rule" "rule_ALB_group_to_Instance4_group" {
-  security_group_id                 = aws_security_group.Instance4_group.id
-  source_security_group_id          = aws_security_group.ALB_group.id
-  description                       = "Allow from ALB_group"
-  from_port                         = 0
-  protocol                          = "-1"
-  to_port                           = 0
-  type                              = "ingress"
-}
-
 resource "aws_lb" "ALB" {
   name                              = "ALB"
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.ALB_group.id]
-  subnets                           = [aws_subnet.Subnet45.id, aws_subnet.Subnet46.id]
+  subnets                           = [aws_subnet.Subnet46.id, aws_subnet.Subnet45.id]
   tags                              = {
     "Name" = "ALB"
     "State" = "State23"
@@ -389,9 +322,8 @@ resource "aws_lb_target_group" "TargetGroup" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "attach_Instance4_to_TargetGroup" {
-  target_id                         = aws_instance.Instance4.id
-  port                              = 80
+resource "aws_lb_target_group_attachment" "attach_Function4_to_TargetGroup" {
+  target_id                         = aws_lambda_function.Function4.arn
   target_group_arn                  = aws_lb_target_group.TargetGroup.arn
 }
 
@@ -443,44 +375,44 @@ resource "aws_cloudfront_distribution" "CDN3" {
 
 ### CATEGORY: COMPUTE ###
 
-data "local_file" "UserData_Instance4" {
-  filename                          = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
+data "archive_file" "archive_CloudMan_Function4" {
+  output_path                       = "${path.module}/CloudMan_Function4.zip"
+  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
+  type                              = "zip"
 }
 
-data "aws_ami" "AMI_Data_Source_Instance4" {
-  most_recent                       = true
-  owners                            = ["amazon"]
-  filter {
-    name                            = "name"
-    values                          = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+resource "aws_lambda_function" "Function4" {
+  function_name                     = "Function4"
+  architectures                     = ["arm64"]
+  filename                          = "${data.archive_file.archive_CloudMan_Function4.output_path}"
+  handler                           = "LambdaHub2.lambda_handler"
+  memory_size                       = 3008
+  publish                           = false
+  reserved_concurrent_executions    = -1
+  role                              = aws_iam_role.role_Function4.arn
+  runtime                           = "python3.13"
+  source_code_hash                  = "${data.archive_file.archive_CloudMan_Function4.output_base64sha256}"
+  timeout                           = 30
+  environment {
+    variables                       = {
+    "REGION" = "${data.aws_region.current.name}"
+    "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+    "NAME" = "Function4"
   }
-}
-
-resource "aws_instance" "Instance4" {
-  subnet_id                         = aws_subnet.Subnet45.id
-  ami                               = data.aws_ami.AMI_Data_Source_Instance4.id
-  associate_public_ip_address       = true
-  iam_instance_profile              = aws_iam_instance_profile.profile_Instance4.name
-  instance_type                     = "t3.micro"
-  user_data_base64                  = base64encode(<<-EOFUData
-#!/bin/bash
-
-# --- BEGIN CLOUDMAN VARIABLES ---
-echo "REGION=${data.aws_region.current.name}" > /home/ec2-user/.env
-echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
-echo "NAME=Instance4" >> /home/ec2-user/.env
-# --- END CLOUDMAN VARIABLES ---
-
-${data.local_file.UserData_Instance4.content}
-EOFUData
-)
-  user_data_replace_on_change       = false
-  vpc_security_group_ids            = [aws_security_group.Instance4_group.id]
+  }
   tags                              = {
-    "Name" = "Instance4"
+    "Name" = "Function4"
     "State" = "State23"
     "CloudmanUser" = "GlobalUserName"
   }
+}
+
+resource "aws_lambda_permission" "perm_TargetGroup_to_Function4" {
+  function_name                     = aws_lambda_function.Function4.function_name
+  statement_id                      = "perm_TargetGroup_to_Function4"
+  principal                         = "elasticloadbalancing.amazonaws.com"
+  action                            = "lambda:InvokeFunction"
+  source_arn                        = aws_lb_target_group.TargetGroup.arn
 }
 
 
