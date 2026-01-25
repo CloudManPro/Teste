@@ -1,17 +1,7 @@
 {
-  "external_repositories": [
-    {
-      "repo_name": "CloudMan",
-      "org": "CloudManPro",
-      "branch": "main",
-      "target_dir": ".external_modules/CloudMan",
-      "folders": [
-        "HTML/Tretris.html"
-      ]
-    }
-  ],
+  "external_repositories": [],
   "action": "apply",
-  "trigger_id": "1769300996794",
+  "trigger_id": "1769304009929",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
