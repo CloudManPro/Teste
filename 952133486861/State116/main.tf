@@ -61,19 +61,18 @@ resource "aws_s3_bucket_ownership_controls" "my-bucket-1234-teste-xxx-abb_contro
 
 data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket-1234-teste-xxx-abb_st_State116_doc" {
   statement {
-    sid       = "AllowCloudFrontServicePrincipalReadOnly"
-    effect    = "Allow"
+    sid                             = "AllowCloudFrontServicePrincipalReadOnly"
+    effect                          = "Allow"
     principals {
-      identifiers = ["cloudfront.amazonaws.com"]
-      type        = "Service"
+      identifiers                   = ["cloudfront.amazonaws.com"]
+      type                          = "Service"
     }
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx-abb.arn}/*"]
-
+    actions                         = ["s3:GetObject"]
+    resources                       = ["${aws_s3_bucket.my-bucket-1234-teste-xxx-abb.arn}/*"]
     condition {
       test     = "StringEquals"
-      variable = "AWS:SourceAccount" # MUDANÇA AQUI
-      values   = [data.aws_caller_identity.current.account_id] # ID DA SUA CONTA
+      variable = "AWS:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }
