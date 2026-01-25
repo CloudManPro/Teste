@@ -55,6 +55,27 @@ resource "aws_iam_instance_profile" "profile_Instance4" {
   }
 }
 
+data "aws_iam_policy_document" "instance_Instance4_st_State23_doc" {
+  statement {
+    sid                             = "EC2AndConsoleAccess"
+    effect                          = "Allow"
+    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
+    resources                       = ["*"]
+  }
+  statement {
+    sid                             = "SSMSessionManagerPermissions"
+    effect                          = "Allow"
+    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
+    resources                       = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "instance_Instance4_st_State23" {
+  name                              = "instance_Instance4_st_State23"
+  description                       = "Access Policy for Instance4 in State23"
+  policy                            = data.aws_iam_policy_document.instance_Instance4_st_State23_doc.json
+}
+
 resource "aws_iam_role" "role_Instance4" {
   name                              = "role_Instance4"
   assume_role_policy                = jsonencode({
@@ -74,6 +95,11 @@ resource "aws_iam_role" "role_Instance4" {
     "State" = "State23"
     "CloudmanUser" = "GlobalUserName"
   }
+}
+
+resource "aws_iam_role_policy_attachment" "instance_Instance4_st_State23_attach" {
+  policy_arn                        = aws_iam_policy.instance_Instance4_st_State23.arn
+  role                              = aws_iam_role.role_Instance4.name
 }
 
 resource "aws_acm_certificate" "Certificate2" {
@@ -246,6 +272,13 @@ resource "aws_security_group" "ALB_group" {
   name                              = "ALB_group"
   vpc_id                            = aws_vpc.VPC4.id
   revoke_rules_on_delete            = false
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    self                            = false
+    to_port                         = 0
+  }
   ingress {
     cidr_blocks                     = ["0.0.0.0/0"]
     from_port                       = 0
@@ -264,6 +297,20 @@ resource "aws_security_group" "Instance4_group" {
   name                              = "Instance4_group"
   vpc_id                            = aws_vpc.VPC4.id
   revoke_rules_on_delete            = false
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    self                            = false
+    to_port                         = 0
+  }
+  ingress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    self                            = false
+    to_port                         = 0
+  }
   tags                              = {
     "Name" = "Instance4_group"
     "State" = "State23"
@@ -275,7 +322,7 @@ resource "aws_lb" "ALB" {
   name                              = "ALB"
   idle_timeout                      = 60
   load_balancer_type                = "application"
-  subnets                           = [aws_subnet.Subnet46.id, aws_subnet.Subnet45.id]
+  subnets                           = [aws_subnet.Subnet45.id, aws_subnet.Subnet46.id]
   tags                              = {
     "Name" = "ALB"
     "State" = "State23"
