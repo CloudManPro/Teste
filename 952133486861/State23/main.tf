@@ -32,6 +32,14 @@ data "aws_route53_zone" "Cloudman1" {
   name                              = "cloudman.pro"
 }
 
+data "aws_cloudfront_origin_request_policy" "policy_allviewer" {
+  name                              = "Managed-AllViewer"
+}
+
+data "aws_cloudfront_cache_policy" "policy_cachingdisabled" {
+  name                              = "Managed-CachingDisabled"
+}
+
 
 
 
@@ -267,7 +275,7 @@ resource "aws_lb" "ALB" {
   name                              = "ALB"
   idle_timeout                      = 60
   load_balancer_type                = "application"
-  subnets                           = [aws_subnet.Subnet45.id, aws_subnet.Subnet46.id]
+  subnets                           = [aws_subnet.Subnet46.id, aws_subnet.Subnet45.id]
   tags                              = {
     "Name" = "ALB"
     "State" = "State23"
@@ -331,6 +339,8 @@ resource "aws_cloudfront_distribution" "CDN3" {
   is_ipv6_enabled                   = true
   price_class                       = "PriceClass_All"
   default_cache_behavior {
+    cache_policy_id                 = data.aws_cloudfront_cache_policy.policy_cachingdisabled.id
+    origin_request_policy_id        = data.aws_cloudfront_origin_request_policy.policy_allviewer.id
     target_origin_id                = "default_CDN3"
     allowed_methods                 = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods                  = ["GET", "HEAD", "OPTIONS"]
