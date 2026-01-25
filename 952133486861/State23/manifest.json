@@ -6,12 +6,12 @@
       "branch": "main",
       "target_dir": ".external_modules/CloudMan",
       "folders": [
-        "EC2/Scripts/IMDSv2.sh"
+        "LambdaFiles/LambdaHub2"
       ]
     }
   ],
-  "action": "destroy",
-  "trigger_id": "1769379925246",
+  "action": "apply",
+  "trigger_id": "1769380277810",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
