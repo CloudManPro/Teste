@@ -28,25 +28,25 @@ data "aws_region" "current" {}
 
 ### CATEGORY: STORAGE ###
 
-resource "aws_s3_bucket" "my-bucket1" {
-  bucket                            = "my-bucket"
+resource "aws_s3_bucket" "my-bucket-1234-teste-xxx-abb" {
+  bucket                            = "my-bucket-1234-teste-xxx-abb"
   force_destroy                     = false
   object_lock_enabled               = false
   tags                              = {
-    "Name" = "my-bucket1"
+    "Name" = "my-bucket-1234-teste-xxx-abb"
     "State" = "State116"
     "CloudmanUser" = "GlobalUserName"
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "my-bucket1_controls" {
-  bucket                            = aws_s3_bucket.my-bucket1.id
+resource "aws_s3_bucket_ownership_controls" "my-bucket-1234-teste-xxx-abb_controls" {
+  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx-abb.id
   rule {
     object_ownership                = "BucketOwnerEnforced"
   }
 }
 
-data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket1_st_State116_doc" {
+data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket-1234-teste-xxx-abb_st_State116_doc" {
   statement {
     sid                             = "AllowCloudFrontServicePrincipalReadOnly"
     effect                          = "Allow"
@@ -55,7 +55,7 @@ data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket1_st_State116_doc"
       type                          = "Service"
     }
     actions                         = ["s3:GetObject"]
-    resources                       = ["${aws_s3_bucket.my-bucket1.arn}/*"]
+    resources                       = ["${aws_s3_bucket.my-bucket-1234-teste-xxx-abb.arn}/*"]
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
@@ -64,21 +64,21 @@ data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket1_st_State116_doc"
   }
 }
 
-resource "aws_s3_bucket_policy" "aws_s3_bucket_policy_my-bucket1_st_State116" {
-  bucket                            = aws_s3_bucket.my-bucket1.id
-  policy                            = data.aws_iam_policy_document.aws_s3_bucket_policy_my-bucket1_st_State116_doc.json
+resource "aws_s3_bucket_policy" "aws_s3_bucket_policy_my-bucket-1234-teste-xxx-abb_st_State116" {
+  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx-abb.id
+  policy                            = data.aws_iam_policy_document.aws_s3_bucket_policy_my-bucket-1234-teste-xxx-abb_st_State116_doc.json
 }
 
-resource "aws_s3_bucket_public_access_block" "my-bucket1_block" {
+resource "aws_s3_bucket_public_access_block" "my-bucket-1234-teste-xxx-abb_block" {
   block_public_acls                 = true
   block_public_policy               = true
-  bucket                            = aws_s3_bucket.my-bucket1.id
+  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx-abb.id
   ignore_public_acls                = true
   restrict_public_buckets           = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket1_configuration" {
-  bucket                            = aws_s3_bucket.my-bucket1.id
+resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket-1234-teste-xxx-abb_configuration" {
+  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx-abb.id
   expected_bucket_owner             = data.aws_caller_identity.current.account_id
   rule {
     apply_server_side_encryption_by_default {
@@ -87,8 +87,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket1_config
   }
 }
 
-resource "aws_s3_bucket_versioning" "my-bucket1_versioning" {
-  bucket                            = aws_s3_bucket.my-bucket1.id
+resource "aws_s3_bucket_versioning" "my-bucket-1234-teste-xxx-abb_versioning" {
+  bucket                            = aws_s3_bucket.my-bucket-1234-teste-xxx-abb.id
   versioning_configuration {
     mfa_delete                      = "Disabled"
     status                          = "Suspended"
