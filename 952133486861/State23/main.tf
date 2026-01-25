@@ -235,38 +235,39 @@ resource "aws_route_table_association" "aws_route_table_association_Subnet46_RT3
 }
 
 resource "aws_security_group" "ALB_group" {
+  name                              = "ALB_group"
   vpc_id                            = aws_vpc.VPC4.id
   revoke_rules_on_delete            = false
   ingress {
-    cidr_blocks                     = "0.0.0.0/0"
+    cidr_blocks                     = ["0.0.0.0/0"]
     from_port                       = 0
     protocol                        = "-1"
     self                            = false
     to_port                         = 0
   }
+  tags                              = {
+    "Name" = "ALB_group"
+    "State" = "State23"
+    "CloudmanUser" = "GlobalUserName"
+  }
 }
 
 resource "aws_security_group" "Instance4_group" {
+  name                              = "Instance4_group"
   vpc_id                            = aws_vpc.VPC4.id
   revoke_rules_on_delete            = false
-}
-
-resource "aws_security_group_rule" "rule_ALB_group_to_Instance4_group" {
-  security_group_id                 = aws_security_group.Instance4_group.id
-  source_security_group_id          = aws_security_group.ALB_group.id
-  description                       = "Allow from ALB_group"
-  from_port                         = 0
-  protocol                          = "-1"
-  to_port                           = 0
-  type                              = "ingress"
+  tags                              = {
+    "Name" = "Instance4_group"
+    "State" = "State23"
+    "CloudmanUser" = "GlobalUserName"
+  }
 }
 
 resource "aws_lb" "ALB" {
   name                              = "ALB"
   idle_timeout                      = 60
   load_balancer_type                = "application"
-  security_groups                   = [aws_security_group.ALB_group.id]
-  subnets                           = [aws_subnet.Subnet45.id, aws_subnet.Subnet46.id]
+  subnets                           = [aws_subnet.Subnet46.id, aws_subnet.Subnet45.id]
   tags                              = {
     "Name" = "ALB"
     "State" = "State23"
@@ -391,16 +392,17 @@ resource "aws_instance" "Instance4" {
 #!/bin/bash
 
 # --- BEGIN CLOUDMAN VARIABLES ---
-echo "REGION=${data.aws_region.current.name}" > /home/ec2-user/.env
+echo "AWS_SECURITY_GROUP_TARGET_NAME_0=Instance4_group" > /home/ec2-user/.env
+echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=Instance4" >> /home/ec2-user/.env
+echo "AWS_SECURITY_GROUP_TARGET_ARN_0=${aws_security_group.Instance4_group.arn}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 ${data.local_file.UserData_Instance4.content}
 EOFUData
 )
   user_data_replace_on_change       = false
-  vpc_security_group_ids            = [aws_security_group.Instance4_group.id]
   tags                              = {
     "Name" = "Instance4"
     "State" = "State23"
