@@ -26,6 +26,19 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+### SYSTEM DATA SOURCES ###
+
+data "aws_cloudfront_origin_request_policy" "policy_cors_s3origin" {
+  name                              = "Managed-CORS-S3Origin"
+}
+
+data "aws_cloudfront_cache_policy" "policy_cachingoptimized" {
+  name                              = "Managed-CachingOptimized"
+}
+
+
+
+
 ### CATEGORY: STORAGE ###
 
 resource "aws_s3_bucket" "my-bucket-1234-teste-xxx-abb" {
@@ -48,18 +61,19 @@ resource "aws_s3_bucket_ownership_controls" "my-bucket-1234-teste-xxx-abb_contro
 
 data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket-1234-teste-xxx-abb_st_State116_doc" {
   statement {
-    sid                             = "AllowCloudFrontServicePrincipalReadOnly"
-    effect                          = "Allow"
+    sid       = "AllowCloudFrontServicePrincipalReadOnly"
+    effect    = "Allow"
     principals {
-      identifiers                   = ["cloudfront.amazonaws.com"]
-      type                          = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+      type        = "Service"
     }
-    actions                         = ["s3:GetObject"]
-    resources                       = ["${aws_s3_bucket.my-bucket-1234-teste-xxx-abb.arn}/*"]
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.my-bucket-1234-teste-xxx-abb.arn}/*"]
+
     condition {
       test     = "StringEquals"
-      variable = "AWS:SourceArn"
-      values   = ["arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/*"]
+      variable = "AWS:SourceAccount" # MUDANÇA AQUI
+      values   = [data.aws_caller_identity.current.account_id] # ID DA SUA CONTA
     }
   }
 }
