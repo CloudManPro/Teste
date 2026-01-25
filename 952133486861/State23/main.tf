@@ -378,6 +378,17 @@ resource "aws_lb_target_group" "TargetGroup" {
   }
 }
 
+resource "aws_lb_target_group_attachment" "attach_Instance4_to_TargetGroup" {
+  target_id                         = aws_instance.Instance4.id
+  port                              = 80
+  target_group_arn                  = aws_lb_target_group.TargetGroup.arn
+  tags                              = {
+    "Name" = "attach_Instance4_to_TargetGroup"
+    "State" = "State23"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_cloudfront_distribution" "CDN3" {
   aliases                           = ["testecf.cloudman.pro"]
   default_root_object               = "index.html"
