@@ -29,7 +29,7 @@ data "aws_region" "current" {}
 ### EXTERNAL REFERENCES ###
 
 data "aws_s3_bucket" "my-bucket-1234-teste-xxx-abb" {
-  name                              = "my-bucket-1234-teste-xxx-abb"
+  bucket                            = "my-bucket-1234-teste-xxx-abb"
 }
 
 
