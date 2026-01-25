@@ -267,7 +267,7 @@ resource "aws_lb" "ALB" {
   name                              = "ALB"
   idle_timeout                      = 60
   load_balancer_type                = "application"
-  subnets                           = [aws_subnet.Subnet46.id, aws_subnet.Subnet45.id]
+  subnets                           = [aws_subnet.Subnet45.id, aws_subnet.Subnet46.id]
   tags                              = {
     "Name" = "ALB"
     "State" = "State23"
@@ -370,7 +370,7 @@ resource "aws_cloudfront_distribution" "CDN3" {
 ### CATEGORY: COMPUTE ###
 
 data "local_file" "UserData_Instance4" {
-  filename                          = "${path.module}/EC2/Scripts/IMDSv2.sh"
+  filename                          = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
 }
 
 data "aws_ami" "AMI_Data_Source_Instance4" {
