@@ -123,7 +123,7 @@ resource "aws_cloudfront_distribution" "CDN" {
     target_origin_id                = "ordered_Origin"
     allowed_methods                 = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods                  = ["GET", "HEAD", "OPTIONS"]
-    path_pattern                    = "/cloudman-cf-test-secondary/*"
+    path_pattern                    = "/origin/*"
     viewer_protocol_policy          = "redirect-to-https"
   }
   origin {
@@ -331,7 +331,7 @@ resource "aws_s3_object" "Object2" {
   content_language                  = "en-US"
   content_type                      = "text/html"
   etag                              = filemd5("${path.module}/.external_modules/CloudMan/HTML/Tretris.html")
-  key                               = "index_html"
+  key                               = "origin/index_html"
   tags                              = {
     "Name" = "Object2"
     "State" = "State21"
