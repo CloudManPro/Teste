@@ -298,12 +298,10 @@ resource "aws_lb_target_group" "TargetGroup" {
   deregistration_delay              = "300"
   ip_address_type                   = "ipv4"
   load_balancing_algorithm_type     = "round_robin"
-  port                              = 80
-  protocol                          = "HTTP"
   protocol_version                  = "HTTP1"
   proxy_protocol_v2                 = false
   slow_start                        = 0
-  target_type                       = "instance"
+  target_type                       = "lambda"
   health_check {
     enabled                         = true
     healthy_threshold               = 3
