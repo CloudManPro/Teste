@@ -26,6 +26,19 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+### SYSTEM DATA SOURCES ###
+
+data "aws_cloudfront_origin_request_policy" "policy_cors_s3origin" {
+  name                              = "Managed-CORS-S3Origin"
+}
+
+data "aws_cloudfront_cache_policy" "policy_cachingoptimized" {
+  name                              = "Managed-CachingOptimized"
+}
+
+
+
+
 ### EXTERNAL REFERENCES ###
 
 data "aws_s3_bucket" "my-bucket-1234-teste-xxx-abb" {
@@ -44,6 +57,8 @@ resource "aws_cloudfront_distribution" "CDN1" {
   is_ipv6_enabled                   = true
   price_class                       = "PriceClass_All"
   default_cache_behavior {
+    cache_policy_id                 = data.aws_cloudfront_cache_policy.policy_cachingoptimized.id
+    origin_request_policy_id        = data.aws_cloudfront_origin_request_policy.policy_cors_s3origin.id
     target_origin_id                = "default_CDN1"
     allowed_methods                 = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods                  = ["GET", "HEAD", "OPTIONS"]
