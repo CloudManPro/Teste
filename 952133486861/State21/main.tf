@@ -40,6 +40,10 @@ data "aws_cloudfront_cache_policy" "policy_cachingoptimized" {
   name                              = "Managed-CachingOptimized"
 }
 
+data "aws_cloudfront_response_headers_policy" "policy_securityheaderspolicy" {
+  name                              = "Managed-SecurityHeadersPolicy"
+}
+
 
 
 
@@ -117,10 +121,24 @@ resource "aws_cloudfront_distribution" "CDN" {
     cached_methods                  = ["GET", "HEAD", "OPTIONS"]
     viewer_protocol_policy          = "redirect-to-https"
   }
+  ordered_cache_behavior {
+    cache_policy_id                 = data.aws_cloudfront_cache_policy.policy_cachingoptimized.id
+    response_headers_policy_id      = data.aws_cloudfront_response_headers_policy.policy_securityheaderspolicy.id
+    target_origin_id                = "ordered_Origin"
+    allowed_methods                 = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods                  = ["GET", "HEAD", "OPTIONS"]
+    path_pattern                    = "/origin/*"
+    viewer_protocol_policy          = "redirect-to-https"
+  }
   origin {
     domain_name                     = aws_s3_bucket.cloudman-cf-test-main.bucket_regional_domain_name
     origin_access_control_id        = aws_cloudfront_origin_access_control.oac_cloudman-cf-test-main.id
     origin_id                       = "default_CDN"
+  }
+  origin {
+    domain_name                     = aws_s3_bucket.cloudman-cf-test-secondary.bucket_regional_domain_name
+    origin_access_control_id        = aws_cloudfront_origin_access_control.oac_cloudman-cf-test-secondary.id
+    origin_id                       = "ordered_Origin"
   }
   restrictions {
     geo_restriction {
@@ -140,21 +158,17 @@ resource "aws_cloudfront_distribution" "CDN" {
   }
 }
 
-resource "aws_cloudfront_distribution_origin_" "Origin" {
-  ordered_cache_behavior {
-    target_origin_id                = "ordered_Origin"
-    allowed_methods                 = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods                  = ["GET", "HEAD", "OPTIONS"]
-    managed_policy                  = "Managed-CachingOptimized"
-    managed_response_headers_policy = "Managed-SecurityHeadersPolicy"
-    path_pattern                    = "/origin/*"
-    viewer_protocol_policy          = "redirect-to-https"
-  }
-}
-
 resource "aws_cloudfront_origin_access_control" "oac_cloudman-cf-test-main" {
   name                              = "oac-cloudman-cf-test-main"
   description                       = "OAC for cloudman-cf-test-main"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+resource "aws_cloudfront_origin_access_control" "oac_cloudman-cf-test-secondary" {
+  name                              = "oac-cloudman-cf-test-secondary"
+  description                       = "OAC for cloudman-cf-test-secondary"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -222,6 +236,29 @@ data "aws_iam_policy_document" "aws_s3_bucket_policy_cloudman-cf-test-main_st_St
 resource "aws_s3_bucket_policy" "aws_s3_bucket_policy_cloudman-cf-test-main_st_State21" {
   bucket                            = aws_s3_bucket.cloudman-cf-test-main.id
   policy                            = data.aws_iam_policy_document.aws_s3_bucket_policy_cloudman-cf-test-main_st_State21_doc.json
+}
+
+data "aws_iam_policy_document" "aws_s3_bucket_policy_cloudman-cf-test-secondary_st_State21_doc" {
+  statement {
+    sid                             = "AllowCloudFrontServicePrincipalReadOnly"
+    effect                          = "Allow"
+    principals {
+      identifiers                   = ["cloudfront.amazonaws.com"]
+      type                          = "Service"
+    }
+    actions                         = ["s3:GetObject"]
+    resources                       = ["${aws_s3_bucket.cloudman-cf-test-secondary.arn}/*"]
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = ["arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.CDN.id}"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "aws_s3_bucket_policy_cloudman-cf-test-secondary_st_State21" {
+  bucket                            = aws_s3_bucket.cloudman-cf-test-secondary.id
+  policy                            = data.aws_iam_policy_document.aws_s3_bucket_policy_cloudman-cf-test-secondary_st_State21_doc.json
 }
 
 resource "aws_s3_bucket_public_access_block" "cloudman-cf-test-main_block" {
