@@ -32,6 +32,21 @@ data "aws_region" "current" {}
 
 ### CATEGORY: IAM ###
 
+data "aws_iam_policy_document" "lambda_function_Function6_st_State24_doc" {
+  statement {
+    sid                             = "AllowWriteLogs"
+    effect                          = "Allow"
+    actions                         = ["logs:CreateLogStream", "logs:PutLogEvents", "logs:CreateLogGroup"]
+    resources                       = ["${aws_cloudwatch_log_group.LogGroup6.arn}:*"]
+  }
+}
+
+resource "aws_iam_policy" "lambda_function_Function6_st_State24" {
+  name                              = "lambda_function_Function6_st_State24"
+  description                       = "Access Policy for Function6 in State24"
+  policy                            = data.aws_iam_policy_document.lambda_function_Function6_st_State24_doc.json
+}
+
 resource "aws_iam_role" "role_Function6" {
   name                              = "role_Function6"
   assume_role_policy                = jsonencode({
@@ -51,6 +66,11 @@ resource "aws_iam_role" "role_Function6" {
     "State" = "State24"
     "CloudmanUser" = "GlobalUserName"
   }
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_function_Function6_st_State24_attach" {
+  policy_arn                        = aws_iam_policy.lambda_function_Function6_st_State24.arn
+  role                              = aws_iam_role.role_Function6.name
 }
 
 
@@ -235,9 +255,11 @@ resource "aws_lambda_function" "Function6" {
   timeout                           = 30
   environment {
     variables                       = {
+    "AWS_CLOUDWATCH_LOG_GROUP_TARGET_NAME_0" = "LogGroup6"
     "REGION" = "${data.aws_region.current.name}"
     "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
     "NAME" = "Function6"
+    "AWS_CLOUDWATCH_LOG_GROUP_TARGET_ARN_0" = "${aws_cloudwatch_log_group.LogGroup6.arn}"
   }
   }
   tags                              = {
@@ -253,6 +275,23 @@ resource "aws_lambda_permission" "perm_TargetGroup1_to_Function6" {
   principal                         = "elasticloadbalancing.amazonaws.com"
   action                            = "lambda:InvokeFunction"
   source_arn                        = aws_lb_target_group.TargetGroup1.arn
+}
+
+
+
+
+### CATEGORY: MONITORING ###
+
+resource "aws_cloudwatch_log_group" "LogGroup6" {
+  name                              = "/aws/lambda/Function6"
+  log_group_class                   = "STANDARD"
+  retention_in_days                 = 1
+  skip_destroy                      = false
+  tags                              = {
+    "Name" = "LogGroup6"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
 }
 
 
