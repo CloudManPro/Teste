@@ -36,20 +36,6 @@ data "aws_secretsmanager_secret_version" "SecVersion" {
   secret_id                         = data.aws_secretsmanager_secret.Secret.id
 }
 
-data "aws_subnet" "Subnet10" {
-  filter {
-    name                            = "tag:Name"
-    values                          = ["Subnet10"]
-  }
-}
-
-data "aws_subnet" "SubnetPolicy" {
-  filter {
-    name                            = "tag:Name"
-    values                          = ["SubnetPolicy"]
-  }
-}
-
 
 
 
@@ -79,6 +65,32 @@ resource "aws_subnet" "Subnet11" {
   }
 }
 
+resource "aws_subnet" "Subnet13" {
+  vpc_id                            = aws_vpc.VPC1.id
+  availability_zone                 = "us-east-1a"
+  cidr_block                        = "10.0.1.0/24"
+  map_public_ip_on_launch           = true
+  tags                              = {
+    "Name" = "Subnet13"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_subnet" "Subnet14" {
+  vpc_id                            = aws_vpc.VPC1.id
+  availability_zone                 = "us-east-1b"
+  cidr_block                        = "10.0.4.0/24"
+  map_public_ip_on_launch           = true
+  tags                              = {
+    "Name" = "Subnet14"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
 resource "aws_subnet" "Subnet5" {
   vpc_id                            = aws_vpc.VPC1.id
   availability_zone                 = "us-east-1b"
@@ -100,6 +112,32 @@ resource "aws_internet_gateway" "IGW" {
     "CloudmanUser" = "GlobalUserName"
     "stagex" = "minhacloud"
   }
+}
+
+resource "aws_route" "aws_route_RT5_IGW" {
+  gateway_id                        = aws_internet_gateway.IGW.id
+  route_table_id                    = aws_route_table.RT5.id
+  destination_cidr_block            = "0.0.0.0/0"
+}
+
+resource "aws_route_table" "RT5" {
+  vpc_id                            = aws_vpc.VPC1.id
+  tags                              = {
+    "Name" = "RT5"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet13_RT5" {
+  route_table_id                    = aws_route_table.RT5.id
+  subnet_id                         = aws_subnet.Subnet13.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet14_RT5" {
+  route_table_id                    = aws_route_table.RT5.id
+  subnet_id                         = aws_subnet.Subnet14.id
 }
 
 resource "aws_security_group" "ALB3_group" {
@@ -153,7 +191,7 @@ resource "aws_lb" "ALB3" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.ALB3_group.id]
-  subnets                           = [data.aws_subnet.Subnet10.id, data.aws_subnet.SubnetPolicy.id]
+  subnets                           = [aws_subnet.Subnet14.id, aws_subnet.Subnet13.id]
   tags                              = {
     "Name" = "ALB3"
     "State" = "State12"
@@ -233,7 +271,7 @@ resource "aws_db_instance" "Database1" {
 
 resource "aws_db_subnet_group" "subnet_group_Database1" {
   name                              = "database1-subnet-group"
-  subnet_ids                        = [aws_subnet.Subnet11.id, aws_subnet.Subnet5.id]
+  subnet_ids                        = [aws_subnet.Subnet5.id, aws_subnet.Subnet11.id]
   tags                              = {
     "Name" = "subnet_group_Database1"
     "State" = "State12"
