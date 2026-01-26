@@ -29,81 +29,11 @@ data "aws_region" "current" {}
 ### EXTERNAL REFERENCES ###
 
 data "aws_secretsmanager_secret" "Secret" {
-  name                              = "Secret"
+  name = "Secret"
 }
 
 data "aws_secretsmanager_secret_version" "SecVersion" {
   secret_id                         = data.aws_secretsmanager_secret.Secret.id
-}
-
-
-
-
-### CATEGORY: IAM ###
-
-resource "aws_iam_instance_profile" "profile_InstancePol" {
-  name                              = "profile_InstancePol"
-  role                              = aws_iam_role.role_InstancePol.name
-  tags                              = {
-    "Name" = "profile_InstancePol"
-    "State" = "State12"
-    "CloudmanUser" = "GlobalUserName"
-    "stagex" = "minhacloud"
-  }
-}
-
-data "aws_iam_policy_document" "instance_InstancePol_st_State12_doc" {
-  statement {
-    sid                             = "EC2AndConsoleAccess"
-    effect                          = "Allow"
-    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
-    resources                       = ["*"]
-  }
-  statement {
-    sid                             = "SSMSessionManagerPermissions"
-    effect                          = "Allow"
-    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
-    resources                       = ["*"]
-  }
-  statement {
-    sid                             = "AllowSecretAccess"
-    effect                          = "Allow"
-    actions                         = ["secretsmanager:GetSecretValue"]
-    resources                       = ["${data.aws_secretsmanager_secret.Secret.arn}"]
-  }
-}
-
-resource "aws_iam_policy" "instance_InstancePol_st_State12" {
-  name                              = "instance_InstancePol_st_State12"
-  description                       = "Access Policy for InstancePol in State12"
-  policy                            = data.aws_iam_policy_document.instance_InstancePol_st_State12_doc.json
-}
-
-resource "aws_iam_role" "role_InstancePol" {
-  name                              = "role_InstancePol"
-  assume_role_policy                = jsonencode({
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      }
-    }
-  ]
-})
-  tags                              = {
-    "Name" = "role_InstancePol"
-    "State" = "State12"
-    "CloudmanUser" = "GlobalUserName"
-    "stagex" = "minhacloud"
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "instance_InstancePol_st_State12_attach" {
-  policy_arn                        = aws_iam_policy.instance_InstancePol_st_State12.arn
-  role                              = aws_iam_role.role_InstancePol.name
 }
 
 
@@ -148,32 +78,6 @@ resource "aws_subnet" "Subnet5" {
   }
 }
 
-resource "aws_subnet" "SubnetPolicy" {
-  vpc_id                            = aws_vpc.VPC1.id
-  availability_zone                 = "us-east-1a"
-  cidr_block                        = "10.0.0.0/24"
-  map_public_ip_on_launch           = true
-  tags                              = {
-    "Name" = "SubnetPolicy"
-    "State" = "State12"
-    "CloudmanUser" = "GlobalUserName"
-    "stagex" = "minhacloud"
-  }
-}
-
-resource "aws_subnet" "SubnetRDS" {
-  vpc_id                            = aws_vpc.VPC1.id
-  availability_zone                 = "us-east-1a"
-  cidr_block                        = "10.0.1.0/24"
-  map_public_ip_on_launch           = false
-  tags                              = {
-    "Name" = "SubnetRDS"
-    "State" = "State12"
-    "CloudmanUser" = "GlobalUserName"
-    "stagex" = "minhacloud"
-  }
-}
-
 resource "aws_internet_gateway" "IGW" {
   vpc_id                            = aws_vpc.VPC1.id
   tags                              = {
@@ -184,66 +88,97 @@ resource "aws_internet_gateway" "IGW" {
   }
 }
 
-resource "aws_route" "aws_route_RT_IGW" {
-  gateway_id                        = aws_internet_gateway.IGW.id
-  route_table_id                    = aws_route_table.RT.id
-  destination_cidr_block            = "0.0.0.0/0"
-}
-
-resource "aws_route_table" "RT" {
+resource "aws_security_group" "ALB3_group" {
+  name                              = "ALB3_group"
   vpc_id                            = aws_vpc.VPC1.id
+  revoke_rules_on_delete            = false
   tags                              = {
-    "Name" = "RT"
+    "Name" = "ALB3_group"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
     "stagex" = "minhacloud"
   }
 }
 
-resource "aws_route_table_association" "aws_route_table_association_SubnetPolicy_RT" {
-  route_table_id                    = aws_route_table.RT.id
-  subnet_id                         = aws_subnet.SubnetPolicy.id
-}
-
-resource "aws_security_group" "SG_db_instance_Database1" {
-  name                              = "SG_db_instance_Database1"
+resource "aws_security_group" "Database1_group" {
+  name                              = "Database1_group"
   vpc_id                            = aws_vpc.VPC1.id
-  description                       = "Default SG for db_instance Database1"
-  egress {
-    cidr_blocks                     = ["0.0.0.0/0"]
-    description                     = "Allow all outbound traffic"
-    from_port                       = 0
-    protocol                        = "-1"
-    to_port                         = 0
-  }
-  ingress {
-    description                     = "Allow from InstancePol"
-    from_port                       = 0
-    protocol                        = "-1"
-    security_groups                 = [aws_security_group.SG_instance_InstancePol.id]
-    to_port                         = 0
-  }
+  revoke_rules_on_delete            = false
   tags                              = {
-    "Name" = "SG_db_instance_Database1"
+    "Name" = "Database1_group"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
     "stagex" = "minhacloud"
   }
 }
 
-resource "aws_security_group" "SG_instance_InstancePol" {
-  name                              = "SG_instance_InstancePol"
+resource "aws_security_group" "SG" {
+  name                              = "SG"
   vpc_id                            = aws_vpc.VPC1.id
-  description                       = "Default SG for instance InstancePol"
-  egress {
-    cidr_blocks                     = ["0.0.0.0/0"]
-    description                     = "Allow all outbound traffic"
-    from_port                       = 0
-    protocol                        = "-1"
-    to_port                         = 0
+  revoke_rules_on_delete            = false
+  tags                              = {
+    "Name" = "SG"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_security_group_rule" "rule_ALB3_group_to_SG" {
+  security_group_id                 = aws_security_group.SG.id
+  source_security_group_id          = aws_security_group.ALB3_group.id
+  description                       = "Allow from ALB3_group"
+  from_port                         = 0
+  protocol                          = "-1"
+  to_port                           = 0
+  type                              = "ingress"
+}
+
+resource "aws_lb" "ALB3" {
+  name                              = "ALB3"
+  idle_timeout                      = 60
+  load_balancer_type                = "application"
+  security_groups                   = [aws_security_group.ALB3_group.id]
+  tags                              = {
+    "Name" = "ALB3"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_lb_listener" "Listener3" {
+  load_balancer_arn                 = aws_lb.ALB3.arn
+  port                              = 80
+  protocol                          = "HTTP"
+  routing_http_response_server_enabled = true
+  default_action {
+    order                           = 1
+    target_group_arn                = aws_lb_target_group.TG.arn
+    type                            = "forward"
   }
   tags                              = {
-    "Name" = "SG_instance_InstancePol"
+    "Name" = "Listener3"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_lb_target_group" "TG" {
+  name                              = "TG"
+  vpc_id                            = aws_vpc.VPC1.id
+  connection_termination            = false
+  deregistration_delay              = "300"
+  ip_address_type                   = "ipv4"
+  load_balancing_algorithm_type     = "round_robin"
+  port                              = 80
+  protocol                          = "HTTP"
+  proxy_protocol_v2                 = false
+  slow_start                        = 0
+  target_type                       = "instance"
+  tags                              = {
+    "Name" = "TG"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
     "stagex" = "minhacloud"
@@ -272,7 +207,7 @@ resource "aws_db_instance" "Database1" {
   storage_type                      = "gp3"
   upgrade_storage_config            = false
   username                          = jsondecode(data.aws_secretsmanager_secret_version.SecVersion.secret_string)["username"]
-  vpc_security_group_ids            = [aws_security_group.SG_db_instance_Database1.id]
+  vpc_security_group_ids            = [aws_security_group.SG.id, aws_security_group.Database1_group.id]
   tags                              = {
     "Name" = "Database1"
     "State" = "State12"
@@ -283,57 +218,11 @@ resource "aws_db_instance" "Database1" {
 
 resource "aws_db_subnet_group" "subnet_group_Database1" {
   name                              = "database1-subnet-group"
-  subnet_ids                        = [aws_subnet.Subnet5.id, aws_subnet.Subnet11.id]
+  subnet_ids                        = [aws_subnet.Subnet11.id, aws_subnet.Subnet5.id]
   tags                              = {
     "Name" = "subnet_group_Database1"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
-  }
-}
-
-
-
-
-### CATEGORY: COMPUTE ###
-
-data "aws_ami" "AMI_Data_Source_InstancePol" {
-  most_recent                       = true
-  owners                            = ["amazon"]
-  filter {
-    name                            = "name"
-    values                          = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
-  }
-}
-
-resource "aws_instance" "InstancePol" {
-  subnet_id                         = aws_subnet.SubnetPolicy.id
-  ami                               = data.aws_ami.AMI_Data_Source_InstancePol.id
-  associate_public_ip_address       = true
-  iam_instance_profile              = aws_iam_instance_profile.profile_InstancePol.name
-  instance_type                     = "t3.micro"
-  user_data_base64                  = base64encode(<<-EOFUData
-#!/bin/bash
-
-# --- BEGIN CLOUDMAN VARIABLES ---
-echo "AWS_DB_INSTANCE_TARGET_NAME_0=Database1" > /home/ec2-user/.env
-echo "AWS_SECRETSMANAGER_SECRET_TARGET_NAME_0=Secret" >> /home/ec2-user/.env
-echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
-echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
-echo "NAME=InstancePol" >> /home/ec2-user/.env
-echo "AWS_DB_INSTANCE_TARGET_ARN_0=${aws_db_instance.Database1.arn}" >> /home/ec2-user/.env
-echo "AWS_SECRETSMANAGER_SECRET_TARGET_ARN_0=${data.aws_secretsmanager_secret.Secret.arn}" >> /home/ec2-user/.env
-# --- END CLOUDMAN VARIABLES ---
-
-
-EOFUData
-)
-  user_data_replace_on_change       = false
-  vpc_security_group_ids            = [aws_security_group.SG_instance_InstancePol.id]
-  tags                              = {
-    "Name" = "InstancePol"
-    "State" = "State12"
-    "CloudmanUser" = "GlobalUserName"
-    "stagex" = "minhacloud"
   }
 }
 
