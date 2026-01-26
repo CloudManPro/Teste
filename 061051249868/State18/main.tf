@@ -137,7 +137,7 @@ resource "aws_iam_role_policy_attachment" "instance_InstancePol_st_State18_attac
 resource "aws_subnet" "SubnetPolicy" {
   vpc_id                            = data.aws_vpc.VPC1.id
   availability_zone                 = "us-east-1a"
-  cidr_block                        = "10.0.3.0/24"
+  cidr_block                        = "10.0.0.0/24"
   map_public_ip_on_launch           = true
   tags                              = {
     "Name" = "SubnetPolicy"
@@ -228,6 +228,7 @@ echo "AWS_DB_INSTANCE_TARGET_NAME_0=rds1" >> /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=InstancePol" >> /home/ec2-user/.env
+echo "AWS_DB_INSTANCE_TARGET_ARN_0=${data.aws_db_instance.rds1.arn}" >> /home/ec2-user/.env
 echo "AWS_DB_INSTANCE_TARGET_ENDPOINT_0=${data.aws_db_instance.rds1.endpoint}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
