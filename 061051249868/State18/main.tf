@@ -35,8 +35,8 @@ data "aws_vpc" "VPC1" {
   }
 }
 
-data "aws_db_instance" "Database1" {
-  db_instance_identifier            = "Database1"
+data "aws_db_instance" "rds1" {
+  db_instance_identifier            = "rds1"
 }
 
 data "aws_internet_gateway" "IGW" {
@@ -224,11 +224,12 @@ resource "aws_instance" "InstancePol" {
 
 # --- BEGIN CLOUDMAN VARIABLES ---
 echo "AWS_SECRETSMANAGER_SECRET_TARGET_NAME_0=Secret" > /home/ec2-user/.env
-echo "AWS_DB_INSTANCE_TARGET_NAME_0=Database1" >> /home/ec2-user/.env
+echo "AWS_DB_INSTANCE_TARGET_NAME_0=rds1" >> /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=InstancePol" >> /home/ec2-user/.env
-echo "AWS_DB_INSTANCE_TARGET_ENDPOINT_0=${data.aws_db_instance.Database1.endpoint}" >> /home/ec2-user/.env
+echo "AWS_DB_INSTANCE_TARGET_ARN_0=${data.aws_db_instance.rds1.arn}" >> /home/ec2-user/.env
+echo "AWS_DB_INSTANCE_TARGET_ENDPOINT_0=${data.aws_db_instance.rds1.endpoint}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
 
