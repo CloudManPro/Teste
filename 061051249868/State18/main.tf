@@ -228,7 +228,6 @@ echo "AWS_DB_INSTANCE_TARGET_NAME_0=Database1" >> /home/ec2-user/.env
 echo "REGION=${data.aws_region.current.name}" >> /home/ec2-user/.env
 echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
 echo "NAME=InstancePol" >> /home/ec2-user/.env
-echo "AWS_DB_INSTANCE_TARGET_ARN_0=${data.aws_db_instance.Database1.arn}" >> /home/ec2-user/.env
 echo "AWS_DB_INSTANCE_TARGET_ENDPOINT_0=${data.aws_db_instance.Database1.endpoint}" >> /home/ec2-user/.env
 # --- END CLOUDMAN VARIABLES ---
 
