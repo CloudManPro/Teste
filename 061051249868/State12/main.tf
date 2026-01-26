@@ -152,24 +152,24 @@ resource "aws_security_group" "ALB3_group" {
   }
 }
 
-resource "aws_security_group" "Database1_group" {
-  name                              = "Database1_group"
-  vpc_id                            = aws_vpc.VPC1.id
-  revoke_rules_on_delete            = false
-  tags                              = {
-    "Name" = "Database1_group"
-    "State" = "State12"
-    "CloudmanUser" = "GlobalUserName"
-    "stagex" = "minhacloud"
-  }
-}
-
 resource "aws_security_group" "SG" {
   name                              = "SG"
   vpc_id                            = aws_vpc.VPC1.id
   revoke_rules_on_delete            = false
   tags                              = {
     "Name" = "SG"
+    "State" = "State12"
+    "CloudmanUser" = "GlobalUserName"
+    "stagex" = "minhacloud"
+  }
+}
+
+resource "aws_security_group" "rds1_group" {
+  name                              = "rds1_group"
+  vpc_id                            = aws_vpc.VPC1.id
+  revoke_rules_on_delete            = false
+  tags                              = {
+    "Name" = "rds1_group"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
     "stagex" = "minhacloud"
@@ -191,7 +191,7 @@ resource "aws_lb" "ALB3" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.ALB3_group.id]
-  subnets                           = [aws_subnet.Subnet14.id, aws_subnet.Subnet13.id]
+  subnets                           = [aws_subnet.Subnet13.id, aws_subnet.Subnet14.id]
   tags                              = {
     "Name" = "ALB3"
     "State" = "State12"
@@ -243,8 +243,8 @@ resource "aws_lb_target_group" "TG" {
 
 ### CATEGORY: STORAGE ###
 
-resource "aws_db_instance" "Database1" {
-  db_subnet_group_name              = aws_db_subnet_group.subnet_group_Database1.name
+resource "aws_db_instance" "rds1" {
+  db_subnet_group_name              = aws_db_subnet_group.subnet_group_rds1.name
   allocated_storage                 = 20
   availability_zone                 = aws_subnet.Subnet11.availability_zone
   backup_retention_period           = 0
@@ -252,6 +252,7 @@ resource "aws_db_instance" "Database1" {
   delete_automated_backups          = false
   engine                            = "mysql"
   engine_version                    = "8.0"
+  identifier                        = "rds1"
   instance_class                    = "db.t3.micro"
   max_allocated_storage             = 100
   password                          = jsondecode(data.aws_secretsmanager_secret_version.SecVersion.secret_string)["password"]
@@ -260,20 +261,20 @@ resource "aws_db_instance" "Database1" {
   storage_type                      = "gp3"
   upgrade_storage_config            = false
   username                          = jsondecode(data.aws_secretsmanager_secret_version.SecVersion.secret_string)["username"]
-  vpc_security_group_ids            = [aws_security_group.SG.id, aws_security_group.Database1_group.id]
+  vpc_security_group_ids            = [aws_security_group.SG.id, aws_security_group.rds1_group.id]
   tags                              = {
-    "Name" = "Database1"
+    "Name" = "rds1"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
     "stagex" = "minhacloud"
   }
 }
 
-resource "aws_db_subnet_group" "subnet_group_Database1" {
-  name                              = "database1-subnet-group"
+resource "aws_db_subnet_group" "subnet_group_rds1" {
+  name                              = "rds1-subnet-group"
   subnet_ids                        = [aws_subnet.Subnet5.id, aws_subnet.Subnet11.id]
   tags                              = {
-    "Name" = "subnet_group_Database1"
+    "Name" = "subnet_group_rds1"
     "State" = "State12"
     "CloudmanUser" = "GlobalUserName"
   }
