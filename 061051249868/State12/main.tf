@@ -36,6 +36,20 @@ data "aws_secretsmanager_secret_version" "SecVersion" {
   secret_id                         = data.aws_secretsmanager_secret.Secret.id
 }
 
+data "aws_subnet" "Subnet10" {
+  filter {
+    name                            = "tag:Name"
+    values                          = ["Subnet10"]
+  }
+}
+
+data "aws_subnet" "SubnetPolicy" {
+  filter {
+    name                            = "tag:Name"
+    values                          = ["SubnetPolicy"]
+  }
+}
+
 
 
 
@@ -139,6 +153,7 @@ resource "aws_lb" "ALB3" {
   idle_timeout                      = 60
   load_balancer_type                = "application"
   security_groups                   = [aws_security_group.ALB3_group.id]
+  subnets                           = [data.aws_subnet.Subnet10.id, data.aws_subnet.SubnetPolicy.id]
   tags                              = {
     "Name" = "ALB3"
     "State" = "State12"
