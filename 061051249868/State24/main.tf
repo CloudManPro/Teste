@@ -32,6 +32,16 @@ data "aws_region" "current" {}
 
 ### CATEGORY: IAM ###
 
+resource "aws_iam_instance_profile" "profile_Instance4" {
+  name                              = "profile_Instance4"
+  role                              = aws_iam_role.role_Instance4.name
+  tags                              = {
+    "Name" = "profile_Instance4"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 data "aws_iam_policy_document" "lambda_function_Function6_st_State24_doc" {
   statement {
     sid                             = "AllowWriteLogs"
@@ -63,6 +73,27 @@ resource "aws_iam_role" "role_Function6" {
 })
   tags                              = {
     "Name" = "role_Function6"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_iam_role" "role_Instance4" {
+  name                              = "role_Instance4"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_Instance4"
     "State" = "State24"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -171,6 +202,17 @@ resource "aws_security_group" "ALB2_group" {
   }
 }
 
+resource "aws_security_group" "Instance4_group" {
+  name                              = "Instance4_group"
+  vpc_id                            = aws_vpc.VPC5.id
+  revoke_rules_on_delete            = false
+  tags                              = {
+    "Name" = "Instance4_group"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_lb" "ALB2" {
   name                              = "ALB2"
   idle_timeout                      = 60
@@ -208,20 +250,11 @@ resource "aws_lb_target_group" "TargetGroup1" {
   deregistration_delay              = "300"
   ip_address_type                   = "ipv4"
   load_balancing_algorithm_type     = "round_robin"
-  protocol_version                  = "HTTP1"
   proxy_protocol_v2                 = false
   slow_start                        = 0
   target_type                       = "lambda"
   health_check {
     enabled                         = true
-    healthy_threshold               = 3
-    interval                        = 30
-    matcher                         = "200"
-    path                            = "/"
-    port                            = 80
-    protocol                        = "HTTP"
-    timeout                         = 5
-    unhealthy_threshold             = 3
   }
   tags                              = {
     "Name" = "TargetGroup1"
@@ -230,10 +263,52 @@ resource "aws_lb_target_group" "TargetGroup1" {
   }
 }
 
+resource "aws_lb_target_group_attachment" "attach_Function6_to_TargetGroup1" {
+  target_id                         = aws_lambda_function.Function6.arn
+  target_group_arn                  = aws_lb_target_group.TargetGroup1.arn
+  depends_on                        = [aws_lambda_permission.perm_TargetGroup1_to_Function6]
+}
+
 
 
 
 ### CATEGORY: COMPUTE ###
+
+data "aws_ami" "AMI_Data_Source_Instance4" {
+  most_recent                       = true
+  owners                            = ["amazon"]
+  filter {
+    name                            = "name"
+    values                          = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+  }
+}
+
+resource "aws_instance" "Instance4" {
+  subnet_id                         = aws_subnet.Subnet6.id
+  ami                               = data.aws_ami.AMI_Data_Source_Instance4.id
+  associate_public_ip_address       = false
+  iam_instance_profile              = aws_iam_instance_profile.profile_Instance4.name
+  instance_type                     = "t3.micro"
+  user_data_base64                  = base64encode(<<-EOFUData
+#!/bin/bash
+
+# --- BEGIN CLOUDMAN VARIABLES ---
+echo "REGION=${data.aws_region.current.name}" > /home/ec2-user/.env
+echo "ACCOUNT=${data.aws_caller_identity.current.account_id}" >> /home/ec2-user/.env
+echo "NAME=Instance4" >> /home/ec2-user/.env
+# --- END CLOUDMAN VARIABLES ---
+
+
+EOFUData
+)
+  user_data_replace_on_change       = false
+  vpc_security_group_ids            = [aws_security_group.Instance4_group.id]
+  tags                              = {
+    "Name" = "Instance4"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
 
 data "archive_file" "archive_CloudMan_Function6" {
   output_path                       = "${path.module}/CloudMan_Function6.zip"
