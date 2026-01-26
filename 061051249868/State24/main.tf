@@ -1,0 +1,258 @@
+terraform {
+  required_version = ">= 1.0.0"
+
+  required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4.2"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
+  backend "s3" {
+    bucket         = "bucket-teste-backend-terraform"
+    key            = "061051249868/State24/main.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TableBE"
+    profile        = "backend"
+    encrypt        = true
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+# Standard Data Sources
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+### CATEGORY: IAM ###
+
+resource "aws_iam_role" "role_Function6" {
+  name                              = "role_Function6"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_Function6"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+
+
+
+### CATEGORY: NETWORK ###
+
+resource "aws_vpc" "VPC5" {
+  cidr_block                        = "10.4.0.0/16"
+  instance_tenancy                  = "default"
+  tags                              = {
+    "Name" = "VPC5"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_subnet" "Subnet6" {
+  vpc_id                            = aws_vpc.VPC5.id
+  availability_zone                 = "us-east-1a"
+  cidr_block                        = "10.4.0.0/24"
+  map_public_ip_on_launch           = true
+  tags                              = {
+    "Name" = "Subnet6"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_subnet" "Subnet9" {
+  vpc_id                            = aws_vpc.VPC5.id
+  availability_zone                 = "us-east-1b"
+  cidr_block                        = "10.4.1.0/24"
+  map_public_ip_on_launch           = false
+  tags                              = {
+    "Name" = "Subnet9"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_internet_gateway" "IGW3" {
+  vpc_id                            = aws_vpc.VPC5.id
+  tags                              = {
+    "Name" = "IGW3"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_route" "aws_route_RT4_IGW3" {
+  gateway_id                        = aws_internet_gateway.IGW3.id
+  route_table_id                    = aws_route_table.RT4.id
+  destination_cidr_block            = "0.0.0.0/0"
+}
+
+resource "aws_route_table" "RT4" {
+  vpc_id                            = aws_vpc.VPC5.id
+  tags                              = {
+    "Name" = "RT4"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet6_RT4" {
+  route_table_id                    = aws_route_table.RT4.id
+  subnet_id                         = aws_subnet.Subnet6.id
+}
+
+resource "aws_route_table_association" "aws_route_table_association_Subnet9_RT4" {
+  route_table_id                    = aws_route_table.RT4.id
+  subnet_id                         = aws_subnet.Subnet9.id
+}
+
+resource "aws_security_group" "ALB2_group" {
+  name                              = "ALB2_group"
+  vpc_id                            = aws_vpc.VPC5.id
+  revoke_rules_on_delete            = false
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    self                            = false
+    to_port                         = 0
+  }
+  ingress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    self                            = false
+    to_port                         = 0
+  }
+  tags                              = {
+    "Name" = "ALB2_group"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_lb" "ALB2" {
+  name                              = "ALB2"
+  idle_timeout                      = 60
+  load_balancer_type                = "application"
+  security_groups                   = [aws_security_group.ALB2_group.id]
+  subnets                           = [aws_subnet.Subnet6.id, aws_subnet.Subnet9.id]
+  tags                              = {
+    "Name" = "ALB2"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_lb_listener" "Listener2" {
+  load_balancer_arn                 = aws_lb.ALB2.arn
+  port                              = 80
+  protocol                          = "HTTP"
+  routing_http_response_server_enabled = true
+  default_action {
+    order                           = 1
+    target_group_arn                = aws_lb_target_group.TargetGroup1.arn
+    type                            = "forward"
+  }
+  tags                              = {
+    "Name" = "Listener2"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_lb_target_group" "TargetGroup1" {
+  name                              = "TargetGroup1"
+  vpc_id                            = aws_vpc.VPC5.id
+  connection_termination            = false
+  deregistration_delay              = "300"
+  ip_address_type                   = "ipv4"
+  load_balancing_algorithm_type     = "round_robin"
+  protocol_version                  = "HTTP1"
+  proxy_protocol_v2                 = false
+  slow_start                        = 0
+  target_type                       = "lambda"
+  health_check {
+    enabled                         = true
+    healthy_threshold               = 3
+    interval                        = 30
+    matcher                         = "200"
+    path                            = "/"
+    port                            = 80
+    protocol                        = "HTTP"
+    timeout                         = 5
+    unhealthy_threshold             = 3
+  }
+  tags                              = {
+    "Name" = "TargetGroup1"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+
+
+
+### CATEGORY: COMPUTE ###
+
+data "archive_file" "archive_CloudMan_Function6" {
+  output_path                       = "${path.module}/CloudMan_Function6.zip"
+  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
+  type                              = "zip"
+}
+
+resource "aws_lambda_function" "Function6" {
+  function_name                     = "Function6"
+  architectures                     = ["arm64"]
+  filename                          = "${data.archive_file.archive_CloudMan_Function6.output_path}"
+  handler                           = "LambdaHub2.lambda_handler"
+  memory_size                       = 3008
+  publish                           = false
+  reserved_concurrent_executions    = -1
+  role                              = aws_iam_role.role_Function6.arn
+  runtime                           = "python3.13"
+  source_code_hash                  = "${data.archive_file.archive_CloudMan_Function6.output_base64sha256}"
+  timeout                           = 30
+  environment {
+    variables                       = {
+    "REGION" = "${data.aws_region.current.name}"
+    "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+    "NAME" = "Function6"
+  }
+  }
+  tags                              = {
+    "Name" = "Function6"
+    "State" = "State24"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_lambda_permission" "perm_TargetGroup1_to_Function6" {
+  function_name                     = aws_lambda_function.Function6.function_name
+  statement_id                      = "perm_TargetGroup1_to_Function6"
+  principal                         = "elasticloadbalancing.amazonaws.com"
+  action                            = "lambda:InvokeFunction"
+  source_arn                        = aws_lb_target_group.TargetGroup1.arn
+}
+
+
