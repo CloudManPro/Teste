@@ -169,8 +169,11 @@ resource "aws_route_table_association" "aws_route_table_association_SubnetPolicy
 resource "aws_security_group" "InstancePol_group" {
   name                              = "InstancePol_group"
   vpc_id                            = data.aws_vpc.VPC1.id
+  description                       = "Ec2"
   revoke_rules_on_delete            = false
   egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    description                     = "Egress EC2"
     from_port                       = 0
     protocol                        = "-1"
     self                            = false
