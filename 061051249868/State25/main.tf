@@ -374,11 +374,11 @@ resource "aws_lb_listener_rule" "Rule3" {
   }
   condition {
     path_pattern {
-      values                        = ["/*"]
+      values                        = ["/ec2*"]
     }
   }
   listener_arn                      = aws_lb_listener.Listener4.arn
-  priority                          = 0
+  priority                          = 3
   tags                              = {
     "Name" = "Rule3"
     "State" = "State25"
