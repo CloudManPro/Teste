@@ -104,6 +104,27 @@ resource "aws_iam_role" "role_Function13" {
   }
 }
 
+resource "aws_iam_role" "role_Function15" {
+  name                              = "role_Function15"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_Function15"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_iam_role_policy_attachment" "lambda_function_Function12_st_State25_attach" {
   policy_arn                        = aws_iam_policy.lambda_function_Function12_st_State25.arn
   role                              = aws_iam_role.role_Function12.name
@@ -241,6 +262,32 @@ resource "aws_lb_listener" "Listener4" {
   }
 }
 
+resource "aws_lb_listener_rule" "Rule1" {
+  action {
+    order                           = 1
+    target_group_arn                = aws_lb_target_group.TG4.arn
+    type                            = "forward"
+  }
+  condition {
+    query_string {
+      key                           = "test"
+      value                         = "correto"
+    }
+  }
+  condition {
+    path_pattern {
+      values                        = ["/test*", "/lambda*"]
+    }
+  }
+  listener_arn                      = aws_lb_listener.Listener4.arn
+  priority                          = 1
+  tags                              = {
+    "Name" = "Rule1"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_lb_listener_rule" "Rule2" {
   action {
     order                           = 1
@@ -253,7 +300,7 @@ resource "aws_lb_listener_rule" "Rule2" {
     }
   }
   listener_arn                      = aws_lb_listener.Listener4.arn
-  priority                          = 1
+  priority                          = 2
   tags                              = {
     "Name" = "Rule2"
     "State" = "State25"
@@ -315,6 +362,32 @@ resource "aws_lb_target_group" "TG2" {
   }
 }
 
+resource "aws_lb_target_group" "TG4" {
+  name                              = "TG4"
+  vpc_id                            = aws_vpc.VPC6.id
+  connection_termination            = false
+  deregistration_delay              = "300"
+  ip_address_type                   = "ipv4"
+  load_balancing_algorithm_type     = "round_robin"
+  proxy_protocol_v2                 = false
+  slow_start                        = 0
+  target_type                       = "lambda"
+  health_check {
+    enabled                         = true
+    healthy_threshold               = 3
+    interval                        = 30
+    matcher                         = "200"
+    path                            = "/"
+    timeout                         = 5
+    unhealthy_threshold             = 3
+  }
+  tags                              = {
+    "Name" = "TG4"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_lb_target_group_attachment" "attach_Function12_to_TG1" {
   target_id                         = aws_lambda_function.Function12.arn
   target_group_arn                  = aws_lb_target_group.TG1.arn
@@ -325,6 +398,12 @@ resource "aws_lb_target_group_attachment" "attach_Function13_to_TG2" {
   target_id                         = aws_lambda_function.Function13.arn
   target_group_arn                  = aws_lb_target_group.TG2.arn
   depends_on                        = [aws_lambda_permission.perm_TG2_to_Function13]
+}
+
+resource "aws_lb_target_group_attachment" "attach_Function15_to_TG4" {
+  target_id                         = aws_lambda_function.Function15.arn
+  target_group_arn                  = aws_lb_target_group.TG4.arn
+  depends_on                        = [aws_lambda_permission.perm_TG4_to_Function15]
 }
 
 
@@ -400,6 +479,38 @@ resource "aws_lambda_function" "Function13" {
   }
 }
 
+data "archive_file" "archive_CloudMan_Function15" {
+  output_path                       = "${path.module}/CloudMan_Function15.zip"
+  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
+  type                              = "zip"
+}
+
+resource "aws_lambda_function" "Function15" {
+  function_name                     = "Function15"
+  architectures                     = ["arm64"]
+  filename                          = "${data.archive_file.archive_CloudMan_Function15.output_path}"
+  handler                           = "LambdaHub2.lambda_handler"
+  memory_size                       = 3008
+  publish                           = false
+  reserved_concurrent_executions    = -1
+  role                              = aws_iam_role.role_Function15.arn
+  runtime                           = "python3.13"
+  source_code_hash                  = "${data.archive_file.archive_CloudMan_Function15.output_base64sha256}"
+  timeout                           = 30
+  environment {
+    variables                       = {
+    "REGION" = "${data.aws_region.current.name}"
+    "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+    "NAME" = "Function15"
+  }
+  }
+  tags                              = {
+    "Name" = "Function15"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_lambda_permission" "perm_TG1_to_Function12" {
   function_name                     = aws_lambda_function.Function12.function_name
   statement_id                      = "perm_TG1_to_Function12"
@@ -414,6 +525,14 @@ resource "aws_lambda_permission" "perm_TG2_to_Function13" {
   principal                         = "elasticloadbalancing.amazonaws.com"
   action                            = "lambda:InvokeFunction"
   source_arn                        = aws_lb_target_group.TG2.arn
+}
+
+resource "aws_lambda_permission" "perm_TG4_to_Function15" {
+  function_name                     = aws_lambda_function.Function15.function_name
+  statement_id                      = "perm_TG4_to_Function15"
+  principal                         = "elasticloadbalancing.amazonaws.com"
+  action                            = "lambda:InvokeFunction"
+  source_arn                        = aws_lb_target_group.TG4.arn
 }
 
 
