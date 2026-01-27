@@ -268,9 +268,20 @@ resource "aws_lb_target_group" "TG1" {
   deregistration_delay              = "300"
   ip_address_type                   = "ipv4"
   load_balancing_algorithm_type     = "round_robin"
+  load_balancing_anomaly_mitigation = "off"
+  load_balancing_cross_zone_enabled = "use_load_balancer_configuration"
   proxy_protocol_v2                 = false
   slow_start                        = 0
   target_type                       = "lambda"
+  health_check {
+    enabled                         = true
+    healthy_threshold               = 3
+    interval                        = 30
+    matcher                         = "200"
+    path                            = "/"
+    timeout                         = 5
+    unhealthy_threshold             = 3
+  }
   tags                              = {
     "Name" = "TG1"
     "State" = "State25"
@@ -288,6 +299,15 @@ resource "aws_lb_target_group" "TG2" {
   proxy_protocol_v2                 = false
   slow_start                        = 0
   target_type                       = "lambda"
+  health_check {
+    enabled                         = true
+    healthy_threshold               = 3
+    interval                        = 30
+    matcher                         = "200"
+    path                            = "/"
+    timeout                         = 5
+    unhealthy_threshold             = 3
+  }
   tags                              = {
     "Name" = "TG2"
     "State" = "State25"
