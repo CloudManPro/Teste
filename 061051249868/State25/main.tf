@@ -578,6 +578,10 @@ resource "aws_autoscaling_group" "ASG1" {
   termination_policies              = ["Default"]
   vpc_zone_identifier               = [aws_subnet.Subnet10.id, aws_subnet.Subnet15.id]
   wait_for_elb_capacity             = 0
+  launch_template {
+    version                         = "$Latest"
+    id                              = aws_launch_template.Template1.id
+  }
   tag {
     key                             = "Name"
     propagate_at_launch             = true
