@@ -32,6 +32,16 @@ data "aws_region" "current" {}
 
 ### CATEGORY: IAM ###
 
+resource "aws_iam_instance_profile" "profile_ASG1" {
+  name                              = "profile_ASG1"
+  role                              = aws_iam_role.role_ASG1.name
+  tags                              = {
+    "Name" = "profile_ASG1"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 data "aws_iam_policy_document" "lambda_function_Function12_st_State25_doc" {
   statement {
     sid                             = "AllowWriteLogs"
@@ -60,6 +70,27 @@ resource "aws_iam_policy" "lambda_function_Function13_st_State25" {
   name                              = "lambda_function_Function13_st_State25"
   description                       = "Access Policy for Function13 in State25"
   policy                            = data.aws_iam_policy_document.lambda_function_Function13_st_State25_doc.json
+}
+
+resource "aws_iam_role" "role_ASG1" {
+  name                              = "role_ASG1"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_ASG1"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
 }
 
 resource "aws_iam_role" "role_Function12" {
@@ -232,6 +263,33 @@ resource "aws_security_group" "ALB4_group" {
   }
 }
 
+resource "aws_security_group" "ASG1_group" {
+  name                              = "ASG1_group"
+  vpc_id                            = aws_vpc.VPC6.id
+  revoke_rules_on_delete            = false
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    to_port                         = 0
+  }
+  tags                              = {
+    "Name" = "ASG1_group"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_security_group_rule" "rule_ALB4_group_to_ASG1_group" {
+  security_group_id                 = aws_security_group.ASG1_group.id
+  source_security_group_id          = aws_security_group.ALB4_group.id
+  description                       = "Allow from ALB4_group"
+  from_port                         = 0
+  protocol                          = "-1"
+  to_port                           = 0
+  type                              = "ingress"
+}
+
 resource "aws_lb" "ALB4" {
   name                              = "ALB4"
   idle_timeout                      = 60
@@ -303,6 +361,26 @@ resource "aws_lb_listener_rule" "Rule2" {
   priority                          = 2
   tags                              = {
     "Name" = "Rule2"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_lb_listener_rule" "Rule3" {
+  action {
+    order                           = 1
+    target_group_arn                = aws_lb_target_group.TG5.arn
+    type                            = "forward"
+  }
+  condition {
+    path_pattern {
+      values                        = ["/*"]
+    }
+  }
+  listener_arn                      = aws_lb_listener.Listener4.arn
+  priority                          = 0
+  tags                              = {
+    "Name" = "Rule3"
     "State" = "State25"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -388,6 +466,37 @@ resource "aws_lb_target_group" "TG4" {
   }
 }
 
+resource "aws_lb_target_group" "TG5" {
+  name                              = "TG5"
+  vpc_id                            = aws_vpc.VPC6.id
+  connection_termination            = false
+  deregistration_delay              = "300"
+  ip_address_type                   = "ipv4"
+  load_balancing_algorithm_type     = "round_robin"
+  port                              = 80
+  protocol                          = "HTTP"
+  protocol_version                  = "HTTP1"
+  proxy_protocol_v2                 = false
+  slow_start                        = 0
+  target_type                       = "instance"
+  health_check {
+    enabled                         = true
+    healthy_threshold               = 3
+    interval                        = 30
+    matcher                         = "200"
+    path                            = "/"
+    port                            = 80
+    protocol                        = "HTTP"
+    timeout                         = 5
+    unhealthy_threshold             = 3
+  }
+  tags                              = {
+    "Name" = "TG5"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_lb_target_group_attachment" "attach_Function12_to_TG1" {
   target_id                         = aws_lambda_function.Function12.arn
   target_group_arn                  = aws_lb_target_group.TG1.arn
@@ -410,6 +519,81 @@ resource "aws_lb_target_group_attachment" "attach_Function15_to_TG4" {
 
 
 ### CATEGORY: COMPUTE ###
+
+data "local_file" "UserData_Template1" {
+  filename                          = "${path.module}/.external_modules/CloudMan/EC2/Scripts/IMDSv2.sh"
+}
+
+data "aws_ami" "AMI_Data_Source_Template1" {
+  most_recent                       = true
+  owners                            = ["amazon"]
+  filter {
+    name                            = "name"
+    values                          = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+  }
+}
+
+resource "aws_launch_template" "Template1" {
+  image_id                          = data.aws_ami.AMI_Data_Source_Template1.id
+  name                              = "Template1"
+  ebs_optimized                     = true
+  instance_type                     = "t3.micro"
+  update_default_version            = true
+  user_data                         = base64encode(<<-EOFUData
+#!/bin/bash
+
+# --- BEGIN CLOUDMAN VARIABLES ---
+# --- END CLOUDMAN VARIABLES ---
+
+${data.local_file.UserData_Template1.content}
+EOFUData
+)
+  iam_instance_profile {
+    name                            = aws_iam_instance_profile.profile_ASG1.name
+  }
+  tags                              = {
+    "Name" = "Template1"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_autoscaling_group" "ASG1" {
+  name                              = "ASG1"
+  capacity_rebalance                = false
+  default_cooldown                  = 300
+  default_instance_warmup           = 0
+  desired_capacity                  = 2
+  force_delete                      = false
+  force_delete_warm_pool            = false
+  health_check_grace_period         = 300
+  health_check_type                 = "EC2"
+  ignore_failed_scaling_activities  = false
+  max_instance_lifetime             = 0
+  max_size                          = 2
+  min_elb_capacity                  = 0
+  min_size                          = 2
+  protect_from_scale_in             = false
+  target_group_arns                 = [aws_lb_target_group.TG5.arn]
+  termination_policies              = ["Default"]
+  vpc_zone_identifier               = [aws_subnet.Subnet10.id, aws_subnet.Subnet15.id]
+  wait_for_elb_capacity             = 0
+  tag {
+    key                             = "Name"
+    propagate_at_launch             = true
+    value                           = "ASG1"
+  }
+  tag {
+    key                             = "State"
+    propagate_at_launch             = true
+    value                           = "State25"
+  }
+  tag {
+    key                             = "CloudmanUser"
+    propagate_at_launch             = true
+    value                           = "GlobalUserName"
+  }
+}
 
 data "archive_file" "archive_CloudMan_Function12" {
   output_path                       = "${path.module}/CloudMan_Function12.zip"
