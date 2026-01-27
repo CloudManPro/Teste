@@ -548,6 +548,7 @@ resource "aws_launch_template" "Template1" {
 ${data.local_file.UserData_Template1.content}
 EOFUData
 )
+  vpc_security_group_ids            = [aws_security_group.ASG1_group.id]
   iam_instance_profile {
     name                            = aws_iam_instance_profile.profile_ASG1.name
   }
