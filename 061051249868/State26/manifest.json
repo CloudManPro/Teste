@@ -1,0 +1,36 @@
+{
+  "external_repositories": [
+    {
+      "repo_name": "CloudMan",
+      "org": "CloudManPro",
+      "branch": "main",
+      "target_dir": ".external_modules/CloudMan",
+      "folders": [
+        "LambdaFiles/LambdaHub2"
+      ]
+    }
+  ],
+  "action": "apply",
+  "trigger_id": "1769615463480",
+  "backend_global_config": {
+    "provider": "aws",
+    "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
+    "region": "us-east-1"
+  },
+  "pipeline_stages": [
+    {
+      "stage_name": "Manual Trigger: State26",
+      "parallel_execution": false,
+      "states": [
+        {
+          "path": "061051249868/State26",
+          "provider": "aws",
+          "target_auth": {
+            "role_arn": "arn:aws:iam::061051249868:role/CloudMan-Gitops-CloudManPro-Teste",
+            "region": "us-east-1"
+          }
+        }
+      ]
+    }
+  ]
+}
