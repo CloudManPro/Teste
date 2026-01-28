@@ -42,6 +42,16 @@ resource "aws_iam_instance_profile" "profile_ASG1" {
   }
 }
 
+resource "aws_iam_instance_profile" "profile_ASG2" {
+  name                              = "profile_ASG2"
+  role                              = aws_iam_role.role_ASG2.name
+  tags                              = {
+    "Name" = "profile_ASG2"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 data "aws_iam_policy_document" "lambda_function_Function12_st_State25_doc" {
   statement {
     sid                             = "AllowWriteLogs"
@@ -88,6 +98,27 @@ resource "aws_iam_role" "role_ASG1" {
 })
   tags                              = {
     "Name" = "role_ASG1"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_iam_role" "role_ASG2" {
+  name                              = "role_ASG2"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_ASG2"
     "State" = "State25"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -275,6 +306,23 @@ resource "aws_security_group" "ASG1_group" {
   }
   tags                              = {
     "Name" = "ASG1_group"
+    "State" = "State25"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_security_group" "ASG2_group" {
+  name                              = "ASG2_group"
+  vpc_id                            = aws_vpc.VPC6.id
+  revoke_rules_on_delete            = false
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    to_port                         = 0
+  }
+  tags                              = {
+    "Name" = "ASG2_group"
     "State" = "State25"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -579,14 +627,84 @@ resource "aws_autoscaling_group" "ASG1" {
   termination_policies              = ["Default"]
   vpc_zone_identifier               = [aws_subnet.Subnet10.id, aws_subnet.Subnet15.id]
   wait_for_elb_capacity             = 0
-  launch_template {
-    version                         = "$Latest"
-    id                              = aws_launch_template.Template1.id
+  availability_zone_distribution {
+    capacity_distribution_strategy  = "balanced-best-effort"
+  }
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_allocation_strategy = "lowest-price"
+      on_demand_base_capacity       = 1
+      on_demand_percentage_above_base_capacity = 0
+      spot_allocation_strategy      = "price-capacity-optimized"
+    }
+    launch_template {
+      launch_template_specification {
+        version                     = "$Latest"
+        launch_template_id          = aws_launch_template.Template1.id
+      }
+      override {
+        instance_type               = "t3.nano"
+        weighted_capacity           = "1"
+      }
+      override {
+        instance_type               = "t2.micro"
+        weighted_capacity           = "1"
+      }
+    }
   }
   tag {
     key                             = "Name"
     propagate_at_launch             = true
     value                           = "ASG1"
+  }
+  tag {
+    key                             = "State"
+    propagate_at_launch             = true
+    value                           = "State25"
+  }
+  tag {
+    key                             = "CloudmanUser"
+    propagate_at_launch             = true
+    value                           = "GlobalUserName"
+  }
+}
+
+resource "aws_autoscaling_group" "ASG2" {
+  name                              = "ASG2"
+  capacity_rebalance                = false
+  default_cooldown                  = 300
+  default_instance_warmup           = 0
+  desired_capacity                  = 1
+  force_delete                      = false
+  force_delete_warm_pool            = false
+  health_check_grace_period         = 300
+  health_check_type                 = "EC2"
+  ignore_failed_scaling_activities  = false
+  max_instance_lifetime             = 0
+  max_size                          = 1
+  min_elb_capacity                  = 0
+  min_size                          = 1
+  protect_from_scale_in             = false
+  termination_policies              = ["Default"]
+  wait_for_elb_capacity             = 0
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_allocation_strategy = "lowest-price"
+      on_demand_base_capacity       = 0
+      on_demand_percentage_above_base_capacity = 0
+      spot_allocation_strategy      = "lowest-price"
+      spot_instance_pools           = 1
+    }
+    launch_template {
+      launch_template_specification {
+        version                     = "$Latest"
+      }
+    }
+  }
+  tag {
+    key                             = "Name"
+    propagate_at_launch             = true
+    value                           = "ASG2"
   }
   tag {
     key                             = "State"
