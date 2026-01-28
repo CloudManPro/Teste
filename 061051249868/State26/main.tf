@@ -78,7 +78,6 @@ resource "aws_iam_role_policy_attachment" "lambda_function_Function14_st_State26
 ### CATEGORY: NETWORK ###
 
 resource "aws_vpc" "VPC7" {
-  assign_generated_ipv6_cidr_block  = true
   cidr_block                        = "10.6.0.0/16"
   instance_tenancy                  = "default"
   tags                              = {
@@ -90,7 +89,6 @@ resource "aws_vpc" "VPC7" {
 
 resource "aws_subnet" "Subnet16" {
   vpc_id                            = aws_vpc.VPC7.id
-  assign_ipv6_address_on_creation   = true
   availability_zone                 = "us-east-1a"
   cidr_block                        = "10.6.0.0/24"
   map_public_ip_on_launch           = false
@@ -103,7 +101,6 @@ resource "aws_subnet" "Subnet16" {
 
 resource "aws_subnet" "Subnet17" {
   vpc_id                            = aws_vpc.VPC7.id
-  assign_ipv6_address_on_creation   = true
   availability_zone                 = "us-east-1a"
   cidr_block                        = "10.6.1.0/24"
   map_public_ip_on_launch           = false
@@ -191,7 +188,6 @@ resource "aws_lambda_function" "Function14" {
     "CloudmanUser" = "GlobalUserName"
   }
   vpc_config {
-    ipv6_allowed_for_dual_stack     = true
     security_group_ids              = [aws_security_group.SG1.id, aws_security_group.SG2.id]
     subnet_ids                      = [aws_subnet.Subnet16.id, aws_subnet.Subnet17.id]
   }
