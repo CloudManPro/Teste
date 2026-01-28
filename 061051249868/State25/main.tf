@@ -640,6 +640,7 @@ resource "aws_autoscaling_policy" "ASGPol" {
       resource_label                = "${aws_lb.ALB4.arn_suffix}/${aws_lb_target_group.TG5.arn_suffix}"
     }
   }
+  depends_on                        = [aws_lb_listener.Listener4, aws_lb_listener_rule.Rule3]
 }
 
 data "archive_file" "archive_CloudMan_Function12" {
