@@ -32,6 +32,20 @@ data "aws_region" "current" {}
 
 ### CATEGORY: IAM ###
 
+data "aws_iam_policy_document" "lambda_function_Function14_st_State26_doc" {
+  statement {
+    effect                          = "Allow"
+    actions                         = ["ec2:CreateNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DeleteNetworkInterface", "ec2:AssignPrivateIpAddresses", "ec2:UnassignPrivateIpAddresses"]
+    resources                       = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "lambda_function_Function14_st_State26" {
+  name                              = "lambda_function_Function14_st_State26"
+  description                       = "Access Policy for Function14 in State26"
+  policy                            = data.aws_iam_policy_document.lambda_function_Function14_st_State26_doc.json
+}
+
 resource "aws_iam_role" "role_Function14" {
   name                              = "role_Function14"
   assume_role_policy                = jsonencode({
@@ -51,6 +65,11 @@ resource "aws_iam_role" "role_Function14" {
     "State" = "State26"
     "CloudmanUser" = "GlobalUserName"
   }
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_function_Function14_st_State26_attach" {
+  policy_arn                        = aws_iam_policy.lambda_function_Function14_st_State26.arn
+  role                              = aws_iam_role.role_Function14.name
 }
 
 
