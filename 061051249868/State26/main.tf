@@ -90,6 +90,7 @@ resource "aws_vpc" "VPC7" {
 
 resource "aws_subnet" "Subnet16" {
   vpc_id                            = aws_vpc.VPC7.id
+  assign_ipv6_address_on_creation   = true
   availability_zone                 = "us-east-1a"
   cidr_block                        = "10.6.0.0/24"
   map_public_ip_on_launch           = false
@@ -102,6 +103,7 @@ resource "aws_subnet" "Subnet16" {
 
 resource "aws_subnet" "Subnet17" {
   vpc_id                            = aws_vpc.VPC7.id
+  assign_ipv6_address_on_creation   = true
   availability_zone                 = "us-east-1a"
   cidr_block                        = "10.6.1.0/24"
   map_public_ip_on_launch           = false
