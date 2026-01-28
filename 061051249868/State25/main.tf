@@ -626,6 +626,22 @@ resource "aws_autoscaling_group" "ASG1" {
   }
 }
 
+resource "aws_autoscaling_policy" "ASGPol" {
+  autoscaling_group_name            = aws_autoscaling_group.ASG1.name
+  name                              = "ASGPol"
+  enabled                           = true
+  estimated_instance_warmup         = 300
+  policy_type                       = "TargetTrackingScaling"
+  target_tracking_configuration {
+    disable_scale_in                = false
+    target_value                    = 50
+    predefined_metric_specification {
+      predefined_metric_type        = "ALBRequestCountPerTarget"
+      resource_label                = "${aws_lb.ALB4.arn_suffix}/${aws_lb_target_group.TG5.arn_suffix}"
+    }
+  }
+}
+
 data "archive_file" "archive_CloudMan_Function12" {
   output_path                       = "${path.module}/CloudMan_Function12.zip"
   source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
