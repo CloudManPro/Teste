@@ -217,6 +217,7 @@ resource "aws_ecs_task_definition" "MICRO1" {
   execution_role_arn                = aws_iam_role.execution_role_MICRO1.arn
   family                            = "app"
   memory                            = "2048"
+  network_mode                      = "awsvpc"
   requires_compatibilities          = ["FARGATE"]
   task_role_arn                     = aws_iam_role.task_role_MICRO1.arn
   tags                              = {
