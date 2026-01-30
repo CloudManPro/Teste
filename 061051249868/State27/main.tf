@@ -116,7 +116,7 @@ resource "aws_iam_role" "task_role_MICRO1" {
 }
 
 resource "aws_iam_role_policy_attachment" "attach_service_role_AmazonEC2ContainerServiceforEC2Role_to_ASG2" {
-  policy_arn                        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+  policy_arn                        = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
   role                              = aws_iam_role.role_ASG2.name
 }
 
