@@ -174,30 +174,6 @@ resource "aws_security_group" "ASG2_group" {
   }
 }
 
-resource "aws_security_group" "SG1" {
-  name                              = "SG1"
-  vpc_id                            = aws_vpc.VPC8.id
-  revoke_rules_on_delete            = false
-  egress {
-    cidr_blocks                     = ["0.0.0.0/0"]
-    from_port                       = 0
-    protocol                        = "-1"
-    to_port                         = 0
-  }
-  ingress {
-    cidr_blocks                     = ["0.0.0.0/0"]
-    from_port                       = 0
-    protocol                        = "-1"
-    self                            = false
-    to_port                         = 0
-  }
-  tags                              = {
-    "Name" = "SG1"
-    "State" = "State27"
-    "CloudmanUser" = "GlobalUserName"
-  }
-}
-
 
 
 
@@ -281,15 +257,9 @@ resource "aws_autoscaling_group" "ASG2" {
 resource "aws_ecs_capacity_provider" "CapacityProvider" {
   name                              = "CapacityProvider"
   auto_scaling_group_provider {
+    auto_scaling_group_arn          = aws_autoscaling_group.ASG2.arn
     managed_draining                = "ENABLED"
     managed_termination_protection  = "DISABLED"
-    managed_scaling                 = {
-    "status" = "ENABLED"
-    "target_capacity" = 100
-    "instance_warmup_period" = 300
-    "maximum_scaling_step_size" = 10000
-    "minimum_scaling_step_size" = 1
-  }
   }
   tags                              = {
     "Name" = "CapacityProvider"
@@ -325,7 +295,6 @@ resource "aws_ecs_service" "MICRO1_service" {
   }
   network_configuration {
     assign_public_ip                = false
-    security_groups                 = [aws_security_group.SG1.id]
   }
   tags                              = {
     "Name" = "MICRO1_service"
