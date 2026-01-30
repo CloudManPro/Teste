@@ -157,15 +157,6 @@ resource "aws_security_group" "SG1" {
 
 resource "aws_ecs_cluster" "ECSCluster" {
   name                              = "ECSCluster"
-  configuration {
-    execute_command_configuration   = {
-    "logging" = "DEFAULT"
-  }
-  }
-  setting {
-    name                            = "containerInsights"
-    value                           = "enabled"
-  }
   tags                              = {
     "Name" = "ECSCluster"
     "State" = "State27"
@@ -175,6 +166,7 @@ resource "aws_ecs_cluster" "ECSCluster" {
 
 resource "aws_ecs_service" "MICRO1_service" {
   name                              = "MICRO1_service"
+  cluster                           = aws_ecs_cluster.ECSCluster.id
   desired_count                     = 1
   enable_ecs_managed_tags           = true
   force_delete                      = true
