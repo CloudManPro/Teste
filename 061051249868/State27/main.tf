@@ -38,6 +38,20 @@ resource "aws_iam_instance_profile" "profile_ASG2" {
   }
 }
 
+data "aws_iam_policy_document" "autoscaling_group_ASG2_st_State27_doc" {
+  statement {
+    effect                          = "Allow"
+    actions                         = ["ecs:RegisterContainerInstance", "ecs:DeregisterContainerInstance", "ecs:DiscoverPollEndpoint", "ecs:Submit*", "ecs:Poll", "ecs:StartTelemetrySession"]
+    resources                       = ["${aws_ecs_cluster.ECSCluster.arn}"]
+  }
+}
+
+resource "aws_iam_policy" "autoscaling_group_ASG2_st_State27" {
+  name                              = "autoscaling_group_ASG2_st_State27"
+  description                       = "Access Policy for ASG2"
+  policy                            = data.aws_iam_policy_document.autoscaling_group_ASG2_st_State27_doc.json
+}
+
 resource "aws_iam_role" "execution_role_MICRO1" {
   name                              = "execution_role_MICRO1"
   assume_role_policy                = jsonencode({
@@ -99,6 +113,16 @@ resource "aws_iam_role" "task_role_MICRO1" {
     "State" = "State27"
     "CloudmanUser" = "GlobalUserName"
   }
+}
+
+resource "aws_iam_role_policy_attachment" "attach_service_role_AmazonEC2ContainerServiceforEC2Role_to_ASG2" {
+  policy_arn                        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+  role                              = aws_iam_role.role_ASG2.name
+}
+
+resource "aws_iam_role_policy_attachment" "autoscaling_group_ASG2_st_State27_attach" {
+  policy_arn                        = aws_iam_policy.autoscaling_group_ASG2_st_State27.arn
+  role                              = aws_iam_role.role_ASG2.name
 }
 
 
