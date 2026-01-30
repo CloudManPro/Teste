@@ -283,9 +283,13 @@ resource "aws_ecs_service" "MICRO1_service" {
   desired_count                     = 1
   enable_ecs_managed_tags           = true
   force_delete                      = true
-  launch_type                       = "EC2"
   propagate_tags                    = "TASK_DEFINITION"
   task_definition                   = aws_ecs_task_definition.MICRO1.arn
+  capacity_provider_strategy {
+    base                            = 0
+    capacity_provider               = aws_ecs_capacity_provider.CapacityProvider.name
+    weight                          = 1
+  }
   deployment_circuit_breaker {
     enable                          = false
     rollback                        = false
@@ -294,6 +298,7 @@ resource "aws_ecs_service" "MICRO1_service" {
     type                            = "ECS"
   }
   network_configuration {
+    assign_public_ip                = false
     security_groups                 = [aws_security_group.ASG2_group.id]
     subnets                         = [aws_subnet.Subnet19.id]
   }
