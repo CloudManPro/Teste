@@ -203,6 +203,13 @@ resource "aws_security_group" "ASG2_group" {
     protocol                        = "-1"
     to_port                         = 0
   }
+  ingress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    self                            = false
+    to_port                         = 0
+  }
   tags                              = {
     "Name" = "ASG2_group"
     "State" = "State27"
@@ -373,11 +380,11 @@ locals {
 
 resource "aws_ecs_task_definition" "MICRO1" {
   container_definitions             = jsonencode([local.container_def_MICRO1_Container])
-  cpu                               = "1024"
+  cpu                               = "512"
   execution_role_arn                = aws_iam_role.execution_role_MICRO1.arn
   family                            = "app"
   ipc_mode                          = "host"
-  memory                            = "2048"
+  memory                            = "512"
   network_mode                      = "awsvpc"
   pid_mode                          = "host"
   requires_compatibilities          = ["EC2"]
