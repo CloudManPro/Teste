@@ -277,6 +277,11 @@ resource "aws_ecs_cluster" "ECSCluster" {
   }
 }
 
+resource "aws_ecs_cluster_capacity_providers" "assoc_cp_to_ECSCluster" {
+  cluster_name                      = aws_ecs_cluster.ECSCluster.name
+  capacity_providers                = [aws_ecs_capacity_provider.CapacityProvider.name]
+}
+
 resource "aws_ecs_service" "MICRO1_service" {
   name                              = "MICRO1_service"
   cluster                           = aws_ecs_cluster.ECSCluster.id
@@ -284,6 +289,7 @@ resource "aws_ecs_service" "MICRO1_service" {
   enable_ecs_managed_tags           = true
   force_delete                      = true
   propagate_tags                    = "TASK_DEFINITION"
+  scheduling_strategy               = "REPLICA"
   task_definition                   = aws_ecs_task_definition.MICRO1.arn
   capacity_provider_strategy {
     base                            = 0
