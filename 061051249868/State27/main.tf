@@ -294,7 +294,6 @@ resource "aws_ecs_service" "MICRO1_service" {
     type                            = "ECS"
   }
   network_configuration {
-    assign_public_ip                = true
     security_groups                 = [aws_security_group.ASG2_group.id]
     subnets                         = [aws_subnet.Subnet19.id]
   }
