@@ -222,6 +222,7 @@ resource "aws_launch_template" "Template2" {
 #!/bin/bash
 
 # --- BEGIN CLOUDMAN VARIABLES ---
+echo ECS_CLUSTER='ECSCluster' >> /etc/ecs/ecs.config
 # --- END CLOUDMAN VARIABLES ---
 
 
@@ -284,6 +285,13 @@ resource "aws_ecs_capacity_provider" "CapacityProvider" {
     auto_scaling_group_arn          = aws_autoscaling_group.ASG2.arn
     managed_draining                = "ENABLED"
     managed_termination_protection  = "DISABLED"
+    managed_scaling {
+      instance_warmup_period        = 300
+      maximum_scaling_step_size     = 10000
+      minimum_scaling_step_size     = 1
+      status                        = "ENABLED"
+      target_capacity               = 100
+    }
   }
   tags                              = {
     "Name" = "CapacityProvider"
