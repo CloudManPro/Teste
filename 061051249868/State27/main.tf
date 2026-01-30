@@ -385,46 +385,47 @@ resource "null_resource" "cleanup_ECSCluster" {
   triggers                          = {
     "cluster_name" = "${aws_ecs_cluster.ECSCluster.name}"
   }
+  depends_on                        = [aws_ecs_cluster.ECSCluster]
   provisioner "local-exec" {
     command                         = <<EOF
 
         # Limpeza de recursos ECS para evitar deadlock no ASG
         # Utiliza as credenciais do ambiente (OIDC/GitHub Actions)
 
-        echo "Iniciando limpeza do cluster ${aws_ecs_cluster.ECSCluster.name} na região us-east-1..."
+        echo "Iniciando limpeza do cluster ${self.triggers.cluster_name} na região us-east-1..."
         
         # Aguarda um pouco para garantir que o Terraform iniciou o processo de destruição
         sleep 30
         
         # Listar e zerar serviços
-        SERVICES=$(aws ecs list-services --cluster ${aws_ecs_cluster.ECSCluster.name} --region us-east-1 --query "serviceArns[*]" --output text)
+        SERVICES=$(aws ecs list-services --cluster ${self.triggers.cluster_name} --region us-east-1 --query "serviceArns[*]" --output text)
         if [ -n "$SERVICES" ] && [ "$SERVICES" != "None" ]; then
             for SERVICE in $SERVICES; do
                 echo "Zerando serviço: $SERVICE"
-                aws ecs update-service --cluster ${aws_ecs_cluster.ECSCluster.name} --region us-east-1 --service "$SERVICE" --desired-count 0 > /dev/null
+                aws ecs update-service --cluster ${self.triggers.cluster_name} --region us-east-1 --service "$SERVICE" --desired-count 0 > /dev/null
             done
             sleep 10
             for SERVICE in $SERVICES; do
                 echo "Deletando serviço: $SERVICE"
-                aws ecs delete-service --cluster ${aws_ecs_cluster.ECSCluster.name} --region us-east-1 --service "$SERVICE" --force > /dev/null
+                aws ecs delete-service --cluster ${self.triggers.cluster_name} --region us-east-1 --service "$SERVICE" --force > /dev/null
             done
         fi
 
         # Parar tarefas remanescentes
-        TASKS=$(aws ecs list-tasks --cluster ${aws_ecs_cluster.ECSCluster.name} --region us-east-1 --query "taskArns[*]" --output text)
+        TASKS=$(aws ecs list-tasks --cluster ${self.triggers.cluster_name} --region us-east-1 --query "taskArns[*]" --output text)
         if [ -n "$TASKS" ] && [ "$TASKS" != "None" ]; then
             for TASK in $TASKS; do
                 echo "Parando task: $TASK"
-                aws ecs stop-task --cluster ${aws_ecs_cluster.ECSCluster.name} --region us-east-1 --task "$TASK" > /dev/null
+                aws ecs stop-task --cluster ${self.triggers.cluster_name} --region us-east-1 --task "$TASK" > /dev/null
             done
         fi
 
         # Desregistrar instâncias de container (EC2)
-        INSTANCE_ARNS=$(aws ecs list-container-instances --cluster ${aws_ecs_cluster.ECSCluster.name} --region us-east-1 --query "containerInstanceArns[*]" --output text)
+        INSTANCE_ARNS=$(aws ecs list-container-instances --cluster ${self.triggers.cluster_name} --region us-east-1 --query "containerInstanceArns[*]" --output text)
         if [ -n "$INSTANCE_ARNS" ] && [ "$INSTANCE_ARNS" != "None" ]; then
             for INSTANCE_ARN in $INSTANCE_ARNS; do
                 echo "Desregistrando instância: $INSTANCE_ARN"
-                aws ecs deregister-container-instance --cluster ${aws_ecs_cluster.ECSCluster.name} --region us-east-1 --container-instance "$INSTANCE_ARN" --force > /dev/null
+                aws ecs deregister-container-instance --cluster ${self.triggers.cluster_name} --region us-east-1 --container-instance "$INSTANCE_ARN" --force > /dev/null
             done
         fi
         
