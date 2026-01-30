@@ -28,6 +28,16 @@ data "aws_region" "current" {}
 
 ### CATEGORY: IAM ###
 
+resource "aws_iam_instance_profile" "profile_ASG2" {
+  name                              = "profile_ASG2"
+  role                              = aws_iam_role.role_ASG2.name
+  tags                              = {
+    "Name" = "profile_ASG2"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_iam_role" "execution_role_MICRO1" {
   name                              = "execution_role_MICRO1"
   assume_role_policy                = jsonencode({
@@ -44,6 +54,27 @@ resource "aws_iam_role" "execution_role_MICRO1" {
 })
   tags                              = {
     "Name" = "execution_role_MICRO1"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_iam_role" "role_ASG2" {
+  name                              = "role_ASG2"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_ASG2"
     "State" = "State27"
     "CloudmanUser" = "GlobalUserName"
   }
@@ -126,6 +157,23 @@ resource "aws_route_table_association" "aws_route_table_association_Subnet19_RT7
   subnet_id                         = aws_subnet.Subnet19.id
 }
 
+resource "aws_security_group" "ASG2_group" {
+  name                              = "ASG2_group"
+  vpc_id                            = aws_vpc.VPC8.id
+  revoke_rules_on_delete            = false
+  egress {
+    cidr_blocks                     = ["0.0.0.0/0"]
+    from_port                       = 0
+    protocol                        = "-1"
+    to_port                         = 0
+  }
+  tags                              = {
+    "Name" = "ASG2_group"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_security_group" "SG1" {
   name                              = "SG1"
   vpc_id                            = aws_vpc.VPC8.id
@@ -155,6 +203,101 @@ resource "aws_security_group" "SG1" {
 
 ### CATEGORY: COMPUTE ###
 
+data "aws_ami" "AMI_Data_Source_Template2" {
+  most_recent                       = true
+  owners                            = ["amazon"]
+  filter {
+    name                            = "name"
+    values                          = ["amzn2-ami-ecs-hvm-*-x86_64-ebs"]
+  }
+}
+
+resource "aws_launch_template" "Template2" {
+  image_id                          = data.aws_ami.AMI_Data_Source_Template2.id
+  name                              = "Template2"
+  ebs_optimized                     = true
+  instance_type                     = "t3.micro"
+  update_default_version            = true
+  user_data                         = base64encode(<<-EOFUData
+#!/bin/bash
+
+# --- BEGIN CLOUDMAN VARIABLES ---
+# --- END CLOUDMAN VARIABLES ---
+
+
+EOFUData
+)
+  vpc_security_group_ids            = [aws_security_group.ASG2_group.id]
+  iam_instance_profile {
+    name                            = aws_iam_instance_profile.profile_ASG2.name
+  }
+  tags                              = {
+    "Name" = "Template2"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_autoscaling_group" "ASG2" {
+  name                              = "ASG2"
+  capacity_rebalance                = false
+  default_cooldown                  = 300
+  default_instance_warmup           = 0
+  desired_capacity                  = 1
+  force_delete                      = false
+  force_delete_warm_pool            = false
+  health_check_grace_period         = 300
+  health_check_type                 = "EC2"
+  ignore_failed_scaling_activities  = false
+  max_instance_lifetime             = 0
+  max_size                          = 1
+  min_elb_capacity                  = 0
+  min_size                          = 1
+  protect_from_scale_in             = false
+  termination_policies              = ["Default"]
+  vpc_zone_identifier               = [aws_subnet.Subnet19.id]
+  wait_for_elb_capacity             = 0
+  launch_template {
+    version                         = "$Latest"
+    id                              = aws_launch_template.Template2.id
+  }
+  tag {
+    key                             = "Name"
+    propagate_at_launch             = true
+    value                           = "ASG2"
+  }
+  tag {
+    key                             = "State"
+    propagate_at_launch             = true
+    value                           = "State27"
+  }
+  tag {
+    key                             = "CloudmanUser"
+    propagate_at_launch             = true
+    value                           = "GlobalUserName"
+  }
+}
+
+resource "aws_ecs_capacity_provider" "CapacityProvider" {
+  name                              = "CapacityProvider"
+  auto_scaling_group_provider {
+    managed_draining                = "ENABLED"
+    managed_termination_protection  = "DISABLED"
+    managed_scaling                 = {
+    "status" = "ENABLED"
+    "target_capacity" = 100
+    "instance_warmup_period" = 300
+    "maximum_scaling_step_size" = 10000
+    "minimum_scaling_step_size" = 1
+  }
+  }
+  tags                              = {
+    "Name" = "CapacityProvider"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 resource "aws_ecs_cluster" "ECSCluster" {
   name                              = "ECSCluster"
   tags                              = {
@@ -170,7 +313,7 @@ resource "aws_ecs_service" "MICRO1_service" {
   desired_count                     = 1
   enable_ecs_managed_tags           = true
   force_delete                      = true
-  launch_type                       = "FARGATE"
+  launch_type                       = "EC2"
   propagate_tags                    = "TASK_DEFINITION"
   task_definition                   = aws_ecs_task_definition.MICRO1.arn
   deployment_circuit_breaker {
@@ -181,9 +324,8 @@ resource "aws_ecs_service" "MICRO1_service" {
     type                            = "ECS"
   }
   network_configuration {
-    assign_public_ip                = true
+    assign_public_ip                = false
     security_groups                 = [aws_security_group.SG1.id]
-    subnets                         = [aws_subnet.Subnet19.id]
   }
   tags                              = {
     "Name" = "MICRO1_service"
@@ -216,9 +358,11 @@ resource "aws_ecs_task_definition" "MICRO1" {
   cpu                               = "1024"
   execution_role_arn                = aws_iam_role.execution_role_MICRO1.arn
   family                            = "app"
+  ipc_mode                          = "host"
   memory                            = "2048"
   network_mode                      = "awsvpc"
-  requires_compatibilities          = ["FARGATE"]
+  pid_mode                          = "host"
+  requires_compatibilities          = ["EC2"]
   task_role_arn                     = aws_iam_role.task_role_MICRO1.arn
   tags                              = {
     "Name" = "MICRO1"
