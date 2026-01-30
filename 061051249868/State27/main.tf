@@ -40,6 +40,18 @@ resource "aws_iam_instance_profile" "profile_ASG2" {
 
 data "aws_iam_policy_document" "autoscaling_group_ASG2_st_State27_doc" {
   statement {
+    sid                             = "EC2AndConsoleAccess"
+    effect                          = "Allow"
+    actions                         = ["ec2-instance-connect:SendSSHPublicKey", "ec2:DescribeInstances", "ec2:GetConsoleOutput", "ec2:SendSerialConsoleSSHPublicKey", "ec2:GetConsoleScreenshot"]
+    resources                       = ["*"]
+  }
+  statement {
+    sid                             = "SSMSessionManagerPermissions"
+    effect                          = "Allow"
+    actions                         = ["ssm:UpdateInstanceInformation", "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"]
+    resources                       = ["*"]
+  }
+  statement {
     effect                          = "Allow"
     actions                         = ["ecs:RegisterContainerInstance", "ecs:DeregisterContainerInstance", "ecs:DiscoverPollEndpoint", "ecs:Submit*", "ecs:Poll", "ecs:StartTelemetrySession"]
     resources                       = ["${aws_ecs_cluster.ECSCluster.arn}"]
@@ -354,13 +366,6 @@ locals {
     "essential" = true
     "cpu" = 128
     "memory" = 256
-    "environment" = [{
-    "name" = "AWS_ECS_TASK_DEFINITION_TARGET_NAME_0"
-    "value" = "MICRO1"
-  }, {
-    "name" = "AWS_ECS_SERVICE_TARGET_NAME_0"
-    "value" = "MICRO1_service"
-  }]
     "privileged" = false
     "readonlyRootFilesystem" = false
   }
