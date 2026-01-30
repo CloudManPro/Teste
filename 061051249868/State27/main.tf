@@ -389,47 +389,56 @@ resource "null_resource" "cleanup_ECSCluster" {
   provisioner "local-exec" {
     command                         = <<EOF
 
-        # Limpeza de recursos ECS para evitar deadlock no ASG
-        # Utiliza as credenciais do ambiente (OIDC/GitHub Actions)
+        # ECS Resource Cleanup to prevent Auto Scaling Group (ASG) Deadlock
+        # ------------------------------------------------------------------
+        # EXPLANATION:
+        # When destroying an ECS Cluster backed by an ASG with Capacity Providers, 
+        # a deadlock often occurs. The ASG cannot terminate EC2 instances because 
+        # ECS "Instance Protection" prevents scale-in while tasks are running. 
+        # However, Terraform may try to delete the ASG before the ECS services 
+        # have fully drained.
+        #
+        # This script acts as a safeguard to proactively force-drain services, 
+        # stop tasks, and deregister instances. This ensures the ASG is free 
+        # to scale down and allows the infrastructure destruction to proceed 
+        # without hanging.
+        # ------------------------------------------------------------------
+        # Uses environment credentials (OIDC/GitHub Actions)
 
-        echo "Iniciando limpeza do cluster ${self.triggers.cluster_name} na região us-east-1..."
-        
-        # Aguarda um pouco para garantir que o Terraform iniciou o processo de destruição
+        # Wait briefly to ensure Terraform has initiated the destruction process
         sleep 30
         
-        # Listar e zerar serviços
+        # List and scale down services
         SERVICES=$(aws ecs list-services --cluster ${self.triggers.cluster_name} --region us-east-1 --query "serviceArns[*]" --output text)
         if [ -n "$SERVICES" ] && [ "$SERVICES" != "None" ]; then
             for SERVICE in $SERVICES; do
-                echo "Zerando serviço: $SERVICE"
+                echo "Scaling down service: $SERVICE"
                 aws ecs update-service --cluster ${self.triggers.cluster_name} --region us-east-1 --service "$SERVICE" --desired-count 0 > /dev/null
             done
             sleep 10
             for SERVICE in $SERVICES; do
-                echo "Deletando serviço: $SERVICE"
+                echo "Deleting service: $SERVICE"
                 aws ecs delete-service --cluster ${self.triggers.cluster_name} --region us-east-1 --service "$SERVICE" --force > /dev/null
             done
         fi
 
-        # Parar tarefas remanescentes
+        # Stop remaining tasks
         TASKS=$(aws ecs list-tasks --cluster ${self.triggers.cluster_name} --region us-east-1 --query "taskArns[*]" --output text)
         if [ -n "$TASKS" ] && [ "$TASKS" != "None" ]; then
             for TASK in $TASKS; do
-                echo "Parando task: $TASK"
+                echo "Stopping task: $TASK"
                 aws ecs stop-task --cluster ${self.triggers.cluster_name} --region us-east-1 --task "$TASK" > /dev/null
             done
         fi
 
-        # Desregistrar instâncias de container (EC2)
+        # Deregister container instances (EC2)
         INSTANCE_ARNS=$(aws ecs list-container-instances --cluster ${self.triggers.cluster_name} --region us-east-1 --query "containerInstanceArns[*]" --output text)
         if [ -n "$INSTANCE_ARNS" ] && [ "$INSTANCE_ARNS" != "None" ]; then
             for INSTANCE_ARN in $INSTANCE_ARNS; do
-                echo "Desregistrando instância: $INSTANCE_ARN"
+                echo "Deregistering instance: $INSTANCE_ARN"
                 aws ecs deregister-container-instance --cluster ${self.triggers.cluster_name} --region us-east-1 --container-instance "$INSTANCE_ARN" --force > /dev/null
             done
         fi
-        
-        echo "Limpeza concluída."
         
 EOF
     interpreter                     = ["/bin/bash", "-c"]
