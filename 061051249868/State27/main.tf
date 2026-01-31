@@ -64,6 +64,21 @@ resource "aws_iam_policy" "autoscaling_group_ASG2_st_State27" {
   policy                            = data.aws_iam_policy_document.autoscaling_group_ASG2_st_State27_doc.json
 }
 
+data "aws_iam_policy_document" "ecs_service_MICRO1_service_execution_st_State27_doc" {
+  statement {
+    sid                             = "AllowWriteLogs"
+    effect                          = "Allow"
+    actions                         = ["logs:CreateLogStream", "logs:PutLogEvents", "logs:CreateLogGroup"]
+    resources                       = ["${aws_cloudwatch_log_group.ECSLogs.arn}:*"]
+  }
+}
+
+resource "aws_iam_policy" "ecs_service_MICRO1_service_execution_st_State27" {
+  name                              = "ecs_service_MICRO1_service_execution_st_State27"
+  description                       = "Access Policy for MICRO1_service (Role: execution)"
+  policy                            = data.aws_iam_policy_document.ecs_service_MICRO1_service_execution_st_State27_doc.json
+}
+
 resource "aws_iam_role" "execution_role_MICRO1" {
   name                              = "execution_role_MICRO1"
   assume_role_policy                = jsonencode({
@@ -135,6 +150,11 @@ resource "aws_iam_role_policy_attachment" "attach_service_role_AmazonEC2Containe
 resource "aws_iam_role_policy_attachment" "autoscaling_group_ASG2_st_State27_attach" {
   policy_arn                        = aws_iam_policy.autoscaling_group_ASG2_st_State27.arn
   role                              = aws_iam_role.role_ASG2.name
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_service_MICRO1_service_execution_st_State27_attach" {
+  policy_arn                        = aws_iam_policy.ecs_service_MICRO1_service_execution_st_State27.arn
+  role                              = aws_iam_role.execution_role_MICRO1.name
 }
 
 
@@ -371,8 +391,8 @@ locals {
     "name" = "Container"
     "image" = "ghcr.io/cloudmanpro/ec2hub-test:65aa31e0802c76be5450f39be241abab20993c77"
     "essential" = true
-    "cpu" = 512
-    "memory" = 512
+    "cpu" = 128
+    "memory" = 256
     "portMappings" = [{
     "protocol" = "tcp"
     "containerPort" = 80
@@ -384,11 +404,41 @@ locals {
   }]
     "privileged" = false
     "readonlyRootFilesystem" = false
+    "logConfiguration" = {
+    "logDriver" = "awslogs"
+    "options" = {
+    "awslogs-group" = aws_cloudwatch_log_group.ECSLogs.name
+    "awslogs-region" = "us-east-1"
+    "awslogs-stream-prefix" = "Container"
+  }
+  }
+  }
+  container_def_MICRO1_Container2 = {
+    "name" = "Container2"
+    "image" = "ghcr.io/ghcr.io/cloudmanpro/ec2hub-test:65aa31e0802c76be5450f39be241abab20993c77"
+    "essential" = true
+    "cpu" = 129
+    "memory" = 256
+    "portMappings" = [{
+    "protocol" = "tcp"
+    "containerPort" = 80
+    "hostPort" = 80
+  }]
+    "privileged" = false
+    "readonlyRootFilesystem" = false
+    "logConfiguration" = {
+    "logDriver" = "awslogs"
+    "options" = {
+    "awslogs-group" = aws_cloudwatch_log_group.ECSLogs.name
+    "awslogs-region" = "us-east-1"
+    "awslogs-stream-prefix" = "Container2"
+  }
+  }
   }
 }
 
 resource "aws_ecs_task_definition" "MICRO1" {
-  container_definitions             = jsonencode([local.container_def_MICRO1_Container])
+  container_definitions             = jsonencode([local.container_def_MICRO1_Container, local.container_def_MICRO1_Container2])
   cpu                               = "512"
   execution_role_arn                = aws_iam_role.execution_role_MICRO1.arn
   family                            = "app"
@@ -400,6 +450,23 @@ resource "aws_ecs_task_definition" "MICRO1" {
   task_role_arn                     = aws_iam_role.task_role_MICRO1.arn
   tags                              = {
     "Name" = "MICRO1"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+
+
+
+### CATEGORY: MONITORING ###
+
+resource "aws_cloudwatch_log_group" "ECSLogs" {
+  name                              = "/aws/ecs/MICRO1"
+  log_group_class                   = "STANDARD"
+  retention_in_days                 = 1
+  skip_destroy                      = false
+  tags                              = {
+    "Name" = "ECSLogs"
     "State" = "State27"
     "CloudmanUser" = "GlobalUserName"
   }
