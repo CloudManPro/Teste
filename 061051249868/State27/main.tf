@@ -421,8 +421,8 @@ locals {
     "memory" = 256
     "portMappings" = [{
     "protocol" = "tcp"
-    "containerPort" = 80
-    "hostPort" = 80
+    "containerPort" = 81
+    "hostPort" = 81
   }]
     "privileged" = false
     "readonlyRootFilesystem" = false
