@@ -1,7 +1,7 @@
 {
   "external_repositories": [],
-  "action": "destroy",
-  "trigger_id": "1769866293237",
+  "action": "apply",
+  "trigger_id": "1769869847517",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
