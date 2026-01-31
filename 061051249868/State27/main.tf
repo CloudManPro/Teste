@@ -369,10 +369,19 @@ resource "aws_ecs_service" "MICRO1_service" {
 locals {
   container_def_MICRO1_Container = {
     "name" = "Container"
-    "image" = "ghcr.io/cloudmanpro/ec2hub:e191c1055b29bb2a33ac3272276bba1ccd7effe6"
+    "image" = "ghcr.io/cloudmanpro/ec2hub-test:65aa31e0802c76be5450f39be241abab20993c77"
     "essential" = true
     "cpu" = 512
     "memory" = 512
+    "portMappings" = [{
+    "protocol" = "tcp"
+    "containerPort" = 80
+    "hostPort" = 80
+  }, {
+    "protocol" = "udp"
+    "containerPort" = 2000
+    "hostPort" = 2000
+  }]
     "privileged" = false
     "readonlyRootFilesystem" = false
   }
