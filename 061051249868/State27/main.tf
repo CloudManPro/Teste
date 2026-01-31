@@ -64,7 +64,7 @@ resource "aws_iam_policy" "autoscaling_group_ASG2_st_State27" {
   policy                            = data.aws_iam_policy_document.autoscaling_group_ASG2_st_State27_doc.json
 }
 
-data "aws_iam_policy_document" "ecs_service_MICRO1_service_execution_st_State27_doc" {
+data "aws_iam_policy_document" "ecs_task_definition_MICRO1_execution_st_State27_doc" {
   statement {
     sid                             = "AllowWriteLogs"
     effect                          = "Allow"
@@ -73,10 +73,31 @@ data "aws_iam_policy_document" "ecs_service_MICRO1_service_execution_st_State27_
   }
 }
 
-resource "aws_iam_policy" "ecs_service_MICRO1_service_execution_st_State27" {
-  name                              = "ecs_service_MICRO1_service_execution_st_State27"
-  description                       = "Access Policy for MICRO1_service (Role: execution)"
-  policy                            = data.aws_iam_policy_document.ecs_service_MICRO1_service_execution_st_State27_doc.json
+resource "aws_iam_policy" "ecs_task_definition_MICRO1_execution_st_State27" {
+  name                              = "ecs_task_definition_MICRO1_execution_st_State27"
+  description                       = "Access Policy for MICRO1 (Role: execution)"
+  policy                            = data.aws_iam_policy_document.ecs_task_definition_MICRO1_execution_st_State27_doc.json
+}
+
+data "aws_iam_policy_document" "ecs_task_definition_MICRO1_task_st_State27_doc" {
+  statement {
+    sid                             = "AllowSNSPublish"
+    effect                          = "Allow"
+    actions                         = ["sns:Publish"]
+    resources                       = ["${aws_sns_topic.Topic4.arn}"]
+  }
+  statement {
+    sid                             = "AllowSQSActions"
+    effect                          = "Allow"
+    actions                         = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+    resources                       = ["${aws_sqs_queue.Queue2.arn}"]
+  }
+}
+
+resource "aws_iam_policy" "ecs_task_definition_MICRO1_task_st_State27" {
+  name                              = "ecs_task_definition_MICRO1_task_st_State27"
+  description                       = "Access Policy for MICRO1 (Role: task)"
+  policy                            = data.aws_iam_policy_document.ecs_task_definition_MICRO1_task_st_State27_doc.json
 }
 
 resource "aws_iam_role" "execution_role_MICRO1" {
@@ -152,9 +173,14 @@ resource "aws_iam_role_policy_attachment" "autoscaling_group_ASG2_st_State27_att
   role                              = aws_iam_role.role_ASG2.name
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_service_MICRO1_service_execution_st_State27_attach" {
-  policy_arn                        = aws_iam_policy.ecs_service_MICRO1_service_execution_st_State27.arn
+resource "aws_iam_role_policy_attachment" "ecs_task_definition_MICRO1_execution_st_State27_attach" {
+  policy_arn                        = aws_iam_policy.ecs_task_definition_MICRO1_execution_st_State27.arn
   role                              = aws_iam_role.execution_role_MICRO1.name
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_definition_MICRO1_task_st_State27_attach" {
+  policy_arn                        = aws_iam_policy.ecs_task_definition_MICRO1_task_st_State27.arn
+  role                              = aws_iam_role.task_role_MICRO1.name
 }
 
 
@@ -450,6 +476,37 @@ resource "aws_ecs_task_definition" "MICRO1" {
   task_role_arn                     = aws_iam_role.task_role_MICRO1.arn
   tags                              = {
     "Name" = "MICRO1"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+
+
+
+### CATEGORY: INTEGRATION ###
+
+resource "aws_sqs_queue" "Queue2" {
+  name                              = "Queue2"
+  delay_seconds                     = 0
+  fifo_queue                        = false
+  kms_data_key_reuse_period_seconds = 300
+  max_message_size                  = 262144
+  message_retention_seconds         = 345600
+  receive_wait_time_seconds         = 0
+  sqs_managed_sse_enabled           = true
+  visibility_timeout_seconds        = 30
+  tags                              = {
+    "Name" = "Queue2"
+    "State" = "State27"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_sns_topic" "Topic4" {
+  name                              = "Topic4"
+  tags                              = {
+    "Name" = "Topic4"
     "State" = "State27"
     "CloudmanUser" = "GlobalUserName"
   }
