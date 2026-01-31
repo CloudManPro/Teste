@@ -369,10 +369,10 @@ resource "aws_ecs_service" "MICRO1_service" {
 locals {
   container_def_MICRO1_Container = {
     "name" = "Container"
-    "image" = "nginx:latest"
+    "image" = "ghcr.io/cloudmanpro/ec2hub:e191c1055b29bb2a33ac3272276bba1ccd7effe6"
     "essential" = true
-    "cpu" = 128
-    "memory" = 256
+    "cpu" = 512
+    "memory" = 512
     "privileged" = false
     "readonlyRootFilesystem" = false
   }
@@ -384,7 +384,7 @@ resource "aws_ecs_task_definition" "MICRO1" {
   execution_role_arn                = aws_iam_role.execution_role_MICRO1.arn
   family                            = "app"
   ipc_mode                          = "host"
-  memory                            = "512"
+  memory                            = "600"
   network_mode                      = "awsvpc"
   pid_mode                          = "host"
   requires_compatibilities          = ["EC2"]
