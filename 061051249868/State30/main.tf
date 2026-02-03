@@ -111,6 +111,7 @@ resource "aws_subnet" "Subnet22" {
   cidr_block                        = "10.10.0.0/24"
   map_public_ip_on_launch           = true
   tags                              = {
+    "kubernetes.io/cluster/eks_cluster" = "shared"
     "Name" = "Subnet22"
     "State" = "State30"
     "CloudmanUser" = "GlobalUserName"
@@ -123,6 +124,7 @@ resource "aws_subnet" "Subnet23" {
   cidr_block                        = "10.10.1.0/24"
   map_public_ip_on_launch           = true
   tags                              = {
+    "kubernetes.io/cluster/eks_cluster" = "shared"
     "Name" = "Subnet23"
     "State" = "State30"
     "CloudmanUser" = "GlobalUserName"
@@ -210,30 +212,12 @@ resource "aws_security_group" "eks_node_group_Node_group" {
 
 ### CATEGORY: COMPUTE ###
 
-data "aws_ami" "AMI_Data_Source_Template3" {
-  most_recent                       = true
-  owners                            = ["amazon"]
-  filter {
-    name                            = "name"
-    values                          = ["amazon-eks-node-*-v*"]
-  }
-}
 
 resource "aws_launch_template" "Template3" {
-  image_id                          = data.aws_ami.AMI_Data_Source_Template3.id
   name                              = "Template3"
   ebs_optimized                     = true
   instance_type                     = "t3.small"
   update_default_version            = true
-  user_data                         = base64encode(<<-EOFUData
-#!/bin/bash
-
-# --- BEGIN CLOUDMAN VARIABLES ---
-# --- END CLOUDMAN VARIABLES ---
-
-
-EOFUData
-)
   vpc_security_group_ids            = [aws_security_group.eks_node_group_Node_group.id]
   tags                              = {
     "Name" = "Template3"
@@ -257,10 +241,6 @@ resource "aws_eks_cluster" "eks_cluster" {
     enabled                         = false
     node_role_arn                   = aws_iam_role.role_eks_eks_cluster.arn
   }
-  encryption_config {
-    provider {
-    }
-  }
   kubernetes_network_config {
     ip_family                       = "ipv4"
     elastic_load_balancing {
@@ -278,6 +258,7 @@ resource "aws_eks_cluster" "eks_cluster" {
     public_access_cidrs             = ["0.0.0.0/0"]
     subnet_ids                      = [aws_subnet.Subnet22.id, aws_subnet.Subnet23.id]
   }
+  depends_on                        = [aws_iam_role_policy_attachment.attach_AmazonEKSClusterPolicy_to_eks_cluster]
 }
 
 resource "aws_eks_node_group" "Node" {
@@ -300,6 +281,7 @@ resource "aws_eks_node_group" "Node" {
     "State" = "State30"
     "CloudmanUser" = "GlobalUserName"
   }
+  depends_on                        = [aws_iam_role_policy_attachment.attach_AmazonEKSWorkerNodePolicy_to_Node, aws_iam_role_policy_attachment.attach_AmazonEKS_CNI_Policy_to_Node, aws_iam_role_policy_attachment.attach_AmazonEC2ContainerRegistryReadOnly_to_Node]
 }
 
 
