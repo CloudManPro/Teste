@@ -237,10 +237,7 @@ resource "aws_eks_cluster" "eks_cluster" {
     authentication_mode             = "API"
     bootstrap_cluster_creator_admin_permissions = true
   }
-  compute_config {
-    enabled                         = false
-    node_role_arn                   = aws_iam_role.role_eks_eks_cluster.arn
-  }
+
   kubernetes_network_config {
     ip_family                       = "ipv4"
     elastic_load_balancing {
