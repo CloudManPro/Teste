@@ -1,7 +1,7 @@
 {
   "external_repositories": [],
   "action": "apply",
-  "trigger_id": "1770329399506",
+  "trigger_id": "1770329990059",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
@@ -16,7 +16,8 @@
           "path": "bf9638139fc9b9a92fa0334ae15ac3ac/State31",
           "provider": "cloudflare",
           "target_auth": {
-            "account_id": "bf9638139fc9b9a92fa0334ae15ac3ac"
+            "account_id": "bf9638139fc9b9a92fa0334ae15ac3ac",
+            "secret_name": "AUTH_CLOUDFLARE_BF9638139FC9B9A92FA0334AE15AC3AC"
           }
         }
       ]
