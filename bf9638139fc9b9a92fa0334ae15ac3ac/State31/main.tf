@@ -25,9 +25,9 @@ data "cloudflare_accounts" "mine" {}
 
 ### CATEGORY: MISC ###
 
-resource "cloudflare_r2_bucket" "asd" {
+resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
   account_id                        = "${data.cloudflare_accounts.mine.accounts[0].id}"
-  name                              = "asd"
+  name                              = "minha-bucket-teste-cloudman"
   storage_class                     = "Standard"
 }
 
