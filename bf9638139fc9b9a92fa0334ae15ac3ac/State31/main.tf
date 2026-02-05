@@ -1,12 +1,11 @@
 terraform {
-  required_version = ">= 1.0.0"
-
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
+      version = "~> 5.0" # Alterado de ~> 4.0 para ~> 5.0
     }
   }
+
 
   backend "s3" {
     bucket         = "bucket-teste-backend-terraform"
