@@ -26,7 +26,7 @@ data "cloudflare_accounts" "mine" {
 
 resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
   # Tente acessar via .result se estiver na v5, ou verifique se accounts existe
-  account_id = data.cloudflare_accounts.mine.accounts[0].id
+  account_id = "bf9638139fc9b9a92fa0334ae15ac3ac"
   name       = "minha-bucket-teste-cloudman"
 }
 
