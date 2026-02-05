@@ -13,16 +13,15 @@ terraform {
     key            = "061051249868/State11/main.tfstate"
     region         = "us-east-1"
     dynamodb_table = "TableBE"
-    profile        = "backend"
     encrypt        = true
   }
 }
 
+# --- Main Cloud Provider ---
 provider "aws" {
   region = "us-east-1"
 }
 
-# Standard Data Sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
