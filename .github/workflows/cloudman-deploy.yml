@@ -4,21 +4,14 @@ on:
   push:
     paths:
       - '**/manifest.json'
-      - '**/main.tf' 
-  # Adicionei main.tf também para garantir que alterações diretas no código
-  # disparem o pipeline, mantendo consistência com o seu Engine.
 
 permissions:
-  id-token: write   # Essencial para AWS OIDC (não remova)
-  contents: read    # Essencial para clonar o repo
+  id-token: write  
+  contents: read    
 
 jobs:
   infrastructure:
     name: Call GitOps Engine
     # Chama o workflow reutilizável centralizado
     uses: CloudManPro/cloudman-core/.github/workflows/engine.yml@main
-    
-    # ESTA É A LINHA MÁGICA:
-    # Ela permite que o Engine leia os Secrets definidos neste repositório (Cliente).
-    # O Engine buscará por CLOUDFLARE_API_TOKEN automaticamente.
     secrets: inherit
