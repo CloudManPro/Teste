@@ -1,11 +1,13 @@
 terraform {
+  required_version = ">= 1.0.0"
+
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 5.0" # Alterado de ~> 4.0 para ~> 5.0
+      # 1. Alterado para permitir a versão 5
+      version = "~> 5.0" 
     }
   }
-
 
   backend "s3" {
     bucket         = "bucket-teste-backend-terraform"
@@ -20,13 +22,13 @@ terraform {
 provider "cloudflare" {
 }
 
+data "cloudflare_accounts" "mine" {}
 
+### CATEGORY: MISC ###
 
 resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
-  # Tente acessar via .result se estiver na v5, ou verifique se accounts existe
-  account_id = "bf9638139fc9b9a92fa0334ae15ac3ac"
+  # 2. Na v5, o atributo mudou de 'accounts' para 'result'
+  # Também removi as aspas e o ${} que não são mais necessários em versões modernas do Terraform
+  account_id = data.cloudflare_accounts.mine.result[0].id
   name       = "minha-bucket-teste-cloudman"
 }
-
-
-
