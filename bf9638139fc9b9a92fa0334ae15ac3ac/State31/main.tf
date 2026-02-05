@@ -18,7 +18,9 @@ terraform {
 
 # --- Main Cloud Provider ---
 provider "cloudflare" {
+  api_token = "3lfY4qwpLx2SwyrxzHjI7LjJEtFrQV8bTIJ2pBLO" 
 }
+
 
 
 resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
