@@ -20,9 +20,6 @@ terraform {
 provider "cloudflare" {
 }
 
-data "cloudflare_accounts" "mine" {
-  name = "Nome da Sua Conta" # Coloque o nome exato da conta que aparece no topo do dashboard
-}
 
 resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
   # Tente acessar via .result se estiver na v5, ou verifique se accounts existe
