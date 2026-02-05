@@ -20,14 +20,15 @@ terraform {
 provider "cloudflare" {
 }
 
-data "cloudflare_accounts" "mine" {}
-
-### CATEGORY: MISC ###
+data "cloudflare_accounts" "mine" {
+  name = "Nome da Sua Conta" # Coloque o nome exato da conta que aparece no topo do dashboard
+}
 
 resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
-  account_id                        = "${data.cloudflare_accounts.mine.accounts[0].id}"
-  name                              = "minha-bucket-teste-cloudman"
-  storage_class                     = "Standard"
+  # Tente acessar via .result se estiver na v5, ou verifique se accounts existe
+  account_id = data.cloudflare_accounts.mine.accounts[0].id
+  name       = "minha-bucket-teste-cloudman"
 }
+
 
 
