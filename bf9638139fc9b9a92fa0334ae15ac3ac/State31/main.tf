@@ -18,7 +18,7 @@ terraform {
 
 # --- Main Cloud Provider ---
 provider "cloudflare" {
-  api_token = "3lfY4qwpLx2SwyrxzHjI7LjJEtFrQV8bTIJ2pBLO" 
+  api_token = "RdLPk_KAWm8WN7aczL3hpY9GdBOrtp7Q_xJZ6pr-" 
 }
 
 
