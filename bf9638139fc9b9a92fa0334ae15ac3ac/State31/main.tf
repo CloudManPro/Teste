@@ -4,8 +4,7 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      # 1. Alterado para permitir a versão 5
-      version = "~> 5.0" 
+      version = "~> 4.0"
     }
   }
 
@@ -22,13 +21,32 @@ terraform {
 provider "cloudflare" {
 }
 
-data "cloudflare_accounts" "mine" {}
-
 ### CATEGORY: MISC ###
 
 resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
-  # 2. Na v5, o atributo mudou de 'accounts' para 'result'
-  # Também removi as aspas e o ${} que não são mais necessários em versões modernas do Terraform
-  account_id = data.cloudflare_accounts.mine.result[0].id
-  name       = "minha-bucket-teste-cloudman"
+  account_id                        = "bf9638139fc9b9a92fa0334ae15ac3ac"
+  name                              = "minha-bucket-teste-cloudman"
 }
+
+resource "cloudflare_workers_script" "Worker" {
+  script_name                       = "Worker"
+  compatibility_date                = "2026-02-05"
+  compatibility_flags               = ["python_workers"]
+  content                           = <<EOF
+from js import Response
+
+async def on_fetch(request, env):
+    return Response.new("Hello World de Python no Cloudflare Workers!")
+
+EOF
+  content_file                      = "text/x-python"
+  has_assets                        = false
+  has_modules                       = true
+  keep_assets                       = false
+  logpush                           = false
+  main_module                       = "index.py"
+  startup_time_ms                   = 0
+  usage_model                       = "bundled"
+}
+
+
