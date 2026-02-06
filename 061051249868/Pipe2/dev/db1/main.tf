@@ -19,7 +19,7 @@ terraform {
 
 # --- Main Cloud Provider ---
 provider "aws" {
-  region = "eu-central-2"
+  region = "us-west-1"
 }
 
 data "aws_caller_identity" "current" {}
