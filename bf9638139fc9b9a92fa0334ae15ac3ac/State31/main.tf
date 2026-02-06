@@ -29,6 +29,7 @@ resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
 }
 
 resource "cloudflare_workers_script" "Worker" {
+  account_id                        = "bf9638139fc9b9a92fa0334ae15ac3ac"
   script_name                       = "Worker"
   compatibility_date                = "2026-02-05"
   compatibility_flags               = ["python_workers"]
@@ -40,13 +41,14 @@ async def on_fetch(request, env):
 
 EOF
   content_file                      = "text/x-python"
-  has_assets                        = false
   has_modules                       = true
-  keep_assets                       = false
-  logpush                           = false
   main_module                       = "index.py"
-  startup_time_ms                   = 0
   usage_model                       = "bundled"
+  bindings {
+    bucket_name                     = "minha-bucket-teste-cloudman"
+    name                            = "CLOUDFLARE_R2_BUCKET_TARGET_0"
+    type                            = "r2_bucket"
+  }
 }
 
 
