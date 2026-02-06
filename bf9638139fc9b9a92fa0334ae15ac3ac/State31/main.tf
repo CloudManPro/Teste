@@ -36,12 +36,7 @@ resource "cloudflare_workers_script" "worker1" {
   # CORREÇÃO AQUI: Remova "javascript" e adicione "python_workers"
   compatibility_flags = ["python_workers"] 
 
-  content             = <<EOF
-from js import Response
-
-async def on_fetch(request, env):
-    return Response.new("Hello World de Python no Cloudflare Workers!")
-EOF
+  content             = ""
 
   content_type        = "text/x-python"
   usage_model         = "bundled"
