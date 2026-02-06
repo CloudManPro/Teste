@@ -28,9 +28,9 @@ resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
   name                              = "minha-bucket-teste-cloudman"
 }
 
-resource "cloudflare_workers_script" "Worker1" {
+resource "cloudflare_workers_script" "worker1" {
   account_id                        = "bf9638139fc9b9a92fa0334ae15ac3ac"
-  script_name                       = "Worker1"
+  script_name                       = "worker1"
   compatibility_date                = "2026-02-06"
   compatibility_flags               = ["javascript"]
   content                           = <<EOF
