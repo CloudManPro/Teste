@@ -40,11 +40,10 @@ async def on_fetch(request, env):
     return Response.new("Hello World de Python no Cloudflare Workers!")
 
 EOF
-  content_file                      = "text/x-python"
+  content_type                      = "text/x-python"
   has_modules                       = true
   main_module                       = "index.py"
   usage_model                       = "bundled"
-
 }
 
 
