@@ -84,7 +84,7 @@ resource "aws_iam_role" "role_lambda_Function18-test" {
   tags                              = {
     "Name" = "role_lambda_Function18-test"
     "State" = "serverless1-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
@@ -131,7 +131,7 @@ resource "aws_lambda_function" "Function18-test" {
   tags                              = {
     "Name" = "Function18-test"
     "State" = "serverless1-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
   depends_on                        = [aws_iam_role_policy_attachment.lambda_function_Function18-test_st_serverless1-test_attach]
@@ -155,7 +155,7 @@ resource "aws_sqs_queue" "Queue5-test" {
   tags                              = {
     "Name" = "Queue5-test"
     "State" = "serverless1-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
@@ -173,7 +173,7 @@ resource "aws_cloudwatch_log_group" "LogGroup9-test" {
   tags                              = {
     "Name" = "LogGroup9-test"
     "State" = "serverless1-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
