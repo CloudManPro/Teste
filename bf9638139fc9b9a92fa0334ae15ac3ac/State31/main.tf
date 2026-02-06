@@ -28,11 +28,11 @@ resource "cloudflare_r2_bucket" "minha-bucket-teste-cloudman" {
   name                              = "minha-bucket-teste-cloudman"
 }
 
-resource "cloudflare_workers_script" "Worker" {
+resource "cloudflare_workers_script" "Worker1" {
   account_id                        = "bf9638139fc9b9a92fa0334ae15ac3ac"
-  script_name                       = "Worker"
-  compatibility_date                = "2026-02-05"
-  compatibility_flags               = ["python_workers"]
+  script_name                       = "Worker1"
+  compatibility_date                = "2026-02-06"
+  compatibility_flags               = ["javascript"]
   content                           = <<EOF
 from js import Response
 
@@ -41,8 +41,6 @@ async def on_fetch(request, env):
 
 EOF
   content_type                      = "text/x-python"
-  has_modules                       = true
-  main_module                       = "index.py"
   usage_model                       = "bundled"
 }
 
