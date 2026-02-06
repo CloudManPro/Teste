@@ -42,6 +42,12 @@ data "aws_dynamodb_table" "Table1" {
 
 data "aws_iam_policy_document" "lambda_function_Function18_st_serverless1_doc" {
   statement {
+    sid                             = "AllowWriteLogs"
+    effect                          = "Allow"
+    actions                         = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+    resources                       = ["${aws_cloudwatch_log_group.LogGroup9.arn}:*"]
+  }
+  statement {
     sid                             = "AllowDynamoDBCRUD"
     effect                          = "Allow"
     actions                         = ["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "dynamodb:UpdateItem"]
@@ -148,6 +154,24 @@ resource "aws_sqs_queue" "Queue5" {
   visibility_timeout_seconds        = 30
   tags                              = {
     "Name" = "Queue5"
+    "State" = "serverless1"
+    "CloudmanUser" = "GlobalUserName"
+    "Stage" = "dev"
+  }
+}
+
+
+
+
+### CATEGORY: MONITORING ###
+
+resource "aws_cloudwatch_log_group" "LogGroup9" {
+  name                              = "/aws/lambda/Function18"
+  log_group_class                   = "STANDARD"
+  retention_in_days                 = 1
+  skip_destroy                      = false
+  tags                              = {
+    "Name" = "LogGroup9"
     "State" = "serverless1"
     "CloudmanUser" = "GlobalUserName"
     "Stage" = "dev"
