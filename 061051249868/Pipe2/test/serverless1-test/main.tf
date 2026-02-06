@@ -1,0 +1,181 @@
+terraform {
+  required_version = ">= 1.0.0"
+
+  required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4.2"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
+  backend "s3" {
+    bucket         = "bucket-teste-backend-terraform"
+    key            = "061051249868/Pipe2/test/serverless1-test/main.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "TableBE"
+    encrypt        = true
+  }
+}
+
+# --- Main Cloud Provider ---
+provider "aws" {
+  region = "us-west-1"
+}
+
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+### EXTERNAL REFERENCES ###
+
+data "aws_dynamodb_table" "Table1-test" {
+  name                              = "Table1-test"
+}
+
+
+
+
+### CATEGORY: IAM ###
+
+data "aws_iam_policy_document" "lambda_function_Function18-test_st_serverless1-test_doc" {
+  statement {
+    sid                             = "AllowWriteLogs"
+    effect                          = "Allow"
+    actions                         = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+    resources                       = ["${aws_cloudwatch_log_group.LogGroup9-test.arn}:*"]
+  }
+  statement {
+    sid                             = "AllowDynamoDBCRUD"
+    effect                          = "Allow"
+    actions                         = ["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "dynamodb:UpdateItem"]
+    resources                       = ["${data.aws_dynamodb_table.Table1-test.arn}", "${data.aws_dynamodb_table.Table1-test.arn}/*"]
+  }
+  statement {
+    sid                             = "AllowSQSActions"
+    effect                          = "Allow"
+    actions                         = ["sqs:DeleteMessage", "sqs:GetQueueAttributes", "sqs:ReceiveMessage", "sqs:SendMessage"]
+    resources                       = ["${aws_sqs_queue.Queue5-test.arn}"]
+  }
+}
+
+resource "aws_iam_policy" "lambda_function_Function18-test_st_serverless1-test" {
+  name                              = "lambda_function_Function18-test_st_serverless1-test"
+  description                       = "Access Policy for Function18-test"
+  policy                            = data.aws_iam_policy_document.lambda_function_Function18-test_st_serverless1-test_doc.json
+}
+
+resource "aws_iam_role" "role_lambda_Function18-test" {
+  name                              = "role_lambda_Function18-test"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
+    }
+  ]
+})
+  tags                              = {
+    "Name" = "role_lambda_Function18-test"
+    "State" = "serverless1-test"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "test"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_function_Function18-test_st_serverless1-test_attach" {
+  policy_arn                        = aws_iam_policy.lambda_function_Function18-test_st_serverless1-test.arn
+  role                              = aws_iam_role.role_lambda_Function18-test.name
+}
+
+
+
+
+### CATEGORY: COMPUTE ###
+
+data "archive_file" "archive_CloudMan_Function18-test" {
+  output_path                       = "${path.module}/CloudMan_Function18-test.zip"
+  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
+  type                              = "zip"
+}
+
+resource "aws_lambda_function" "Function18-test" {
+  function_name                     = "Function18-test"
+  architectures                     = ["arm64"]
+  filename                          = "${data.archive_file.archive_CloudMan_Function18-test.output_path}"
+  handler                           = "LambdaHub2.lambda_handler"
+  memory_size                       = 3008
+  publish                           = false
+  reserved_concurrent_executions    = -1
+  role                              = aws_iam_role.role_lambda_Function18-test.arn
+  runtime                           = "python3.13"
+  source_code_hash                  = "${data.archive_file.archive_CloudMan_Function18-test.output_base64sha256}"
+  timeout                           = 30
+  environment {
+    variables                       = {
+    "AWS_SQS_QUEUE_TARGET_NAME_0" = "Queue5-test"
+    "AWS_DYNAMODB_TABLE_TARGET_NAME_0" = "Table1-test"
+    "REGION" = "${data.aws_region.current.name}"
+    "ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+    "NAME" = "Function18-test"
+    "AWS_SQS_QUEUE_TARGET_ARN_0" = "${aws_sqs_queue.Queue5-test.arn}"
+    "AWS_DYNAMODB_TABLE_TARGET_ARN_0" = "${data.aws_dynamodb_table.Table1-test.arn}"
+  }
+  }
+  tags                              = {
+    "Name" = "Function18-test"
+    "State" = "serverless1-test"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "test"
+  }
+  depends_on                        = [aws_iam_role_policy_attachment.lambda_function_Function18-test_st_serverless1-test_attach]
+}
+
+
+
+
+### CATEGORY: INTEGRATION ###
+
+resource "aws_sqs_queue" "Queue5-test" {
+  name                              = "Queue5-test"
+  delay_seconds                     = 0
+  fifo_queue                        = false
+  kms_data_key_reuse_period_seconds = 300
+  max_message_size                  = 262144
+  message_retention_seconds         = 345600
+  receive_wait_time_seconds         = 0
+  sqs_managed_sse_enabled           = true
+  visibility_timeout_seconds        = 30
+  tags                              = {
+    "Name" = "Queue5-test"
+    "State" = "serverless1-test"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "test"
+  }
+}
+
+
+
+
+### CATEGORY: MONITORING ###
+
+resource "aws_cloudwatch_log_group" "LogGroup9-test" {
+  name                              = "/aws/lambda/Function18-test"
+  log_group_class                   = "STANDARD"
+  retention_in_days                 = 1
+  skip_destroy                      = false
+  tags                              = {
+    "Name" = "LogGroup9-test"
+    "State" = "serverless1-test"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "test"
+  }
+}
+
+
