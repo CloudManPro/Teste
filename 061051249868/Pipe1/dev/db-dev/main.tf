@@ -36,6 +36,10 @@ resource "aws_dynamodb_table" "Table-dev" {
   stream_enabled                    = false
   table_class                       = "STANDARD"
   write_capacity                    = 1
+  attribute {
+    name                            = "ID"
+    type                            = "S"
+  }
   tags                              = {
     "Name" = "Table-dev"
     "State" = "db-dev"
