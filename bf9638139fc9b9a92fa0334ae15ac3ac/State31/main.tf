@@ -44,11 +44,7 @@ EOF
   has_modules                       = true
   main_module                       = "index.py"
   usage_model                       = "bundled"
-  bindings {
-    bucket_name                     = "minha-bucket-teste-cloudman"
-    name                            = "CLOUDFLARE_R2_BUCKET_TARGET_0"
-    type                            = "r2_bucket"
-  }
+
 }
 
 
