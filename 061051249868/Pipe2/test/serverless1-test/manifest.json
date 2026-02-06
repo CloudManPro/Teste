@@ -1,17 +1,6 @@
 {
-  "external_repositories": [
-    {
-      "repo_name": "CloudMan",
-      "org": "CloudManPro",
-      "branch": "main",
-      "target_dir": ".external_modules/CloudMan",
-      "folders": [
-        "LambdaFiles/LambdaHub2"
-      ]
-    }
-  ],
-  "action": "apply",
-  "trigger_id": "1770388896494",
+  "action": "destroy",
+  "trigger_id": "1770389046888",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
@@ -19,7 +8,7 @@
   },
   "pipeline_stages": [
     {
-      "stage_name": "Manual Trigger: serverless1-test",
+      "stage_name": "DESTROY: test",
       "parallel_execution": false,
       "states": [
         {
@@ -27,8 +16,15 @@
           "provider": "aws",
           "target_auth": {
             "role_arn": "arn:aws:iam::061051249868:role/CloudMan-Gitops-CloudManPro-Teste",
-            "region": "us-west-1",
-            "secret_name": "AUTH_AWS_061051249868"
+            "region": "us-west-1"
+          }
+        },
+        {
+          "path": "061051249868/Pipe2/test/db1-test",
+          "provider": "aws",
+          "target_auth": {
+            "role_arn": "arn:aws:iam::061051249868:role/CloudMan-Gitops-CloudManPro-Teste",
+            "region": "us-west-1"
           }
         }
       ]
