@@ -32,7 +32,7 @@ resource "cloudflare_workers_script" "worker1" {
   account_id                        = "bf9638139fc9b9a92fa0334ae15ac3ac"
   script_name                       = "worker1"
   compatibility_date                = "2026-02-06"
-  compatibility_flags               = ["javascript"]
+  compatibility_flags               = ["python_workers"]
   content                           = <<EOF
 from js import Response
 
