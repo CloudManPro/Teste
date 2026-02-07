@@ -49,7 +49,7 @@ data "aws_internet_gateway" "IGW9" {
 resource "aws_subnet" "private-a-beta-8" {
   vpc_id                            = data.aws_vpc.app-prod.id
   availability_zone                 = "us-east-1a"
-  cidr_block                        = "10.13.1.0/24"
+  cidr_block                        = "10.13.8.0/24"
   map_public_ip_on_launch           = false
   tags                              = {
     "Name" = "private-a-beta-8"
@@ -62,7 +62,7 @@ resource "aws_subnet" "private-a-beta-8" {
 resource "aws_subnet" "private-b-beta-8" {
   vpc_id                            = data.aws_vpc.app-prod.id
   availability_zone                 = "us-east-1b"
-  cidr_block                        = "10.13.3.0/24"
+  cidr_block                        = "10.13.9.0/24"
   map_public_ip_on_launch           = false
   tags                              = {
     "Name" = "private-b-beta-8"
@@ -75,7 +75,7 @@ resource "aws_subnet" "private-b-beta-8" {
 resource "aws_subnet" "public-a-beta-8" {
   vpc_id                            = data.aws_vpc.app-prod.id
   availability_zone                 = "us-east-1a"
-  cidr_block                        = "10.13.5.0/24"
+  cidr_block                        = "10.13.10.0/24"
   map_public_ip_on_launch           = true
   tags                              = {
     "Name" = "public-a-beta-8"
@@ -88,7 +88,7 @@ resource "aws_subnet" "public-a-beta-8" {
 resource "aws_subnet" "public-b-beta-8" {
   vpc_id                            = data.aws_vpc.app-prod.id
   availability_zone                 = "us-east-1b"
-  cidr_block                        = "10.13.7.0/24"
+  cidr_block                        = "10.13.11.0/24"
   map_public_ip_on_launch           = true
   tags                              = {
     "Name" = "public-b-beta-8"
