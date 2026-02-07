@@ -62,7 +62,7 @@ resource "aws_subnet" "private-a-beta-10" {
 resource "aws_subnet" "private-b-beta-10" {
   vpc_id                            = data.aws_vpc.app-prod.id
   availability_zone                 = "us-east-1b"
-  cidr_block                        = "10.13.4.0/24"
+  cidr_block                        = "10.13.6.0/24"
   map_public_ip_on_launch           = false
   tags                              = {
     "Name" = "private-b-beta-10"
@@ -90,8 +90,9 @@ resource "aws_subnet" "public-a-beta-10" {
 resource "aws_subnet" "public-b-beta-10" {
   vpc_id                            = data.aws_vpc.app-prod.id
   availability_zone                 = "us-east-1b"
-  cidr_block                        = "10.13.5.0/24"
+  cidr_block                        = "10.13.7.0/24"
   map_public_ip_on_launch           = true
+  private_dns_hostname_type_on_launch = "ip-name"
   tags                              = {
     "Name" = "public-b-beta-10"
     "State" = "app-beta-10"
