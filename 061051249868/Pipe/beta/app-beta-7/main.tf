@@ -34,10 +34,10 @@ data "aws_vpc" "app-prod" {
   }
 }
 
-data "aws_internet_gateway" "IGW8" {
+data "aws_internet_gateway" "IGW9" {
   filter {
     name                            = "tag:Name"
-    values                          = ["IGW8"]
+    values                          = ["IGW9"]
   }
 }
 
@@ -98,8 +98,8 @@ resource "aws_subnet" "public-b-beta-7" {
   }
 }
 
-resource "aws_route" "aws_route_RT11_beta_7_IGW8" {
-  gateway_id                        = data.aws_internet_gateway.IGW8.id
+resource "aws_route" "aws_route_RT11_beta_7_IGW9" {
+  gateway_id                        = data.aws_internet_gateway.IGW9.id
   route_table_id                    = aws_route_table.RT11-beta-7.id
   destination_cidr_block            = "0.0.0.0/0"
 }
