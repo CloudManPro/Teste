@@ -27,6 +27,13 @@ data "aws_region" "current" {}
 
 ### EXTERNAL REFERENCES ###
 
+data "aws_vpc" "app-test" {
+  filter {
+    name                            = "tag:Name"
+    values                          = ["app-test"]
+  }
+}
+
 data "aws_internet_gateway" "IGW8" {
   filter {
     name                            = "tag:Name"
@@ -40,53 +47,53 @@ data "aws_internet_gateway" "IGW8" {
 ### CATEGORY: NETWORK ###
 
 resource "aws_subnet" "private-a-test" {
-  vpc_id                            = aws_vpc.app-test.id
+  vpc_id                            = data.aws_vpc.app-test.id
   availability_zone                 = "us-east-1a"
   cidr_block                        = "10.11.1.0/24"
   map_public_ip_on_launch           = false
   tags                              = {
     "Name" = "private-a-test"
     "State" = "app-test"
-    "CloudmanUser" = "GlobalUserName"
+    "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
 }
 
 resource "aws_subnet" "private-b-test" {
-  vpc_id                            = aws_vpc.app-test.id
+  vpc_id                            = data.aws_vpc.app-test.id
   availability_zone                 = "us-east-1b"
   cidr_block                        = "10.11.2.0/24"
   map_public_ip_on_launch           = false
   tags                              = {
     "Name" = "private-b-test"
     "State" = "app-test"
-    "CloudmanUser" = "GlobalUserName"
+    "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
 }
 
 resource "aws_subnet" "public-a-test" {
-  vpc_id                            = aws_vpc.app-test.id
+  vpc_id                            = data.aws_vpc.app-test.id
   availability_zone                 = "us-east-1a"
   cidr_block                        = "10.11.3.0/24"
   map_public_ip_on_launch           = true
   tags                              = {
     "Name" = "public-a-test"
     "State" = "app-test"
-    "CloudmanUser" = "GlobalUserName"
+    "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
 }
 
 resource "aws_subnet" "public-b-test" {
-  vpc_id                            = aws_vpc.app-test.id
+  vpc_id                            = data.aws_vpc.app-test.id
   availability_zone                 = "us-east-1b"
   cidr_block                        = "10.11.4.0/24"
   map_public_ip_on_launch           = true
   tags                              = {
     "Name" = "public-b-test"
     "State" = "app-test"
-    "CloudmanUser" = "GlobalUserName"
+    "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
 }
@@ -98,21 +105,21 @@ resource "aws_route" "aws_route_RT11_test_IGW8" {
 }
 
 resource "aws_route_table" "RT10-test" {
-  vpc_id                            = aws_vpc.app-test.id
+  vpc_id                            = data.aws_vpc.app-test.id
   tags                              = {
     "Name" = "RT10-test"
     "State" = "app-test"
-    "CloudmanUser" = "GlobalUserName"
+    "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
 }
 
 resource "aws_route_table" "RT11-test" {
-  vpc_id                            = aws_vpc.app-test.id
+  vpc_id                            = data.aws_vpc.app-test.id
   tags                              = {
     "Name" = "RT11-test"
     "State" = "app-test"
-    "CloudmanUser" = "GlobalUserName"
+    "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
 }
