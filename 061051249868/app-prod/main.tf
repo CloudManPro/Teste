@@ -37,4 +37,13 @@ resource "aws_vpc" "app-prod" {
   }
 }
 
+resource "aws_internet_gateway" "IGW9" {
+  vpc_id                            = aws_vpc.app-prod.id
+  tags                              = {
+    "Name" = "IGW9"
+    "State" = "app-prod"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
 
