@@ -47,7 +47,7 @@ resource "aws_subnet" "private-a-test" {
   tags                              = {
     "Name" = "private-a-test"
     "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
@@ -60,7 +60,7 @@ resource "aws_subnet" "private-b-test" {
   tags                              = {
     "Name" = "private-b-test"
     "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
@@ -73,7 +73,7 @@ resource "aws_subnet" "public-a-test" {
   tags                              = {
     "Name" = "public-a-test"
     "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
@@ -86,7 +86,7 @@ resource "aws_subnet" "public-b-test" {
   tags                              = {
     "Name" = "public-b-test"
     "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
@@ -102,7 +102,7 @@ resource "aws_route_table" "RT10-test" {
   tags                              = {
     "Name" = "RT10-test"
     "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
@@ -112,7 +112,7 @@ resource "aws_route_table" "RT11-test" {
   tags                              = {
     "Name" = "RT11-test"
     "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
