@@ -64,6 +64,7 @@ resource "aws_subnet" "private-b-test" {
   availability_zone                 = "us-east-1b"
   cidr_block                        = "10.12.4.0/24"
   map_public_ip_on_launch           = false
+  private_dns_hostname_type_on_launch = "ip-name"
   tags                              = {
     "Name" = "private-b-test"
     "State" = "app-test"
