@@ -76,7 +76,6 @@ resource "aws_subnet" "public-a-test" {
   vpc_id                            = data.aws_vpc.app-test.id
   availability_zone                 = "us-east-1a"
   cidr_block                        = "10.12.3.0/26"
-  enable_resource_name_dns_a_record_on_launch = true
   map_public_ip_on_launch           = true
   tags                              = {
     "Name" = "public-a-test"
