@@ -42,7 +42,7 @@ data "aws_vpc" "app-test" {
 resource "aws_subnet" "Subnet25-test" {
   vpc_id                            = data.aws_vpc.app-test.id
   availability_zone                 = "us-east-1a"
-  cidr_block                        = "10.11.0.0/24"
+  cidr_block                        = "10.12.4.0/24"
   map_public_ip_on_launch           = false
   tags                              = {
     "Name" = "Subnet25-test"
@@ -55,7 +55,7 @@ resource "aws_subnet" "Subnet25-test" {
 resource "aws_subnet" "Subnet26-test" {
   vpc_id                            = data.aws_vpc.app-test.id
   availability_zone                 = "us-east-1b"
-  cidr_block                        = "10.11.5.0/24"
+  cidr_block                        = "10.12.5.0/24"
   map_public_ip_on_launch           = false
   tags                              = {
     "Name" = "Subnet26-test"
