@@ -10,7 +10,7 @@ terraform {
 
   backend "s3" {
     bucket         = "bucket-teste-backend-terraform"
-    key            = "061051249868/Pipe/test/State34-test/main.tfstate"
+    key            = "061051249868/Pipe/test/State35-test/main.tfstate"
     region         = "us-east-1"
     dynamodb_table = "TableBE"
     encrypt        = true
@@ -27,11 +27,11 @@ data "aws_region" "current" {}
 
 ### CATEGORY: INTEGRATION ###
 
-resource "aws_sns_topic" "Topic7-test" {
-  name                              = "Topic7-test"
+resource "aws_sns_topic" "Topic9-test" {
+  name                              = "Topic9-test"
   tags                              = {
-    "Name" = "Topic7-test"
-    "State" = "State34-test"
+    "Name" = "Topic9-test"
+    "State" = "State35-test"
     "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }

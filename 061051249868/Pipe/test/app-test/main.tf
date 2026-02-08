@@ -29,13 +29,21 @@ data "aws_region" "current" {}
 
 resource "aws_sns_topic" "Topic6-test" {
   name                              = "Topic6-test.fifo"
-  content_based_deduplication       = true
-  fifo_throughput_scope             = "Topic"
   fifo_topic                        = true
   tags                              = {
     "Name" = "Topic6-test"
     "State" = "app-test"
-    "CloudmanUser" = "GlobalUserName"
+    "CloudmanUser" = "SystemUser"
+    "Stage" = "test"
+  }
+}
+
+resource "aws_sns_topic" "Topic8-test" {
+  name                              = "Topic8-test"
+  tags                              = {
+    "Name" = "Topic8-test"
+    "State" = "app-test"
+    "CloudmanUser" = "SystemUser"
     "Stage" = "test"
   }
 }
