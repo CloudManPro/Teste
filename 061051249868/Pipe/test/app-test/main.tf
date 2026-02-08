@@ -28,11 +28,14 @@ data "aws_region" "current" {}
 ### CATEGORY: INTEGRATION ###
 
 resource "aws_sns_topic" "Topic6-test" {
-  name                              = "Topic6-test"
+  name                              = "Topic6-test.fifo"
+  content_based_deduplication       = true
+  fifo_throughput_scope             = "Topic"
+  fifo_topic                        = true
   tags                              = {
     "Name" = "Topic6-test"
     "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
+    "CloudmanUser" = "GlobalUserName"
     "Stage" = "test"
   }
 }
