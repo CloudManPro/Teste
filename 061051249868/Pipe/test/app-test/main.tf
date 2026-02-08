@@ -38,14 +38,4 @@ resource "aws_sns_topic" "Topic6-test" {
   }
 }
 
-resource "aws_sns_topic" "Topic8-test" {
-  name                              = "Topic8-test"
-  tags                              = {
-    "Name" = "Topic8-test"
-    "State" = "app-test"
-    "CloudmanUser" = "SystemUser"
-    "Stage" = "test"
-  }
-}
-
 
