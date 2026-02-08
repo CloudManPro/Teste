@@ -1,6 +1,7 @@
 {
+  "external_repositories": [],
   "action": "destroy",
-  "trigger_id": "1770519447201",
+  "trigger_id": "1770545304115",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
@@ -8,7 +9,7 @@
   },
   "pipeline_stages": [
     {
-      "stage_name": "DESTROY: prod2",
+      "stage_name": "Manual Trigger: State35-prod2",
       "parallel_execution": false,
       "states": [
         {
@@ -16,15 +17,8 @@
           "provider": "aws",
           "target_auth": {
             "role_arn": "arn:aws:iam::061051249868:role/CloudMan-Gitops-CloudManPro-Teste",
-            "region": "us-east-1"
-          }
-        },
-        {
-          "path": "061051249868/Pipe/prod2/app-prod2-11",
-          "provider": "aws",
-          "target_auth": {
-            "role_arn": "arn:aws:iam::061051249868:role/CloudMan-Gitops-CloudManPro-Teste",
-            "region": "us-east-1"
+            "region": "us-east-1",
+            "secret_name": "AUTH_AWS_061051249868"
           }
         }
       ]
