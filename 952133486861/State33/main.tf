@@ -75,6 +75,7 @@ resource "aws_cognito_user_pool_client" "Cog1" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_scopes              = ["openid", "email", "profile"]
   auth_session_validity             = 3
+  callback_urls                     = ["https://cloudman.pro"]
   enable_propagate_additional_user_context_data = false
   enable_token_revocation           = true
   explicit_auth_flows               = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]
