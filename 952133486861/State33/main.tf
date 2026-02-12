@@ -69,6 +69,7 @@ resource "aws_cognito_user_pool" "Cog1" {
 
 resource "aws_cognito_user_pool_client" "Cog1" {
   name                              = "Cog1"
+  user_pool_id                      = aws_cognito_user_pool.Cog1.id
   access_token_validity             = 12
   allowed_oauth_flows               = ["code"]
   allowed_oauth_flows_user_pool_client = true
