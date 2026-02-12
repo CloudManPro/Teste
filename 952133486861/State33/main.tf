@@ -84,9 +84,6 @@ resource "aws_cognito_user_pool_client" "Cog1" {
   prevent_user_existence_errors     = "ENABLED"
   refresh_token_validity            = 12
   supported_identity_providers      = ["COGNITO"]
-  refresh_token_rotation {
-    feature                         = "DISABLED"
-  }
   token_validity_units {
     access_token                    = "hours"
     id_token                        = "hours"
