@@ -74,8 +74,8 @@ resource "aws_cloudfront_distribution" "CDN4" {
     viewer_protocol_policy          = "redirect-to-https"
   }
   origin {
-    domain_name                     = aws_s3_bucket.my-bucket5.bucket_regional_domain_name
-    origin_access_control_id        = aws_cloudfront_origin_access_control.oac_my-bucket5.id
+    domain_name                     = aws_s3_bucket.my-bucket-aghjklkksjjaaam.bucket_regional_domain_name
+    origin_access_control_id        = aws_cloudfront_origin_access_control.oac_my-bucket-aghjklkksjjaaam.id
     origin_id                       = "default_CDN4"
   }
   origin {
@@ -103,9 +103,9 @@ resource "aws_cloudfront_distribution" "CDN4" {
   }
 }
 
-resource "aws_cloudfront_origin_access_control" "oac_my-bucket5" {
-  name                              = "oac-my-bucket5"
-  description                       = "OAC for my-bucket5"
+resource "aws_cloudfront_origin_access_control" "oac_my-bucket-aghjklkksjjaaam" {
+  name                              = "oac-my-bucket-aghjklkksjjaaam"
+  description                       = "OAC for my-bucket-aghjklkksjjaaam"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -116,25 +116,25 @@ resource "aws_cloudfront_origin_access_control" "oac_my-bucket5" {
 
 ### CATEGORY: STORAGE ###
 
-resource "aws_s3_bucket" "my-bucket5" {
-  bucket                            = "my-bucket"
+resource "aws_s3_bucket" "my-bucket-aghjklkksjjaaam" {
+  bucket                            = "my-bucket-aghjklkksjjaaam"
   force_destroy                     = false
   object_lock_enabled               = false
   tags                              = {
-    "Name" = "my-bucket5"
+    "Name" = "my-bucket-aghjklkksjjaaam"
     "State" = "State34"
     "CloudmanUser" = "GlobalUserName"
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "my-bucket5_controls" {
-  bucket                            = aws_s3_bucket.my-bucket5.id
+resource "aws_s3_bucket_ownership_controls" "my-bucket-aghjklkksjjaaam_controls" {
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjjaaam.id
   rule {
     object_ownership                = "BucketOwnerEnforced"
   }
 }
 
-data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket5_st_State34_doc" {
+data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket-aghjklkksjjaaam_st_State34_doc" {
   statement {
     sid                             = "AllowCloudFrontServicePrincipalReadOnly"
     effect                          = "Allow"
@@ -143,7 +143,7 @@ data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket5_st_State34_doc" 
       type                          = "Service"
     }
     actions                         = ["s3:GetObject"]
-    resources                       = ["${aws_s3_bucket.my-bucket5.arn}/*"]
+    resources                       = ["${aws_s3_bucket.my-bucket-aghjklkksjjaaam.arn}/*"]
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
@@ -152,29 +152,29 @@ data "aws_iam_policy_document" "aws_s3_bucket_policy_my-bucket5_st_State34_doc" 
   }
 }
 
-resource "aws_s3_bucket_policy" "aws_s3_bucket_policy_my-bucket5_st_State34" {
-  bucket                            = aws_s3_bucket.my-bucket5.id
-  policy                            = data.aws_iam_policy_document.aws_s3_bucket_policy_my-bucket5_st_State34_doc.json
+resource "aws_s3_bucket_policy" "aws_s3_bucket_policy_my-bucket-aghjklkksjjaaam_st_State34" {
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjjaaam.id
+  policy                            = data.aws_iam_policy_document.aws_s3_bucket_policy_my-bucket-aghjklkksjjaaam_st_State34_doc.json
 }
 
-resource "aws_s3_bucket_public_access_block" "my-bucket5_block" {
+resource "aws_s3_bucket_public_access_block" "my-bucket-aghjklkksjjaaam_block" {
   block_public_acls                 = true
   block_public_policy               = true
-  bucket                            = aws_s3_bucket.my-bucket5.id
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjjaaam.id
   ignore_public_acls                = true
   restrict_public_buckets           = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket5_configuration" {
-  bucket                            = aws_s3_bucket.my-bucket5.id
+resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket-aghjklkksjjaaam_configuration" {
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjjaaam.id
   expected_bucket_owner             = data.aws_caller_identity.current.account_id
   rule {
     bucket_key_enabled              = true
   }
 }
 
-resource "aws_s3_bucket_versioning" "my-bucket5_versioning" {
-  bucket                            = aws_s3_bucket.my-bucket5.id
+resource "aws_s3_bucket_versioning" "my-bucket-aghjklkksjjaaam_versioning" {
+  bucket                            = aws_s3_bucket.my-bucket-aghjklkksjjaaam.id
   versioning_configuration {
     mfa_delete                      = "Disabled"
     status                          = "Suspended"
