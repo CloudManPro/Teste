@@ -168,6 +168,9 @@ resource "aws_s3_bucket_public_access_block" "my-bucket5_block" {
 resource "aws_s3_bucket_server_side_encryption_configuration" "my-bucket5_configuration" {
   bucket                            = aws_s3_bucket.my-bucket5.id
   expected_bucket_owner             = data.aws_caller_identity.current.account_id
+  rule {
+    bucket_key_enabled              = true
+  }
 }
 
 resource "aws_s3_bucket_versioning" "my-bucket5_versioning" {
