@@ -352,23 +352,23 @@ resource "aws_s3_bucket_versioning" "my-bucket-aghjklkksjjaaam_versioning" {
 
 ### CATEGORY: COMPUTE ###
 
-data "archive_file" "archive_CloudMan_Function20" {
-  output_path                       = "${path.module}/CloudMan_Function20.zip"
-  source_dir                        = "${path.module}/.external_modules/CloudMan"
+data "archive_file" "archive_CloudManMainV2_Function20" {
+  output_path                       = "${path.module}/CloudManMainV2_Function20.zip"
+  source_dir                        = "${path.module}/.external_modules/CloudManMainV2"
   type                              = "zip"
 }
 
 resource "aws_lambda_function" "Function20" {
   function_name                     = "Function20"
   architectures                     = ["arm64"]
-  filename                          = "${data.archive_file.archive_CloudMan_Function20.output_path}"
+  filename                          = "${data.archive_file.archive_CloudManMainV2_Function20.output_path}"
   handler                           = "index.lambda_handler"
   memory_size                       = 3008
   publish                           = false
   reserved_concurrent_executions    = -1
   role                              = aws_iam_role.role_lambda_Function20.arn
   runtime                           = "python3.13"
-  source_code_hash                  = "${data.archive_file.archive_CloudMan_Function20.output_base64sha256}"
+  source_code_hash                  = "${data.archive_file.archive_CloudManMainV2_Function20.output_base64sha256}"
   timeout                           = 30
   environment {
     variables                       = {
