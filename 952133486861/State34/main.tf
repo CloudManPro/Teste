@@ -31,6 +31,10 @@ data "aws_region" "current" {}
 
 ### SYSTEM DATA SOURCES ###
 
+data "aws_route53_zone" "Cloudman2" {
+  name                              = "cloudman.pro"
+}
+
 data "aws_cloudfront_origin_request_policy" "policy_cors_s3origin" {
   name                              = "Managed-CORS-S3Origin"
 }
@@ -77,10 +81,62 @@ resource "aws_iam_role" "role_lambda_Function20" {
   }
 }
 
+resource "aws_acm_certificate" "Certificate5" {
+  domain_name                       = "testecog.cloudman.pro"
+  key_algorithm                     = "RSA_2048"
+  validation_method                 = "DNS"
+  tags                              = {
+    "Name" = "Certificate5"
+    "State" = "State34"
+    "CloudmanUser" = "GlobalUserName"
+  }
+}
+
+resource "aws_acm_certificate_validation" "Validation_Certificate5" {
+  certificate_arn                   = aws_acm_certificate.Certificate5.arn
+  validation_record_fqdns           = [for record in aws_route53_record.Route53_Record_Certificate5 : record.fqdn]
+}
+
 
 
 
 ### CATEGORY: NETWORK ###
+
+resource "aws_route53_record" "Route53_Record_Certificate5" {
+  for_each                          = {for dvo in aws_acm_certificate.Certificate5.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name,
+      record = dvo.resource_record_value,
+      type   = dvo.resource_record_type
+    }}
+  name                              = "${each.value.name}"
+  zone_id                           = data.aws_route53_zone.Cloudman2.zone_id
+  allow_overwrite                   = true
+  records                           = ["${each.value.record}"]
+  ttl                               = 300
+  type                              = "${each.value.type}"
+}
+
+resource "aws_route53_record" "alias_a_testecog1_to_CDN4" {
+  name                              = "testecog.cloudman.pro"
+  zone_id                           = data.aws_route53_zone.Cloudman2.zone_id
+  type                              = "A"
+  alias {
+    name                            = aws_cloudfront_distribution.CDN4.domain_name
+    zone_id                         = aws_cloudfront_distribution.CDN4.hosted_zone_id
+    evaluate_target_health          = false
+  }
+}
+
+resource "aws_route53_record" "alias_aaaa_testecog1_to_CDN4" {
+  name                              = "testecog.cloudman.pro"
+  zone_id                           = data.aws_route53_zone.Cloudman2.zone_id
+  type                              = "AAAA"
+  alias {
+    name                            = aws_cloudfront_distribution.CDN4.domain_name
+    zone_id                         = aws_cloudfront_distribution.CDN4.hosted_zone_id
+    evaluate_target_health          = false
+  }
+}
 
 resource "aws_api_gateway_deployment" "Deploy3" {
   rest_api_id                       = aws_api_gateway_rest_api.RestAPI4.id
@@ -216,6 +272,7 @@ resource "aws_api_gateway_stage" "st" {
 }
 
 resource "aws_cloudfront_distribution" "CDN4" {
+  aliases                           = ["testecog.cloudman.pro"]
   default_root_object               = "index.html"
   enabled                           = true
   http_version                      = "http2and3"
@@ -265,7 +322,10 @@ resource "aws_cloudfront_distribution" "CDN4" {
     "CloudmanUser" = "GlobalUserName"
   }
   viewer_certificate {
-    cloudfront_default_certificate  = true
+    acm_certificate_arn             = aws_acm_certificate.Certificate5.arn
+    cloudfront_default_certificate  = false
+    minimum_protocol_version        = "TLSv1.2_2021"
+    ssl_support_method              = "sni-only"
   }
 }
 
