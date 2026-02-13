@@ -1,17 +1,17 @@
 {
   "external_repositories": [
     {
-      "repo_name": "CloudManMain",
+      "repo_name": "CloudMan",
       "org": "CloudManPro",
       "branch": "main",
-      "target_dir": ".external_modules/CloudManMain",
+      "target_dir": ".external_modules/CloudMan",
       "folders": [
-        "LambdaFiles/GitHubAuthServiceLambda"
+        "LambdaFiles/LambdaHub2"
       ]
     }
   ],
   "action": "apply",
-  "trigger_id": "1770947040729",
+  "trigger_id": "1770948304769",
   "backend_global_config": {
     "provider": "aws",
     "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
