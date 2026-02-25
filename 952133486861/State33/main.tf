@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.0.0"
 
   required_providers {
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4.2"
+    }
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
@@ -19,75 +23,69 @@ terraform {
 
 # --- Main Cloud Provider ---
 provider "aws" {
-  region = "eu-west-3"
+  region = "us-east-1"
 }
 
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-### CATEGORY: MISC ###
+### CATEGORY: IAM ###
 
-resource "aws_cognito_user_pool" "Cog1" {
-  name                              = "Cog1"
-  auto_verified_attributes          = ["email"]
-  deletion_protection               = "INACTIVE"
-  mfa_configuration                 = "OFF"
-  password_policy {
-    minimum_length                  = 8
-    require_lowercase               = true
-    require_numbers                 = true
-    require_symbols                 = true
-    require_uppercase               = true
-    temporary_password_validity_days = 7
-  }
-  schema {
-    name                            = "stage"
-    attribute_data_type             = "String"
-    developer_only_attribute        = false
-    mutable                         = true
-    required                        = false
-    string_attribute_constraints {
-      max_length                    = "20"
-      min_length                    = "2"
+resource "aws_iam_role" "role_lambda_Function19" {
+  name                              = "role_lambda_Function19"
+  assume_role_policy                = jsonencode({
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      }
     }
-  }
-  sign_in_policy {
-    allowed_first_auth_factors      = ["PASSWORD"]
-  }
+  ]
+})
   tags                              = {
-    "Name" = "Cog1"
+    "Name" = "role_lambda_Function19"
     "State" = "State33"
-    "CloudmanUser" = "GlobalUserName"
-  }
-  username_configuration {
-    case_sensitive                  = true
-  }
-  verification_message_template {
-    default_email_option            = "CONFIRM_WITH_CODE"
+    "CloudmanUser" = "TestesCloudMap"
   }
 }
 
-resource "aws_cognito_user_pool_client" "Cog1" {
-  name                              = "Cog1"
-  user_pool_id                      = aws_cognito_user_pool.Cog1.id
-  access_token_validity             = 12
-  allowed_oauth_flows               = ["code"]
-  allowed_oauth_flows_user_pool_client = true
-  allowed_oauth_scopes              = ["openid", "email", "profile"]
-  auth_session_validity             = 3
-  callback_urls                     = ["https://cloudman.pro"]
-  enable_propagate_additional_user_context_data = false
-  enable_token_revocation           = true
-  explicit_auth_flows               = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]
-  generate_secret                   = true
-  id_token_validity                 = 12
-  prevent_user_existence_errors     = "ENABLED"
-  refresh_token_validity            = 12
-  supported_identity_providers      = ["COGNITO"]
-  token_validity_units {
-    access_token                    = "hours"
-    id_token                        = "hours"
-    refresh_token                   = "hours"
+
+
+
+### CATEGORY: COMPUTE ###
+
+data "archive_file" "archive_CloudMan_Function19" {
+  output_path                       = "${path.module}/CloudMan_Function19.zip"
+  source_dir                        = "${path.module}/.external_modules/CloudMan/LambdaFiles/LambdaHub2"
+  type                              = "zip"
+}
+
+resource "aws_lambda_function" "Function19" {
+  function_name                     = "Function19"
+  architectures                     = ["arm64"]
+  filename                          = "${data.archive_file.archive_CloudMan_Function19.output_path}"
+  handler                           = "LambdaHub2.lambda_handler"
+  memory_size                       = 3008
+  publish                           = false
+  reserved_concurrent_executions    = -1
+  role                              = aws_iam_role.role_lambda_Function19.arn
+  runtime                           = "python3.13"
+  source_code_hash                  = "${data.archive_file.archive_CloudMan_Function19.output_base64sha256}"
+  timeout                           = 30
+  environment {
+    variables                       = {
+    "REGION" = data.aws_region.current.name
+    "ACCOUNT" = data.aws_caller_identity.current.account_id
+    "NAME" = "Function19"
+  }
+  }
+  tags                              = {
+    "Name" = "Function19"
+    "State" = "State33"
+    "CloudmanUser" = "TestesCloudMap"
   }
 }
 
