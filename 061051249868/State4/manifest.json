@@ -1,21 +1,12 @@
 {
-  "external_repositories": [
-    {
-      "repo_name": "CloudManMain",
-      "org": "CloudManPro",
-      "branch": "main",
-      "target_dir": ".external_modules/CloudManMain",
-      "folders": [
-        "LambdaFiles/Agent"
-      ]
-    }
-  ],
-  "action": "apply",
-  "trigger_id": "1770285362689",
+  "external_repositories": [],
+  "action": "destroy",
+  "trigger_id": "1784031850454",
   "backend_global_config": {
     "provider": "aws",
-    "role_arn": "arn:aws:iam::952133486861:role/CloudMan-Gitops-CloudManPro-Teste",
-    "region": "us-east-1"
+    "role_arn": "arn:aws:iam::952133486861:role/Struct8-Gitops-CloudManPro-Teste",
+    "region": "us-east-1",
+    "bucket": "bucket-teste-backend-terraform"
   },
   "pipeline_stages": [
     {
@@ -26,8 +17,9 @@
           "path": "061051249868/State4",
           "provider": "aws",
           "target_auth": {
-            "role_arn": "arn:aws:iam::061051249868:role/CloudMan-Gitops-CloudManPro-Teste",
-            "region": "us-east-1"
+            "role_arn": "arn:aws:iam::061051249868:role/Struct8-Gitops-CloudManPro-Teste",
+            "region": "us-east-1",
+            "secret_name": "AUTH_AWS_061051249868"
           }
         }
       ]
